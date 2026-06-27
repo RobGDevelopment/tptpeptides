@@ -2,11 +2,11 @@
 
 import Link from 'next/link';
 import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
-import type { SystemMapNode } from '../../../lib/data/systemMapNodes';
+import type { SystemNode } from '../../../lib/admin/systemMapConfig';
 import { cn } from '../../../lib/utils/cn';
 
 interface SystemMapDetailPanelProps {
-  node: SystemMapNode | null;
+  node: SystemNode | null;
 }
 
 function Section({
