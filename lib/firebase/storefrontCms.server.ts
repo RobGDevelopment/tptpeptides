@@ -26,8 +26,8 @@ const CMS = {
   settings: 'cms/settings',
   homepage: 'cms/homepage',
   categories: 'cms/categories',
-  research: 'cms/researchArticles',
-  protocols: 'cms/protocols',
+  research: 'researchArticles',
+  protocols: 'protocols',
 } as const;
 
 async function readDoc<T>(

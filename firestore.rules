@@ -63,11 +63,11 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
-    match /cms/researchArticles/{slug} {
+    match /researchArticles/{slug} {
       allow read, write: if isAdmin();
     }
 
-    match /cms/protocols/{id} {
+    match /protocols/{id} {
       allow read, write: if isAdmin();
     }
   }

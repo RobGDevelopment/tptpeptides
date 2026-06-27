@@ -14,8 +14,8 @@ Admin-managed content for the consumer-facing storefront. All reads on the publi
 | `cms/settings` | Hero copy, CTAs, footer tagline |
 | `cms/homepage` | Featured grid title, subtitle, slug list, limit |
 | `cms/categories` | Category display names, sort order, visibility |
-| `cms/researchArticles/{slug}` | Research note articles |
-| `cms/protocols/{id}` | Protocol template panels |
+| `researchArticles/{slug}` | Research note articles |
+| `protocols/{id}` | Protocol template panels |
 
 ## Admin tabs
 
