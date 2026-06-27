@@ -1,0 +1,243 @@
+[
+  {
+    "id": "5-amino-1mq",
+    "name": "5-Amino-1MQ",
+    "category": "Metabolic Pathway Research",
+    "description": "Studied as an NNMT inhibitor in cell-based assays of metabolic enzyme activity and cellular energy metabolism. For laboratory research purposes only. Not for human or veterinary use.",
+    "researchAreas": ["NNMT inhibition", "Metabolic enzyme assays", "Cellular energy models"],
+    "variants": [
+      { "id": "5-amino-1mq-10mg", "dose": "10mg", "baseCost": 10.5, "retailPrice": null },
+      { "id": "5-amino-1mq-60mg", "dose": "60mg", "baseCost": null, "retailPrice": 55.0 },
+      { "id": "5-amino-1mq-90-units", "dose": "90 × 25mg units", "baseCost": null, "retailPrice": 100.0 }
+    ]
+  },
+  {
+    "id": "aod-9604",
+    "name": "AOD-9604",
+    "category": "Lipid Metabolism Research",
+    "description": "Growth hormone fragment studied in adipocyte lipid-handling and receptor-selectivity assays. For laboratory research purposes only. Not for human or veterinary use.",
+    "researchAreas": ["Adipocyte assays", "Lipid metabolism models", "Receptor selectivity"],
+    "variants": [
+      { "id": "aod-9604-2mg", "dose": "2mg", "baseCost": 10.5, "retailPrice": 35.0 },
+      { "id": "aod-9604-5mg", "dose": "5mg", "baseCost": 21.0, "retailPrice": 100.0 }
+    ]
+  },
+  {
+    "id": "ara-290",
+    "name": "ARA-290",
+    "category": "Neuronal & Tissue Research",
+    "description": "Investigational peptide studied in neuronal cell-line signaling, inflammatory marker modulation, and extracellular matrix research models. For laboratory research purposes only. Not for human or veterinary use.",
+    "researchAreas": ["Neuronal cell models", "Inflammatory markers", "ECM assays"],
+    "variants": [
+      { "id": "ara-290-12mg", "dose": "12mg", "baseCost": 21.0, "retailPrice": 100.0 }
+    ]
+  },
+  {
+    "id": "bpc-157",
+    "name": "BPC-157",
+    "category": "Connective Tissue Research",
+    "description": "Widely studied peptide in connective tissue, tendon, ligament, musculoskeletal, and gastrointestinal cell-line models. For laboratory research purposes only. Not for human or veterinary use.",
+    "researchAreas": ["ECM remodeling", "Fibroblast assays", "GI cell models"],
+    "variants": [
+      { "id": "bpc-157-2mg", "dose": "2mg", "baseCost": 5.25, "retailPrice": 40.0 },
+      { "id": "bpc-157-5mg", "dose": "5mg", "baseCost": 8.75, "retailPrice": 65.0 },
+      { "id": "bpc-157-10mg", "dose": "10mg", "baseCost": 15.75, "retailPrice": 75.0 },
+      { "id": "bpc-157-20mg", "dose": "20mg", "baseCost": 21.0, "retailPrice": null }
+    ]
+  },
+  {
+    "id": "bpc-157-tb-500",
+    "name": "BPC-157 / TB-500",
+    "category": "Connective Tissue Blend",
+    "description": "Multi-peptide blend commonly evaluated in soft-tissue extracellular matrix and fibroblast migration assays. For laboratory research purposes only. Not for human or veterinary use.",
+    "researchAreas": ["Soft-tissue models", "Fibroblast migration", "ECM synthesis"],
+    "variants": [
+      { "id": "bpc-tb-5-5", "dose": "5/5mg", "baseCost": 24.5, "retailPrice": null },
+      { "id": "bpc-tb-10-10", "dose": "10/10mg", "baseCost": 42.0, "retailPrice": 75.0 },
+      { "id": "bpc-tb-12-12", "dose": "12/12mg", "baseCost": 52.5, "retailPrice": null }
+    ]
+  },
+  {
+    "id": "cagrilintide",
+    "name": "Cagrilintide",
+    "category": "Metabolic Receptor Research",
+    "description": "Amylin analogue studied in satiety-pathway and metabolic receptor signaling assays. For laboratory research purposes only. Not for human or veterinary use.",
+    "researchAreas": ["Amylin receptor assays", "Metabolic signaling", "Cell-based pharmacology"],
+    "variants": [
+      { "id": "cagrilintide-5mg", "dose": "5mg", "baseCost": 14.0, "retailPrice": 125.0 },
+      { "id": "cagrilintide-10mg", "dose": "10mg", "baseCost": 28.0, "retailPrice": 200.0 }
+    ]
+  },
+  {
+    "id": "cjc-1295-dac",
+    "name": "CJC-1295 w/ DAC",
+    "category": "Somatotropic Axis Research",
+    "description": "Long-acting GHRH analogue used in pituitary cell-line and somatotropic receptor kinetics studies. For laboratory research purposes only. Not for human or veterinary use.",
+    "researchAreas": ["GHRH receptor assays", "Pituitary cell lines", "Secretagogue kinetics"],
+    "variants": [
+      { "id": "cjc-dac-2mg", "dose": "2mg", "baseCost": 10.5, "retailPrice": 50.0 },
+      { "id": "cjc-dac-5mg", "dose": "5mg", "baseCost": null, "retailPrice": 80.0 }
+    ]
+  },
+  {
+    "id": "cjc-1295-no-dac",
+    "name": "CJC-1295 w/o DAC",
+    "category": "Somatotropic Axis Research",
+    "description": "Short-acting GHRH analogue frequently co-studied with selective secretagogues in receptor-binding assays. For laboratory research purposes only. Not for human or veterinary use.",
+    "researchAreas": ["GHRH receptor binding", "Pituitary cell models", "Assay controls"],
+    "variants": [
+      { "id": "cjc-nodac-2mg", "dose": "2mg", "baseCost": 7.0, "retailPrice": null },
+      { "id": "cjc-nodac-5mg", "dose": "5mg", "baseCost": 10.5, "retailPrice": null },
+      { "id": "cjc-nodac-10mg", "dose": "10mg", "baseCost": 17.5, "retailPrice": null }
+    ]
+  },
+  {
+    "id": "cjc-ipamorelin",
+    "name": "CJC / Ipamorelin",
+    "category": "Somatotropic Axis Blend",
+    "description": "Commonly co-studied GHRH and GH secretagogue blend for pituitary cell-line receptor occupancy and signaling assays. For laboratory research purposes only. Not for human or veterinary use.",
+    "researchAreas": ["GH secretagogue assays", "Receptor occupancy", "Pituitary cell lines"],
+    "variants": [
+      { "id": "cjc-ipa-5-5", "dose": "5/5mg", "baseCost": 31.5, "retailPrice": 80.0 }
+    ]
+  },
+  {
+    "id": "dsip",
+    "name": "DSIP",
+    "category": "Neuroendocrine Research",
+    "description": "Peptide studied in neuronal cultures for sleep-regulatory signaling and circadian pathway research. For laboratory research purposes only. Not for human or veterinary use.",
+    "researchAreas": ["Neuronal cultures", "Circadian signaling", "Neuroendocrine assays"],
+    "variants": [
+      { "id": "dsip-5mg", "dose": "5mg", "baseCost": 14.0, "retailPrice": null },
+      { "id": "dsip-10mg", "dose": "10mg", "baseCost": 21.0, "retailPrice": 50.0 }
+    ]
+  },
+  {
+    "id": "epithalon",
+    "name": "Epithalon",
+    "category": "Cellular Senescence Research",
+    "description": "Tetrapeptide studied in senescence-associated pathway and telomere-related cell culture models. For laboratory research purposes only. Not for human or veterinary use.",
+    "researchAreas": ["Senescence pathways", "Telomere assays", "Cell proliferation models"],
+    "variants": [
+      { "id": "epithalon-10mg", "dose": "10mg", "baseCost": 10.5, "retailPrice": 50.0 },
+      { "id": "epithalon-50mg", "dose": "50mg", "baseCost": 42.0, "retailPrice": null },
+      { "id": "epithalon-100mg", "dose": "100mg", "baseCost": 63.0, "retailPrice": null }
+    ]
+  },
+  {
+    "id": "ghk-cu",
+    "name": "GHK-Cu",
+    "category": "Dermal & Connective Tissue Research",
+    "description": "Copper peptide investigated in dermal fibroblast, keratinocyte, and extracellular matrix synthesis assays. For laboratory research purposes only. Not for human or veterinary use.",
+    "researchAreas": ["Fibroblast assays", "Keratinocyte models", "ECM synthesis"],
+    "variants": [
+      { "id": "ghk-cu-50mg", "dose": "50mg", "baseCost": 8.75, "retailPrice": 40.0 },
+      { "id": "ghk-cu-100mg", "dose": "100mg", "baseCost": 14.0, "retailPrice": 75.0 }
+    ]
+  },
+  {
+    "id": "glow-blend",
+    "name": "GLOW Blend",
+    "category": "Research Compound Blend",
+    "description": "Multi-peptide research blend (BPC-157, TB-500, GHK-Cu) for dermal ECM and fibroblast co-culture assays. For laboratory research purposes only. Not for human or veterinary use.",
+    "researchAreas": ["Dermal ECM models", "Fibroblast co-culture", "Multi-peptide assays"],
+    "variants": [
+      { "id": "glow-11-11-75", "dose": "11/11/75mg", "baseCost": 42.0, "retailPrice": 180.0 }
+    ]
+  },
+  {
+    "id": "klow-blend",
+    "name": "KLOW Blend",
+    "category": "Research Compound Blend",
+    "description": "Multi-peptide research blend combining GHK-Cu, KPV, BPC-157, and TB-500 for connective tissue and inflammatory marker assays. For laboratory research purposes only. Not for human or veterinary use.",
+    "researchAreas": ["Connective tissue models", "Inflammatory markers", "Multi-peptide assays"],
+    "variants": [
+      { "id": "klow-12-12-12-60", "dose": "12/12/12/60mg", "baseCost": 49.0, "retailPrice": 185.0 }
+    ]
+  },
+  {
+    "id": "ipamorelin",
+    "name": "Ipamorelin",
+    "category": "Somatotropic Axis Research",
+    "description": "Selective GH secretagogue studied in pituitary cell-line receptor binding and downstream signaling assays. For laboratory research purposes only. Not for human or veterinary use.",
+    "researchAreas": ["GH secretagogue assays", "Pituitary cell lines", "Receptor selectivity"],
+    "variants": [
+      { "id": "ipamorelin-2mg", "dose": "2mg", "baseCost": 10.5, "retailPrice": null },
+      { "id": "ipamorelin-5mg", "dose": "5mg", "baseCost": 14.0, "retailPrice": null },
+      { "id": "ipamorelin-10mg", "dose": "10mg", "baseCost": 15.75, "retailPrice": 90.0 }
+    ]
+  },
+  {
+    "id": "mots-c",
+    "name": "MOTS-C",
+    "category": "Cellular Energy Research",
+    "description": "Mitochondrial-derived peptide studied in myocyte and mitochondrial function assays under controlled culture conditions. For laboratory research purposes only. Not for human or veterinary use.",
+    "researchAreas": ["Mitochondrial assays", "Myocyte cell lines", "Energy metabolism models"],
+    "variants": [
+      { "id": "mots-c-10mg", "dose": "10mg", "baseCost": 24.5, "retailPrice": 65.0 },
+      { "id": "mots-c-40mg", "dose": "40mg", "baseCost": 87.5, "retailPrice": 225.0 },
+      { "id": "mots-c-60mg", "dose": "60mg", "baseCost": 122.5, "retailPrice": null }
+    ]
+  },
+  {
+    "id": "nad-plus",
+    "name": "NAD+",
+    "category": "Cellular Biochemistry Research",
+    "description": "Coenzyme substrate used in cellular energy metabolism and redox biochemistry research protocols. For laboratory research purposes only. Not for human or veterinary use.",
+    "researchAreas": ["Redox biochemistry", "Energy metabolism", "Cell culture substrates"],
+    "variants": [
+      { "id": "nad-500mg", "dose": "500mg", "baseCost": 10.5, "retailPrice": 150.0 },
+      { "id": "nad-1000mg", "dose": "1000mg", "baseCost": 17.5, "retailPrice": null }
+    ]
+  },
+  {
+    "id": "retatrutide",
+    "name": "Retatrutide",
+    "category": "Incretin Receptor Research",
+    "description": "Triple receptor agonist studied in cell-based models of incretin and metabolic receptor pharmacology. For laboratory research purposes only. Not for human or veterinary use.",
+    "researchAreas": ["Incretin signaling", "Metabolic receptor assays", "Cell-based pharmacology"],
+    "variants": [
+      { "id": "retatrutide-10mg", "dose": "10mg", "baseCost": 31.5, "retailPrice": 225.0 },
+      { "id": "retatrutide-20mg", "dose": "20mg", "baseCost": 45.5, "retailPrice": 300.0 },
+      { "id": "retatrutide-30mg", "dose": "30mg", "baseCost": 59.5, "retailPrice": 375.0 }
+    ]
+  },
+  {
+    "id": "semaglutide",
+    "name": "Semaglutide",
+    "category": "Incretin Receptor Research",
+    "description": "GLP-1 receptor agonist studied in cell-based models of incretin signaling and metabolic receptor pharmacology. For laboratory research purposes only. Not for human or veterinary use.",
+    "researchAreas": ["GLP-1 receptor assays", "Incretin signaling", "Metabolic pharmacology"],
+    "variants": [
+      { "id": "semaglutide-2mg", "dose": "2mg", "baseCost": 8.75, "retailPrice": 65.0 },
+      { "id": "semaglutide-5mg", "dose": "5mg", "baseCost": 13.3, "retailPrice": 150.0 },
+      { "id": "semaglutide-10mg", "dose": "10mg", "baseCost": 24.5, "retailPrice": 250.0 }
+    ]
+  },
+  {
+    "id": "tb-500",
+    "name": "TB-500 (Thymosin β4)",
+    "category": "Connective Tissue Research",
+    "description": "Synthetic peptide studied in cytoskeletal motility and extracellular matrix remodeling cell culture models. For laboratory research purposes only. Not for human or veterinary use.",
+    "researchAreas": ["Cytoskeletal motility", "ECM remodeling", "Cell migration assays"],
+    "variants": [
+      { "id": "tb-500-2mg", "dose": "2mg", "baseCost": 8.75, "retailPrice": 20.0 },
+      { "id": "tb-500-5mg", "dose": "5mg", "baseCost": 12.25, "retailPrice": null },
+      { "id": "tb-500-10mg", "dose": "10mg", "baseCost": 21.0, "retailPrice": 85.0 }
+    ]
+  },
+  {
+    "id": "tirzepatide",
+    "name": "Tirzepatide",
+    "category": "Incretin Receptor Research",
+    "description": "Dual GIP/GLP-1 receptor agonist studied in cell-based models of incretin signaling and metabolic receptor pharmacology. For laboratory research purposes only. Not for human or veterinary use.",
+    "researchAreas": ["GIP/GLP-1 receptor assays", "Incretin signaling", "Metabolic pharmacology"],
+    "variants": [
+      { "id": "tirzepatide-5mg", "dose": "5mg", "baseCost": 14.0, "retailPrice": 115.0 },
+      { "id": "tirzepatide-10mg", "dose": "10mg", "baseCost": 21.0, "retailPrice": 225.0 },
+      { "id": "tirzepatide-15mg", "dose": "15mg", "baseCost": 31.5, "retailPrice": 250.0 },
+      { "id": "tirzepatide-30mg", "dose": "30mg", "baseCost": 49.0, "retailPrice": 350.0 },
+      { "id": "tirzepatide-60mg", "dose": "60mg", "baseCost": 94.5, "retailPrice": 500.0 }
+    ]
+  }
+]

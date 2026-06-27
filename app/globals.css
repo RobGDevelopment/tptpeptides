@@ -1,0 +1,286 @@
+@import "tailwindcss";
+
+/* ─── Phase H: TPT Peptides design system ─── */
+
+@property --beam-offset {
+  syntax: '<percentage>';
+  initial-value: 0%;
+  inherits: false;
+}
+
+@theme {
+  --color-void: oklch(0.11 0.008 260);
+  --color-surface: oklch(0.15 0.01 260);
+  --color-surface-elevated: oklch(0.18 0.012 260);
+
+  --color-primary: oklch(0.94 0.008 260);
+  --color-secondary: oklch(0.62 0.015 260);
+  --color-muted: oklch(0.48 0.015 260);
+
+  --color-gold-deep: oklch(0.58 0.06 85);
+  --color-gold: oklch(0.72 0.07 88);
+  --color-gold-light: oklch(0.82 0.05 92);
+
+  --font-display: var(--font-inter), system-ui, sans-serif;
+
+  --tracking-caps: 0.22em;
+  --tracking-title: 0.1em;
+
+  --animate-beam-drift: beam-drift 16s linear infinite;
+  --animate-beam-drift-v: beam-drift-v 16s linear infinite;
+}
+
+@keyframes beam-drift {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -20% 0;
+  }
+}
+
+@keyframes beam-drift-v {
+  0% {
+    background-position: 0 120%;
+  }
+  100% {
+    background-position: 0 -20%;
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-void text-primary antialiased;
+    font-family: var(--font-display);
+    font-weight: 300;
+    background-image: radial-gradient(
+      ellipse 80% 55% at 50% 0%,
+      oklch(0.16 0.012 75 / 0.35),
+      transparent 70%
+    );
+    background-attachment: fixed;
+  }
+
+  :focus-visible {
+    outline: 1px solid oklch(0.72 0.07 88 / 0.55);
+    outline-offset: 2px;
+  }
+
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  ::selection {
+    background: oklch(0.72 0.06 85 / 0.25);
+    color: oklch(0.98 0.005 260);
+  }
+}
+
+@layer utilities {
+  .tracking-caps {
+    letter-spacing: var(--tracking-caps);
+  }
+
+  .tracking-title {
+    letter-spacing: var(--tracking-title);
+  }
+
+  /* Static brushed metallic — no animation */
+  .metallic-gold {
+    background: linear-gradient(
+      105deg,
+      oklch(0.62 0.05 85) 0%,
+      oklch(0.82 0.07 90) 45%,
+      oklch(0.68 0.05 80) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .metallic-beam-h {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      oklch(0.72 0.06 85 / 0.12) 25%,
+      oklch(0.78 0.07 88 / 0.38) 50%,
+      oklch(0.72 0.06 85 / 0.12) 75%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: var(--animate-beam-drift);
+  }
+
+  .metallic-beam-v {
+    width: 1px;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      oklch(0.72 0.06 85 / 0.12) 30%,
+      oklch(0.78 0.07 88 / 0.38) 50%,
+      oklch(0.72 0.06 85 / 0.12) 70%,
+      transparent 100%
+    );
+    background-size: 100% 200%;
+    animation: var(--animate-beam-drift-v);
+  }
+
+  .metallic-beam-top {
+    height: 1px;
+    width: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      oklch(0.55 0.04 200 / 0.08) 20%,
+      oklch(0.72 0.06 85 / 0.28) 50%,
+      oklch(0.55 0.04 200 / 0.08) 80%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: var(--animate-beam-drift);
+  }
+
+  .terminal-link {
+    @apply text-secondary tracking-caps uppercase text-xs font-medium transition-colors duration-200;
+  }
+
+  .terminal-link:hover {
+    color: oklch(0.78 0.07 88);
+  }
+
+  .terminal-link::after {
+    content: ' →';
+    opacity: 0;
+    transition: opacity 200ms ease;
+  }
+
+  .terminal-link:hover::after {
+    opacity: 1;
+  }
+
+  .terminal-input {
+    @apply w-full bg-transparent border-0 border-b border-white/[0.08] px-0 py-3 text-sm text-primary font-light;
+    @apply placeholder:text-muted/60 focus:outline-none focus:border-gold/40 transition-colors duration-200;
+  }
+
+  .terminal-select {
+    @apply w-full bg-transparent border-0 border-b border-white/[0.08] px-0 py-3 text-sm text-primary font-light;
+    @apply focus:outline-none focus:border-gold/40 transition-colors duration-200 appearance-none cursor-pointer;
+  }
+
+  .terminal-variant-row {
+    @apply flex justify-between items-center w-full py-4 text-left border-b border-white/[0.06];
+    @apply transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .terminal-variant-row[data-selected='true'] {
+    @apply text-primary;
+  }
+
+  .terminal-variant-row[data-selected='true'] .variant-price {
+    background: linear-gradient(
+      105deg,
+      oklch(0.62 0.05 85) 0%,
+      oklch(0.82 0.07 90) 45%,
+      oklch(0.68 0.05 80) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .terminal-variant-row:not([data-selected='true']):hover {
+    @apply text-secondary;
+  }
+
+  .catalog-grid-item {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 480px;
+  }
+
+  .admin-heading {
+    @apply text-2xl md:text-3xl font-light text-primary tracking-title uppercase;
+  }
+
+  .admin-subheading {
+    @apply text-sm text-secondary font-light mt-1;
+  }
+
+  .admin-stat {
+    @apply bg-surface/40 backdrop-blur-sm p-6;
+  }
+
+  .admin-table-section {
+    @apply bg-surface/30 overflow-hidden;
+  }
+
+  .admin-table {
+    @apply w-full text-sm;
+  }
+
+  .admin-table thead {
+    @apply text-left text-muted uppercase text-[10px] tracking-caps;
+  }
+
+  .admin-table thead tr {
+    @apply border-b border-white/[0.06];
+  }
+
+  .admin-table tbody tr {
+    @apply border-b border-white/[0.04] transition-colors duration-200;
+  }
+
+  .admin-table tbody tr:hover {
+    @apply bg-surface/25;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    @apply p-4 font-light;
+  }
+
+  .admin-filter {
+    @apply text-[10px] tracking-caps uppercase px-3 py-2 transition-colors duration-200;
+  }
+
+  .admin-filter-active {
+    @apply text-gold-light;
+  }
+
+  .admin-filter-inactive {
+    @apply text-muted hover:text-secondary;
+  }
+
+  .admin-banner {
+    @apply border-b border-gold/20 text-gold-light text-sm py-3 font-light;
+  }
+}
+
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.2s;
+  animation-timing-function: ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .metallic-beam-h,
+  .metallic-beam-v,
+  .metallic-beam-top {
+    animation: none;
+    background-position: center;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
