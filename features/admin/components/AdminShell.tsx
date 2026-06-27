@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { href: '/admin/inventory', label: 'Inventory' },
   { href: '/admin/users', label: 'Users' },
   { href: '/admin/modules', label: 'Modules' },
+  { href: '/admin/system-map', label: 'Master Map' },
   { href: '/admin/audit', label: 'Audit Logs' },
 ];
 

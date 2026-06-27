@@ -431,6 +431,53 @@
     opacity: 1;
     transform: translateY(0);
   }
+
+  .system-map-graph {
+    background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(191, 149, 63, 0.03), transparent 70%);
+  }
+
+  .system-map-starfield {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+    background-size: 48px 48px;
+    opacity: 0.25;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 85%);
+  }
+
+  .system-map-panel {
+    background: rgba(10, 10, 10, 0.95);
+    backdrop-filter: blur(12px);
+    min-height: 100%;
+  }
+
+  .system-map-edge-beam {
+    stroke-dasharray: 12 88;
+    animation: system-map-beam-travel 1.8s linear infinite;
+  }
+
+  .system-map-node-pulse {
+    animation: system-map-node-pulse 2.5s ease-in-out infinite;
+  }
+
+  @keyframes system-map-beam-travel {
+    0% {
+      stroke-dashoffset: 100;
+    }
+    100% {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes system-map-node-pulse {
+    0%,
+    100% {
+      opacity: 0.5;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.85;
+      transform: scale(1.06);
+    }
+  }
 }
 
 @view-transition {
@@ -477,5 +524,10 @@
 
   .mobile-nav-panel {
     transition: none !important;
+  }
+
+  .system-map-edge-beam,
+  .system-map-node-pulse {
+    animation: none;
   }
 }
