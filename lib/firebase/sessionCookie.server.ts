@@ -27,19 +27,24 @@ export async function createAuthSessionCookie(idToken: string): Promise<string |
 export async function verifyAuthSessionCookie(token: string): Promise<VerifiedSession | null> {
   if (!isAdminSdkConfigured() || !token.trim()) return null;
 
-  const auth = getAdminAuth();
   const decodedToken = decodeURIComponent(token);
 
   try {
-    const decoded = await auth.verifySessionCookie(decodedToken, true);
-    return { uid: decoded.uid, email: decoded.email };
-  } catch {
-    // Legacy deployments stored the raw Firebase id token in this cookie.
+    const auth = getAdminAuth();
     try {
-      const decoded = await auth.verifyIdToken(decodedToken, true);
+      const decoded = await auth.verifySessionCookie(decodedToken, true);
       return { uid: decoded.uid, email: decoded.email };
     } catch {
-      return null;
+      // Legacy deployments stored the raw Firebase id token in this cookie.
+      try {
+        const decoded = await auth.verifyIdToken(decodedToken, true);
+        return { uid: decoded.uid, email: decoded.email };
+      } catch {
+        return null;
+      }
     }
+  } catch (error) {
+    console.error('[auth] verifyAuthSessionCookie failed', error);
+    return null;
   }
 }

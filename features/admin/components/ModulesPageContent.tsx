@@ -5,6 +5,7 @@ import { MODULE_FLAG_GROUPS, type ModuleFlagKey, type ModuleFlags } from '../../
 import { AdminPageHeader } from '../../../components/ui/AdminPageHeader';
 import { TerminalPanel } from '../../../components/ui/TerminalPanel';
 import { Spinner } from '../../../components/ui/Spinner';
+import { adminFetchJson } from '../../../lib/admin/adminFetch.client';
 import { cn } from '../../../lib/utils/cn';
 
 export function ModulesPageContent() {
@@ -15,8 +16,9 @@ export function ModulesPageContent() {
 
   const loadFlags = useCallback(async () => {
     setError('');
-    const response = await fetch('/api/admin/modules');
-    const data = (await response.json()) as { flags?: ModuleFlags; error?: string };
+    const { response, data } = await adminFetchJson<{ flags?: ModuleFlags; error?: string }>(
+      '/api/admin/modules'
+    );
     if (!response.ok) {
       setError(data.error ?? 'Unable to load modules');
       setLoading(false);
@@ -37,13 +39,14 @@ export function ModulesPageContent() {
     setSavingKey(key);
     setFlags({ ...flags, [key]: nextValue });
 
-    const response = await fetch('/api/admin/modules', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ [key]: nextValue }),
-    });
-
-    const data = (await response.json()) as { flags?: ModuleFlags; error?: string };
+    const { response, data } = await adminFetchJson<{ flags?: ModuleFlags; error?: string }>(
+      '/api/admin/modules',
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [key]: nextValue }),
+      }
+    );
     setSavingKey(null);
 
     if (!response.ok) {

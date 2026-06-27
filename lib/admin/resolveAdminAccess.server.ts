@@ -30,8 +30,13 @@ export async function resolveServerAdminAccess(params: {
     }
   }
 
-  const userDoc = await getAdminFirestore().collection('users').doc(params.uid).get();
-  const data = userDoc.data();
-  if (data?.disabled === true) return false;
-  return normalizeUserRole(data?.role as string | undefined) === 'admin';
+  try {
+    const userDoc = await getAdminFirestore().collection('users').doc(params.uid).get();
+    const data = userDoc.data();
+    if (data?.disabled === true) return false;
+    return normalizeUserRole(data?.role as string | undefined) === 'admin';
+  } catch (error) {
+    console.error('[admin] resolveServerAdminAccess Firestore lookup failed', error);
+    return false;
+  }
 }

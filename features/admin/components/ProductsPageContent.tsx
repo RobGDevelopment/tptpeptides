@@ -1,5 +1,6 @@
 'use client';
 
+import { adminFetch } from '../../../lib/admin/adminFetch.client';
 import { collection, onSnapshot, query } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { db } from '../../../lib/firebase/firestore';
@@ -38,7 +39,7 @@ export function ProductsPageContent() {
     setSeeding(true);
     setSeedMessage('');
     try {
-      const response = await fetch('/api/admin/seed', { method: 'POST' });
+      const response = await adminFetch('/api/admin/seed', { method: 'POST' });
       const data = (await response.json()) as { message?: string; error?: string };
       setSeedMessage(response.ok ? (data.message ?? 'Seed complete') : (data.error ?? 'Seed failed'));
     } catch {

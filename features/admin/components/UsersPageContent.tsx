@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { adminFetch } from '../../../lib/admin/adminFetch.client';
 import { Spinner } from '../../../components/ui/Spinner';
 import { Button } from '../../../components/ui/Button';
 import { AdminPageHeader } from '../../../components/ui/AdminPageHeader';
@@ -190,7 +191,7 @@ export function UsersPageContent() {
 
   const loadUsers = useCallback(async () => {
     setMessage('');
-    const response = await fetch('/api/admin/users');
+    const response = await adminFetch('/api/admin/users');
     if (response.status === 404) {
       window.location.href = '/admin';
       return;
@@ -214,7 +215,7 @@ export function UsersPageContent() {
     setLoadingResendFor(user.uid);
     setMessage('');
 
-    const response = await fetch(`/api/admin/invitations?targetUid=${encodeURIComponent(user.uid)}`);
+    const response = await adminFetch(`/api/admin/invitations?targetUid=${encodeURIComponent(user.uid)}`);
     setLoadingResendFor(null);
 
     if (!response.ok) {

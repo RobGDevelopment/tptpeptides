@@ -16,6 +16,7 @@ export async function GET(request: Request) {
     if (error instanceof AdminAuthError) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode });
     }
+    console.error('[admin/modules] GET failed', error);
     return NextResponse.json({ error: 'Unable to load module flags' }, { status: 500 });
   }
 }

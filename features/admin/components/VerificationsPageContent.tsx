@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { adminFetch } from '../../../lib/admin/adminFetch.client';
 import { AdminPageHeader } from '../../../components/ui/AdminPageHeader';
 import { Button } from '../../../components/ui/Button';
 import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
@@ -21,7 +22,7 @@ export function VerificationsPageContent() {
 
   const load = useCallback(async () => {
     setError('');
-    const response = await fetch('/api/admin/verifications?status=pending');
+    const response = await adminFetch('/api/admin/verifications?status=pending');
     if (response.status === 404) {
       window.location.href = '/admin';
       return;
@@ -52,7 +53,7 @@ export function VerificationsPageContent() {
             rejectionReason: 'Documentation requires clarification or updated W-9.',
           };
 
-    const response = await fetch(`/api/admin/verifications/${userId}`, {
+    const response = await adminFetch(`/api/admin/verifications/${userId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),

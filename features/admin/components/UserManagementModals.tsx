@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { adminFetch } from '../../../lib/admin/adminFetch.client';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { useAuth } from '../../auth/providers/AuthProvider';
@@ -54,7 +55,7 @@ export function ManageUserModal({ user, onClose, onSaved }: ManageUserModalProps
   const saveRole = async () => {
     setSaving(true);
     setError('');
-    const response = await fetch('/api/admin/users', {
+    const response = await adminFetch('/api/admin/users', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ uid: user.uid, role }),
@@ -76,7 +77,7 @@ export function ManageUserModal({ user, onClose, onSaved }: ManageUserModalProps
 
     setSaving(true);
     setError('');
-    const response = await fetch('/api/admin/users', {
+    const response = await adminFetch('/api/admin/users', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ uid: user.uid, disabled: true }),
@@ -96,7 +97,7 @@ export function ManageUserModal({ user, onClose, onSaved }: ManageUserModalProps
   const restoreAccess = async () => {
     setSaving(true);
     setError('');
-    const response = await fetch('/api/admin/users', {
+    const response = await adminFetch('/api/admin/users', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ uid: user.uid, disabled: false }),
