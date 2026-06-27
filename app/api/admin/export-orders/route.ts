@@ -4,10 +4,15 @@ import {
   buildQuickBooksOrdersCsv,
   mapFirestoreOrderToExport,
 } from '../../../../lib/accounting/quickbooksExport';
-import { AdminAuthError, requireAdminSession } from '../../../../lib/firebase/adminAuth.server';
+import { AdminAuthError, requireAdminSessionWithProfile } from '../../../../lib/firebase/adminAuth.server';
 import { listOrdersForExport } from '../../../../lib/firebase/orders.server';
 import { getModuleFlags } from '../../../../lib/firebase/modules.server';
-import { ModuleDisabledError, requireModule } from '../../../../lib/modules/requireModule.server';
+import {
+  ModuleDisabledError,
+  RoleForbiddenError,
+  requireModule,
+  requireRole,
+} from '../../../../lib/modules/requireModule.server';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +23,9 @@ const querySchema = z.object({
 
 export async function GET(request: Request) {
   try {
-    await requireAdminSession(request);
+    const { profile } = await requireAdminSessionWithProfile(request);
+    requireRole(profile.role, ['admin', 'partner']);
+
     const flags = await getModuleFlags();
     requireModule(flags, 'isAccountingExportEnabled');
 
@@ -56,6 +63,9 @@ export async function GET(request: Request) {
     }
     if (error instanceof ModuleDisabledError) {
       return NextResponse.json({ error: 'Accounting export module is disabled' }, { status: 404 });
+    }
+    if (error instanceof RoleForbiddenError) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
     }
     console.error('[admin/export-orders] failed', error);
     return NextResponse.json({ error: 'Unable to export orders' }, { status: 500 });

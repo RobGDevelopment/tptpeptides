@@ -2,6 +2,7 @@
 
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { useEffect, useMemo, useState } from 'react';
+import { useAuth } from '../../auth/providers/AuthProvider';
 import { db } from '../../../lib/firebase/firestore';
 import {
   getGroupBaseCostRange,
@@ -15,6 +16,7 @@ import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import type { AdminProductGroup } from '../types';
 
 export function AdminDashboard() {
+  const { isAdmin, loading: authLoading } = useAuth();
   const [groups, setGroups] = useState<AdminProductGroup[]>([]);
   const [orderCount, setOrderCount] = useState(0);
   const [pendingOrders, setPendingOrders] = useState(0);
@@ -22,20 +24,28 @@ export function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading || !isAdmin) return;
+
     const productsQuery = query(collection(db, 'products'));
     const ordersQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
 
-    const unsubProducts = onSnapshot(productsQuery, (snapshot) => {
-      const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Record<string, unknown> & { id: string }));
-      const grouped = groupProductsFromDocs(docs);
-      setGroups(grouped);
+    const unsubProducts = onSnapshot(
+      productsQuery,
+      (snapshot) => {
+        const docs = snapshot.docs.map(
+          (doc) => ({ id: doc.id, ...doc.data() }) as Record<string, unknown> & { id: string }
+        );
+        const grouped = groupProductsFromDocs(docs);
+        setGroups(grouped);
 
-      const lowStock = docs.filter(
-        (doc) => Number(doc.stock ?? 0) <= Number(doc.reorderThreshold ?? 20)
-      ).length;
-      setLowStockCount(lowStock);
-      setLoading(false);
-    });
+        const lowStock = docs.filter(
+          (doc) => Number(doc.stock ?? 0) <= Number(doc.reorderThreshold ?? 20)
+        ).length;
+        setLowStockCount(lowStock);
+        setLoading(false);
+      },
+      () => setLoading(false)
+    );
 
     const unsubOrders = onSnapshot(ordersQuery, (snapshot) => {
       const orders = snapshot.docs.map((doc) => doc.data());
@@ -49,14 +59,14 @@ export function AdminDashboard() {
       unsubProducts();
       unsubOrders();
     };
-  }, []);
+  }, [authLoading, isAdmin]);
 
   const variantCount = useMemo(
     () => groups.reduce((sum, group) => sum + group.variants.length, 0),
     [groups]
   );
 
-  if (loading) {
+  if (authLoading || loading) {
     return <Spinner label="Loading dashboard..." className="py-20" />;
   }
 

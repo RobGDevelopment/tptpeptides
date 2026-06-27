@@ -26,7 +26,7 @@ export function PremiumNavbar() {
   const cartCount = useCartStore(selectCartCount);
   const openCart = useCartStore((state) => state.openCart);
   const openAuth = useCartStore((state) => state.openAuth);
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
 
   return (
     <header className="fixed top-0 w-full z-40">
@@ -61,6 +61,14 @@ export function PremiumNavbar() {
             </div>
 
             <div className="flex items-center gap-6 text-primary">
+              {isAdmin ? (
+                <Link
+                  href="/admin"
+                  className="text-[10px] tracking-caps uppercase text-gold-light hover:text-gold transition-colors hidden sm:block"
+                >
+                  Back-Office
+                </Link>
+              ) : null}
               {user ? (
                 <Link
                   href="/account"

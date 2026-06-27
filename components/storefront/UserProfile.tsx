@@ -37,7 +37,7 @@ interface AccountProfile {
 }
 
 export function UserProfile() {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut, isAdmin } = useAuth();
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [profile, setProfile] = useState<AccountProfile | null>(null);
   const [fetching, setFetching] = useState(true);
@@ -112,6 +112,11 @@ export function UserProfile() {
             ) : profile.modules?.institutionVerification ? (
               <Link href="/account/verify" className="terminal-link text-[10px] inline-block mt-4">
                 Verify Institution for B2B Access
+              </Link>
+            ) : null}
+            {isAdmin ? (
+              <Link href="/admin" className="terminal-link text-[10px] inline-block mt-4">
+                Open Back-Office Admin
               </Link>
             ) : null}
           </div>

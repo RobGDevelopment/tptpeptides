@@ -1,11 +1,16 @@
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './firestore';
-import type { UserRole, UserProfile } from '../../features/auth/types';
+import {
+  accessLevelForRole,
+  normalizeUserRole,
+  type UserRole,
+} from '../schemas/user';
+import type { UserProfile } from '../../features/auth/types';
 
 export async function ensureUserProfile(
   uid: string,
   email: string,
-  role: UserRole = 'customer'
+  role: UserRole = 'user'
 ): Promise<UserProfile> {
   const userRef = doc(db, 'users', uid);
   const snapshot = await getDoc(userRef);
@@ -15,15 +20,17 @@ export async function ensureUserProfile(
     return {
       uid,
       email: data.email ?? email,
-      role: (data.role as UserRole) ?? 'customer',
+      role: normalizeUserRole(data.role as string | undefined),
       createdAt: data.createdAt?.toDate?.() ?? new Date(),
     };
   }
 
-  const profile: Omit<UserProfile, 'createdAt'> & { createdAt: ReturnType<typeof serverTimestamp> } = {
+  const profile = {
     uid,
     email,
     role,
+    accessLevel: accessLevelForRole(role),
+    disabled: false,
     createdAt: serverTimestamp(),
   };
 
@@ -34,6 +41,6 @@ export async function ensureUserProfile(
 
 export async function getUserRoleFromFirestore(uid: string): Promise<UserRole> {
   const snapshot = await getDoc(doc(db, 'users', uid));
-  if (!snapshot.exists()) return 'customer';
-  return (snapshot.data().role as UserRole) ?? 'customer';
+  if (!snapshot.exists()) return 'user';
+  return normalizeUserRole(snapshot.data().role as string | undefined);
 }

@@ -76,7 +76,10 @@ export function StorefrontAdminPageContent() {
       }
 
       if (catalogRes.ok) {
-        const products = (await catalogRes.json()) as { slug: string; name: string }[];
+        const data = (await catalogRes.json()) as {
+          products?: { slug: string; name: string }[];
+        };
+        const products = data.products ?? [];
         const unique = new Map<string, string>();
         for (const product of products) {
           if (product.slug) unique.set(product.slug, product.name);
@@ -84,6 +87,11 @@ export function StorefrontAdminPageContent() {
         setCatalogOptions(
           [...unique.entries()].map(([slug, name]) => ({ slug, name })).sort((a, b) => a.name.localeCompare(b.name))
         );
+      }
+
+      if (!settingsRes.ok) {
+        const data = (await settingsRes.json().catch(() => ({}))) as { error?: string };
+        setError(data.error ?? 'Unable to load storefront settings');
       }
     } catch {
       setError('Failed to load storefront CMS data');

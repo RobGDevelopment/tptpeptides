@@ -22,6 +22,7 @@ export const moduleFlagsSchema = z.object({
   isLeadRoutingEnabled: z.boolean(),
   isMarginReportingEnabled: z.boolean(),
   isGranularRbacEnabled: z.boolean(),
+  isUserManagementEnabled: z.boolean(),
 
   // Phase 4 — Growth & Retention
   isTransactionalEmailEnabled: z.boolean(),
@@ -137,6 +138,11 @@ export const MODULE_FLAG_GROUPS: {
         key: 'isGranularRbacEnabled',
         label: 'Granular RBAC',
         description: 'ops / support / finance / sales roles.',
+      },
+      {
+        key: 'isUserManagementEnabled',
+        label: 'User Management',
+        description: 'Admin dashboard for partners, staff, roles, and access control.',
       },
     ],
   },

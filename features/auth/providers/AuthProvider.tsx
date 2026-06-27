@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { User } from 'firebase/auth';
 import { logoutUser, resolveUserRole, subscribeToAuthChanges } from '../../../lib/firebase/auth';
+import { fetchServerAdminStatus } from '../../../lib/firebase/session';
 import type { UserRole } from '../types';
 
 interface AuthContextValue {
@@ -18,6 +19,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
+  const [serverAdmin, setServerAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,14 +32,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!currentUser) {
         setRole(null);
+        setServerAdmin(false);
         setLoading(false);
         return;
       }
 
       void (async () => {
-        const resolvedRole = await resolveUserRole(currentUser);
+        const [resolvedRole, isAdminFromServer] = await Promise.all([
+          resolveUserRole(currentUser),
+          fetchServerAdminStatus(),
+        ]);
+
         if (!cancelled) {
           setRole(resolvedRole);
+          setServerAdmin(isAdminFromServer);
           setLoading(false);
         }
       })();
@@ -53,11 +61,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       user,
       role,
-      isAdmin: role === 'admin',
+      isAdmin: role === 'admin' || serverAdmin,
       loading,
       signOut: logoutUser,
     }),
-    [user, role, loading]
+    [user, role, serverAdmin, loading]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

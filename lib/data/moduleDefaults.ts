@@ -19,6 +19,7 @@ export const DEFAULT_MODULE_FLAGS: ModuleFlags = {
   isLeadRoutingEnabled: false,
   isMarginReportingEnabled: false,
   isGranularRbacEnabled: false,
+  isUserManagementEnabled: false,
 
   isTransactionalEmailEnabled: false,
   isPredictiveReplenishmentEnabled: false,

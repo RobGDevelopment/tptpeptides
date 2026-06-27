@@ -29,10 +29,20 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <span className="absolute top-0 right-0 h-full w-px bg-white/[0.06]" aria-hidden />
 
         <div className="p-6 border-b border-white/[0.04] space-y-3">
-          <Link href="/admin" className="block">
-            <p className="text-[10px] tracking-caps uppercase metallic-gold font-medium">{SITE_WORDMARK}</p>
-            <h1 className="text-sm font-light mt-2 tracking-title uppercase text-primary">Back-Office</h1>
-          </Link>
+          <div className="space-y-2">
+            <Link
+              href="/"
+              className="block text-[10px] tracking-caps uppercase metallic-gold font-medium hover:text-gold-light transition-colors"
+            >
+              {SITE_WORDMARK}
+            </Link>
+            <Link
+              href="/admin"
+              className="block text-sm font-light tracking-title uppercase text-primary hover:text-gold-light transition-colors"
+            >
+              Back-Office
+            </Link>
+          </div>
           <HeaderDividerBeam delay={2} />
         </div>
 

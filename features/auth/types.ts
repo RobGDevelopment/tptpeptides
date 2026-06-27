@@ -1,4 +1,6 @@
-export type UserRole = 'customer' | 'admin';
+export type { UserRole } from '../../lib/schemas/user';
+
+import type { UserRole } from '../../lib/schemas/user';
 
 export interface UserProfile {
   uid: string;

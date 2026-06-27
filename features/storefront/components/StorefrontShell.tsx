@@ -1,6 +1,8 @@
 'use client';
 
+import { Suspense } from 'react';
 import { AgeGate } from './AgeGate';
+import { AdminRedirectHandler } from './AdminRedirectHandler';
 import { CartDrawer } from './CartDrawer';
 import { PremiumNavbar } from './PremiumNavbar';
 import { StorefrontAuthModal } from './StorefrontAuthModal';
@@ -28,6 +30,9 @@ export function StorefrontShell({ children }: StorefrontShellProps) {
 
   return (
     <>
+      <Suspense fallback={null}>
+        <AdminRedirectHandler />
+      </Suspense>
       {showAgeGate && <AgeGate onVerify={handleVerify} isReady={hydrated} />}
       <PremiumNavbar />
       {children}

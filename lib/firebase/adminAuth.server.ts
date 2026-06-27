@@ -1,6 +1,11 @@
 import 'server-only';
-import { getAdminAuth, getAdminFirestore, isAdminSdkConfigured } from './admin';
+
+import { isMasterAdminEmail } from '../admin/masterAdmin';
+import { resolveServerAdminAccess } from '../admin/resolveAdminAccess.server';
+import type { UserRbacProfile } from './users.server';
+import { getAdminFirestore, isAdminSdkConfigured } from './admin';
 import { getSessionUserFromRequest, type SessionUser } from './auth.server';
+import { getUserRbacProfile } from './users.server';
 
 export class AdminAuthError extends Error {
   constructor(
@@ -12,17 +17,22 @@ export class AdminAuthError extends Error {
   }
 }
 
-async function isAdminUser(uid: string, idToken: string): Promise<boolean> {
-  try {
-    const decoded = await getAdminAuth().verifyIdToken(idToken);
-    if (decoded.admin === true || decoded.role === 'admin') return true;
-  } catch {
-    return false;
-  }
+function masterAdminProfile(session: SessionUser): UserRbacProfile {
+  return {
+    uid: session.uid,
+    email: session.email ?? null,
+    role: 'admin',
+    accessLevel: 100,
+    disabled: false,
+    lastActive: null,
+    createdBy: null,
+    loyaltyPoints: 0,
+    totalPointsEarned: 0,
+  };
+}
 
-  const db = getAdminFirestore();
-  const userDoc = await db.collection('users').doc(uid).get();
-  return userDoc.data()?.role === 'admin';
+async function isAdminUser(uid: string, email: string | undefined, idToken: string): Promise<boolean> {
+  return resolveServerAdminAccess({ uid, email, idToken });
 }
 
 export async function requireAdminSession(request: Request): Promise<SessionUser> {
@@ -43,12 +53,35 @@ export async function requireAdminSession(request: Request): Promise<SessionUser
     throw new AdminAuthError('Unauthorized', 401);
   }
 
-  const admin = await isAdminUser(user.uid, token);
+  const admin = await isAdminUser(user.uid, user.email, token);
   if (!admin) {
     throw new AdminAuthError('Forbidden', 403);
   }
 
+  if (!isMasterAdminEmail(user.email)) {
+    const profile = await getUserRbacProfile(user.uid);
+    if (profile?.disabled) {
+      throw new AdminAuthError('Account disabled', 403);
+    }
+  }
+
   return user;
+}
+
+/** Returns RBAC profile for the authenticated admin session. */
+export async function requireAdminSessionWithProfile(request: Request) {
+  const session = await requireAdminSession(request);
+  let profile = await getUserRbacProfile(session.uid);
+
+  if (!profile && isMasterAdminEmail(session.email)) {
+    profile = masterAdminProfile(session);
+  }
+
+  if (!profile) {
+    throw new AdminAuthError('User profile not found', 403);
+  }
+
+  return { session, profile };
 }
 
 export async function logAdminAction(params: {
