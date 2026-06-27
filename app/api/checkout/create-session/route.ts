@@ -47,7 +47,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const cart = await validateAndPriceCart(parsed.data.items);
+    const cart = await validateAndPriceCart(parsed.data.items, { userId: sessionUser?.uid ?? null });
     const shippingEstimate = estimateShipping(cart.items.length);
     const subtotal = cart.total;
     const orderTotal = subtotal + shippingEstimate;

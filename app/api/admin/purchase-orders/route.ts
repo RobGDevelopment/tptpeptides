@@ -10,6 +10,38 @@ const bodySchema = z.object({
   supplierId: z.string().default('default-supplier'),
 });
 
+export async function GET(request: Request) {
+  try {
+    await requireAdminSession(request);
+
+    if (!isAdminSdkConfigured()) {
+      return NextResponse.json({ error: 'Firebase Admin SDK not configured' }, { status: 503 });
+    }
+
+    const db = getAdminFirestore();
+    const snapshot = await db
+      .collection('purchaseOrders')
+      .orderBy('generatedAt', 'desc')
+      .limit(50)
+      .get();
+
+    const purchaseOrders = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      generatedAt: doc.data().generatedAt?.toDate?.()?.toISOString?.() ?? null,
+      approvedAt: doc.data().approvedAt?.toDate?.()?.toISOString?.() ?? null,
+    }));
+
+    return NextResponse.json({ purchaseOrders });
+  } catch (error) {
+    if (error instanceof AdminAuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
+    console.error('[admin/purchase-orders] GET failed', error);
+    return NextResponse.json({ error: 'Unable to load purchase orders' }, { status: 500 });
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const admin = await requireAdminSession(request);

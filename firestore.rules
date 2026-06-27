@@ -96,6 +96,10 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    match /priceLists/{tierId} {
+      allow read, write: if isAdmin();
+    }
+
     match /institutionVerifications/{userId} {
       allow read: if isOwner(userId) || isAdmin();
       allow create, update: if isAdmin();

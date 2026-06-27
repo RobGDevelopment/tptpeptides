@@ -8,9 +8,11 @@ import {
 import { getModuleFlags } from '../../../../../lib/firebase/modules.server';
 import {
   approveVerification,
+  getVerificationByUserId,
   rejectVerification,
 } from '../../../../../lib/firebase/verification.server';
-import { ModuleDisabledError, requireModule } from '../../../../../lib/modules/requireModule.server';
+import { sendVerificationDecisionEmail } from '../../../../../lib/email/verificationDecision.server';
+import { ModuleDisabledError, requireB2BProcurement } from '../../../../../lib/modules/b2b.server';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,34 +29,55 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   try {
     const admin = await requireAdminSession(request);
     const flags = await getModuleFlags();
-    requireModule(flags, 'isInstitutionVerificationEnabled');
+    requireB2BProcurement(flags, 'isInstitutionVerificationEnabled');
 
     const { userId } = await params;
     const body = patchSchema.parse(await request.json());
+    const verification = await getVerificationByUserId(userId);
+
+    if (!verification) {
+      return NextResponse.json({ error: 'Verification request not found' }, { status: 404 });
+    }
 
     if (body.action === 'approve') {
+      const tier = body.institutionTier ?? 'Bronze';
       await approveVerification({
         userId,
         reviewedBy: admin.uid,
-        institutionTier: body.institutionTier,
+        institutionTier: tier,
       });
 
       await logAdminAction({
         userId: admin.uid,
         action: 'verification_approved',
-        metadata: { targetUserId: userId, institutionTier: body.institutionTier ?? 'Bronze' },
+        metadata: { targetUserId: userId, institutionTier: tier },
+      });
+
+      await sendVerificationDecisionEmail({
+        email: verification.email,
+        institutionName: verification.institutionName,
+        decision: 'approved',
+        institutionTier: tier,
       });
     } else {
+      const reason = body.rejectionReason?.trim() || 'Documentation did not meet requirements.';
       await rejectVerification({
         userId,
         reviewedBy: admin.uid,
-        rejectionReason: body.rejectionReason,
+        rejectionReason: reason,
       });
 
       await logAdminAction({
         userId: admin.uid,
         action: 'verification_rejected',
-        metadata: { targetUserId: userId, reason: body.rejectionReason ?? null },
+        metadata: { targetUserId: userId, reason },
+      });
+
+      await sendVerificationDecisionEmail({
+        email: verification.email,
+        institutionName: verification.institutionName,
+        decision: 'rejected',
+        rejectionReason: reason,
       });
     }
 

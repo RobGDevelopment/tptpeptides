@@ -13,7 +13,8 @@
     "test:smoke": "playwright test --grep @smoke",
     "test:smoke:prod": "tsx scripts/run-smoke-prod.ts",
     "health:check": "tsx scripts/health-check.ts",
-    "sync:firebase-env": "tsx scripts/sync-firebase-env-to-vercel.ts"
+    "sync:firebase-env": "tsx scripts/sync-firebase-env-to-vercel.ts",
+    "enable:prod-modules": "tsx scripts/enable-prod-modules.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

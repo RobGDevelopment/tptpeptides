@@ -7,7 +7,7 @@ import {
   saveVerificationRequest,
 } from '../../../../lib/firebase/verification.server';
 import { uploadVerificationDocument } from '../../../../lib/firebase/storage.server';
-import { ModuleDisabledError, requireModule } from '../../../../lib/modules/requireModule.server';
+import { ModuleDisabledError, requireB2BProcurement } from '../../../../lib/modules/b2b.server';
 import { verificationSubmitSchema } from '../../../../lib/schemas/verification';
 
 export const dynamic = 'force-dynamic';
@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
   try {
     const flags = await getModuleFlags();
-    requireModule(flags, 'isInstitutionVerificationEnabled');
+    requireB2BProcurement(flags, 'isInstitutionVerificationEnabled');
 
     if (!isAdminSdkConfigured()) {
       return NextResponse.json({ error: 'Service unavailable' }, { status: 503 });
@@ -39,7 +39,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const flags = await getModuleFlags();
-    requireModule(flags, 'isInstitutionVerificationEnabled');
+    requireB2BProcurement(flags, 'isInstitutionVerificationEnabled');
 
     if (!isAdminSdkConfigured()) {
       return NextResponse.json({ error: 'Service unavailable' }, { status: 503 });

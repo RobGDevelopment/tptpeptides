@@ -11,6 +11,7 @@ import {
 } from '../lib/groupProducts';
 import type { AdminProductGroup } from '../types';
 import { ProductFormModal } from './ProductFormModal';
+import { TierPricingPanel } from './TierPricingPanel';
 import { Button } from '../../../components/ui/Button';
 import { Spinner } from '../../../components/ui/Spinner';
 import { AdminPageHeader } from '../../../components/ui/AdminPageHeader';
@@ -130,6 +131,8 @@ export function ProductsPageContent() {
         onClose={() => setModalOpen(false)}
         initialGroup={editingGroup}
       />
+
+      <TierPricingPanel />
     </div>
   );
 }

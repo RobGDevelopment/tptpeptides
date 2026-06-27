@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { AdminAuthError, requireAdminSession } from '../../../../lib/firebase/adminAuth.server';
 import { getModuleFlags } from '../../../../lib/firebase/modules.server';
 import { listVerificationsByStatus } from '../../../../lib/firebase/verification.server';
-import { ModuleDisabledError, requireModule } from '../../../../lib/modules/requireModule.server';
+import { ModuleDisabledError, requireB2BProcurement } from '../../../../lib/modules/b2b.server';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   try {
     await requireAdminSession(request);
     const flags = await getModuleFlags();
-    requireModule(flags, 'isInstitutionVerificationEnabled');
+    requireB2BProcurement(flags, 'isInstitutionVerificationEnabled');
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') ?? 'pending';

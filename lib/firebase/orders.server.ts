@@ -5,6 +5,9 @@ import type Stripe from 'stripe';
 import type { CartItem } from '../../features/storefront/types';
 import { calculatePointsForPurchase } from '../business/loyalty';
 import { productDocSchema } from '../schemas/product';
+import { getModuleFlags } from './modules.server';
+import { getPriceListForTier, getUserPricingTier, resolveTierUnitPrice } from './pricing.server';
+import { isB2BFeatureEnabled } from '../modules/b2b.server';
 import { getAdminFirestore, isAdminSdkConfigured } from './admin';
 
 export interface PricedCartItem extends CartItem {
@@ -24,13 +27,26 @@ export class CheckoutValidationError extends Error {
 }
 
 export async function validateAndPriceCart(
-  requestedItems: { id: string; quantity: number }[]
+  requestedItems: { id: string; quantity: number }[],
+  options?: { userId?: string | null }
 ): Promise<ValidatedCart> {
   if (!isAdminSdkConfigured()) {
     throw new CheckoutValidationError('Checkout is unavailable — database not configured');
   }
 
   const db = getAdminFirestore();
+  const flags = await getModuleFlags();
+
+  let pricingTier: Awaited<ReturnType<typeof getUserPricingTier>>['tier'] = null;
+  if (options?.userId && isB2BFeatureEnabled(flags, 'isTieredPricingEnabled')) {
+    const userPricing = await getUserPricingTier(options.userId);
+    if (userPricing.institutionVerified && userPricing.tier) {
+      pricingTier = userPricing.tier;
+    }
+  }
+
+  const priceList = pricingTier ? await getPriceListForTier(pricingTier) : null;
+
   const uniqueIds = [...new Set(requestedItems.map((item) => item.id))];
   const productRefs = uniqueIds.map((id) => db.collection('products').doc(id));
   const snapshots = await db.getAll(...productRefs);
@@ -55,13 +71,18 @@ export async function validateAndPriceCart(
       throw new CheckoutValidationError(`${product.name} has insufficient stock`);
     }
 
+    const unitPrice =
+      priceList != null
+        ? resolveTierUnitPrice(requested.id, product.price, priceList)
+        : product.price;
+
     pricedItems.push({
       id: requested.id,
       slug: product.catalogId ?? requested.id,
       name: product.name,
       tag: product.tag,
-      price: product.price,
-      unitPrice: product.price,
+      price: unitPrice,
+      unitPrice,
       stock: product.stock,
       desc: product.desc,
       purity: product.purity,
