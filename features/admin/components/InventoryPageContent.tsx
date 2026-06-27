@@ -6,6 +6,7 @@ import { db } from '../../../lib/firebase/firestore';
 import type { LowStockVariant } from '../types';
 import { Button } from '../../../components/ui/Button';
 import { Spinner } from '../../../components/ui/Spinner';
+import { AdminPageHeader } from '../../../components/ui/AdminPageHeader';
 
 const DEFAULT_THRESHOLD = 20;
 
@@ -92,17 +93,16 @@ export function InventoryPageContent() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="admin-heading">Inventory & Purchase Orders</h1>
-          <p className="admin-subheading">
-            Flagged variants at or below reorder threshold ({DEFAULT_THRESHOLD} units default)
-          </p>
-        </div>
-        <Button onClick={draftPurchaseOrder} disabled={drafting || selected.size === 0}>
-          {drafting ? 'Drafting PO...' : `Draft PO (${selected.size})`}
-        </Button>
-      </header>
+      <AdminPageHeader
+        title="Inventory & Purchase Orders"
+        subtitle={`Flagged variants at or below reorder threshold (${DEFAULT_THRESHOLD} units default)`}
+        beamDelay={1}
+        actions={
+          <Button onClick={draftPurchaseOrder} disabled={drafting || selected.size === 0}>
+            {drafting ? 'Drafting PO...' : `Draft PO (${selected.size})`}
+          </Button>
+        }
+      />
 
       {message && <p className="admin-banner">{message}</p>}
 

@@ -1,5 +1,7 @@
 import 'server-only';
-import { FieldValue } from 'firebase-admin/firestore';
+
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import type Stripe from 'stripe';
 import type { CartItem } from '../../features/storefront/types';
 import { calculatePointsForPurchase } from '../business/loyalty';
 import { productDocSchema } from '../schemas/product';
@@ -78,21 +80,28 @@ export async function validateAndPriceCart(
 export async function createPendingOrder(params: {
   orderId?: string;
   items: PricedCartItem[];
+  subtotal: number;
+  shipping: number;
+  tax?: number;
+  discountTotal?: number;
   total: number;
   userId: string | null;
   guestEmail: string | null;
   stripeSessionId: string;
   poNumber?: string | null;
-  shippingEstimate?: number;
+  ruoAttestationTimestamp: string;
+  ipAddress: string;
 }): Promise<string> {
   const db = getAdminFirestore();
   const docRef = params.orderId ? db.collection('orders').doc(params.orderId) : db.collection('orders').doc();
+
+  const tax = params.tax ?? 0;
+  const discountTotal = params.discountTotal ?? 0;
 
   await docRef.set({
     userId: params.userId,
     guestEmail: params.guestEmail,
     poNumber: params.poNumber ?? null,
-    shippingEstimate: params.shippingEstimate ?? null,
     items: params.items.map(({ id, name, tag, price, stock, desc, purity, quantity, slug }) => ({
       id,
       slug,
@@ -104,9 +113,17 @@ export async function createPendingOrder(params: {
       purity,
       quantity,
     })),
+    subtotal: params.subtotal,
+    tax,
+    shipping: params.shipping,
+    discountTotal,
     total: params.total,
+    paymentMethod: 'stripe_checkout',
     status: 'pending_payment',
     stripeSessionId: params.stripeSessionId,
+    stripePaymentIntentId: null,
+    ruoAttestationTimestamp: params.ruoAttestationTimestamp,
+    ipAddress: params.ipAddress,
     loyaltyPointsAwarded: 0,
     createdAt: FieldValue.serverTimestamp(),
   });
@@ -114,7 +131,34 @@ export async function createPendingOrder(params: {
   return docRef.id;
 }
 
-export async function fulfillPaidOrder(orderId: string): Promise<{
+export interface StripeFulfillmentSnapshot {
+  paymentIntentId: string | null;
+  subtotal: number;
+  tax: number;
+  shipping: number;
+  discountTotal: number;
+  total: number;
+}
+
+export function buildStripeFulfillmentSnapshot(session: Stripe.Checkout.Session): StripeFulfillmentSnapshot {
+  const totalDetails = session.total_details;
+  return {
+    paymentIntentId:
+      typeof session.payment_intent === 'string'
+        ? session.payment_intent
+        : session.payment_intent?.id ?? null,
+    subtotal: (session.amount_subtotal ?? 0) / 100,
+    tax: (totalDetails?.amount_tax ?? 0) / 100,
+    shipping: (totalDetails?.amount_shipping ?? 0) / 100,
+    discountTotal: (totalDetails?.amount_discount ?? 0) / 100,
+    total: (session.amount_total ?? 0) / 100,
+  };
+}
+
+export async function fulfillPaidOrder(
+  orderId: string,
+  stripeSnapshot?: StripeFulfillmentSnapshot
+): Promise<{
   orderId: string;
   loyaltyPointsAwarded: number;
   alreadyFulfilled: boolean;
@@ -129,7 +173,7 @@ export async function fulfillPaidOrder(orderId: string): Promise<{
     }
 
     const order = orderSnap.data()!;
-    if (order.status === 'paid' || order.status === 'fulfilled') {
+    if (order.status === 'paid' || order.status === 'fulfilled' || order.status === 'processing') {
       return {
         orderId,
         loyaltyPointsAwarded: order.loyaltyPointsAwarded ?? 0,
@@ -165,9 +209,8 @@ export async function fulfillPaidOrder(orderId: string): Promise<{
       });
     }
 
-    const loyaltyPoints = order.userId
-      ? calculatePointsForPurchase(Number(order.total))
-      : 0;
+    const orderTotal = stripeSnapshot?.total ?? Number(order.total);
+    const loyaltyPoints = order.userId ? calculatePointsForPurchase(orderTotal) : 0;
 
     if (order.userId && loyaltyPoints > 0) {
       const userRef = db.collection('users').doc(order.userId);
@@ -181,11 +224,23 @@ export async function fulfillPaidOrder(orderId: string): Promise<{
       );
     }
 
-    transaction.update(orderRef, {
+    const financialUpdate: Record<string, unknown> = {
       status: 'paid',
       paidAt: FieldValue.serverTimestamp(),
       loyaltyPointsAwarded: loyaltyPoints,
-    });
+      financialLockedAt: new Date().toISOString(),
+    };
+
+    if (stripeSnapshot) {
+      financialUpdate.subtotal = stripeSnapshot.subtotal;
+      financialUpdate.tax = stripeSnapshot.tax;
+      financialUpdate.shipping = stripeSnapshot.shipping;
+      financialUpdate.discountTotal = stripeSnapshot.discountTotal;
+      financialUpdate.total = stripeSnapshot.total;
+      financialUpdate.stripePaymentIntentId = stripeSnapshot.paymentIntentId;
+    }
+
+    transaction.update(orderRef, financialUpdate);
 
     return { orderId, loyaltyPointsAwarded: loyaltyPoints, alreadyFulfilled: false };
   });
@@ -223,4 +278,22 @@ export async function getOrderByStripeSessionId(
     status: String(data.status),
     loyaltyPointsAwarded: Number(data.loyaltyPointsAwarded ?? 0),
   };
+}
+
+export async function listOrdersForExport(params: {
+  startDate: string;
+  endDate: string;
+}): Promise<{ id: string; data: Record<string, unknown> }[]> {
+  const db = getAdminFirestore();
+  const start = Timestamp.fromDate(new Date(params.startDate));
+  const end = Timestamp.fromDate(new Date(`${params.endDate}T23:59:59.999Z`));
+
+  const snapshot = await db
+    .collection('orders')
+    .where('createdAt', '>=', start)
+    .where('createdAt', '<=', end)
+    .orderBy('createdAt', 'asc')
+    .get();
+
+  return snapshot.docs.map((doc) => ({ id: doc.id, data: doc.data() as Record<string, unknown> }));
 }

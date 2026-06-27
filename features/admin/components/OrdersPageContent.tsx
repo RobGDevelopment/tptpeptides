@@ -2,11 +2,12 @@
 
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { useEffect, useMemo, useState } from 'react';
-import { MetallicBeam } from '../../../components/ui/MetallicBeam';
+import { AdminPageHeader } from '../../../components/ui/AdminPageHeader';
 import { db } from '../../../lib/firebase/firestore';
 import type { AdminOrderRow, OrderStatus } from '../types';
 import { ORDER_STATUS_FLOW, ORDER_STATUS_LABELS } from '../types';
 import { Spinner } from '../../../components/ui/Spinner';
+import { AccountingExportPanel } from './AccountingExportPanel';
 
 function parseTimestamp(value: unknown): Date | null {
   if (!value) return null;
@@ -69,10 +70,13 @@ export function OrdersPageContent() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="admin-heading">Order Workflow</h1>
-        <p className="admin-subheading">Track and advance customer requisitions through fulfillment</p>
-      </header>
+      <AdminPageHeader
+        title="Order Workflow"
+        subtitle="Track and advance customer requisitions through fulfillment"
+        beamDelay={3}
+      />
+
+      <AccountingExportPanel />
 
       <div className="flex flex-wrap gap-x-6 gap-y-2">
         {(['all', ...ORDER_STATUS_FLOW, 'cancelled'] as const).map((status, index, arr) => (
@@ -85,7 +89,7 @@ export function OrdersPageContent() {
               {status === 'all' ? 'All' : ORDER_STATUS_LABELS[status]}
             </button>
             {index < arr.length - 1 ? (
-              <MetallicBeam variant="vertical" className="h-3" animated={false} />
+              <span className="h-3 w-px bg-white/[0.08]" aria-hidden />
             ) : null}
           </span>
         ))}

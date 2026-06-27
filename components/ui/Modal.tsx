@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '../../lib/utils/cn';
-import { MetallicBeam } from './MetallicBeam';
+import { HeaderDividerBeam } from './HeaderDividerBeam';
 
 interface ModalProps {
   isOpen: boolean;
@@ -29,11 +29,11 @@ export function Modal({
       />
       <div
         className={cn(
-          'relative w-full max-w-md bg-surface/95 backdrop-blur-md p-8 animate-in fade-in duration-200',
+          'relative w-full max-w-md bg-surface/95 backdrop-blur-md p-8 border border-white/5 animate-in fade-in duration-200',
           panelClassName
         )}
       >
-        <MetallicBeam variant="top" className="absolute top-0 left-0 right-0" />
+        <HeaderDividerBeam contained delay={0} className="absolute top-0 left-0 right-0" />
         {children}
       </div>
     </div>

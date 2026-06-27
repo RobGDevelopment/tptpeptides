@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { MetallicBeam } from '../../../components/ui/MetallicBeam';
+import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import { SITE_LEGAL_NAME } from '../../../lib/brand';
 
 const FOOTER_LINKS = [
@@ -14,7 +14,7 @@ const FOOTER_LINKS = [
 export function StorefrontFooter({ tagline }: { tagline: string }) {
   return (
     <footer className="mt-auto relative">
-      <MetallicBeam variant="horizontal" className="w-full" />
+      <HeaderDividerBeam delay={3} className="mb-10" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <p className="text-[10px] tracking-caps uppercase text-muted text-center mb-6">
           {tagline}

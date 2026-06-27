@@ -13,6 +13,7 @@ import type { AdminProductGroup } from '../types';
 import { ProductFormModal } from './ProductFormModal';
 import { Button } from '../../../components/ui/Button';
 import { Spinner } from '../../../components/ui/Spinner';
+import { AdminPageHeader } from '../../../components/ui/AdminPageHeader';
 
 export function ProductsPageContent() {
   const [groups, setGroups] = useState<AdminProductGroup[]>([]);
@@ -52,25 +53,26 @@ export function ProductsPageContent() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="admin-heading">Product Information Management</h1>
-          <p className="admin-subheading">Manage catalog entries, variants, and pricing from the handbook</p>
-        </div>
-        <div className="flex flex-wrap gap-6 items-center">
-          <Button variant="ghost" onClick={handleSeed} disabled={seeding}>
-            {seeding ? 'Seeding...' : 'Run Seed'}
-          </Button>
-          <Button
-            onClick={() => {
-              setEditingGroup(null);
-              setModalOpen(true);
-            }}
-          >
-            Add Product
-          </Button>
-        </div>
-      </header>
+      <AdminPageHeader
+        title="Product Information Management"
+        subtitle="Manage catalog entries, variants, and pricing from the handbook"
+        beamDelay={2}
+        actions={
+          <>
+            <Button variant="ghost" onClick={handleSeed} disabled={seeding}>
+              {seeding ? 'Seeding...' : 'Run Seed'}
+            </Button>
+            <Button
+              onClick={() => {
+                setEditingGroup(null);
+                setModalOpen(true);
+              }}
+            >
+              Add Product
+            </Button>
+          </>
+        }
+      />
 
       {seedMessage && <p className="admin-banner">{seedMessage}</p>}
 

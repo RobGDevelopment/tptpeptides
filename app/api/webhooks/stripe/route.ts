@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { sendOrderConfirmationEmail } from '../../../../lib/email/orderConfirmation.server';
-import { fulfillPaidOrder } from '../../../../lib/firebase/orders.server';
+import {
+  buildStripeFulfillmentSnapshot,
+  fulfillPaidOrder,
+} from '../../../../lib/firebase/orders.server';
 import { getStripe, isStripeConfigured } from '../../../../lib/stripe/server';
 
 export const dynamic = 'force-dynamic';
@@ -42,7 +45,8 @@ export async function POST(request: Request) {
     }
 
     try {
-      const result = await fulfillPaidOrder(orderId);
+      const stripeSnapshot = buildStripeFulfillmentSnapshot(session);
+      const result = await fulfillPaidOrder(orderId, stripeSnapshot);
 
       if (!result.alreadyFulfilled) {
         const email =

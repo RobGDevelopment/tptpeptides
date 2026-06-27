@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { MetallicBeam } from '../../../components/ui/MetallicBeam';
+import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 
 export function NewsletterSignup() {
   const [email, setEmail] = useState('');
@@ -41,7 +41,7 @@ export function NewsletterSignup() {
           </button>
         </form>
       )}
-      <MetallicBeam variant="horizontal" className="mt-8 max-w-xs" />
+      <HeaderDividerBeam delay={2} className="mt-8" />
     </div>
   );
 }

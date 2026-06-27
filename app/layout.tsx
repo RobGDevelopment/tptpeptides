@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import { SignatureBeam } from '../components/ui/SignatureBeam';
 import { AppProviders } from './providers';
 import { getSiteUrl } from '../lib/site';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from '../lib/brand';
@@ -68,6 +69,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.variable} ${inter.className} min-h-screen`}>
+        <SignatureBeam />
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

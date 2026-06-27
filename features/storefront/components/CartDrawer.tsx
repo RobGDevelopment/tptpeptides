@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Icons } from '../../../components/icons';
-import { MetallicBeam } from '../../../components/ui/MetallicBeam';
+import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import { TerminalButton } from '../../../components/ui/TerminalButton';
 import { estimateShipping } from '../../../lib/shipping/estimate';
 import {
@@ -31,7 +31,7 @@ export function CartDrawer() {
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-void/80 backdrop-blur-sm" onClick={closeCart} />
       <div className="relative w-full max-w-md bg-surface/95 backdrop-blur-md border-l border-white/[0.04] h-full flex flex-col">
-        <MetallicBeam variant="top" className="absolute top-0 left-0 right-0" />
+        <HeaderDividerBeam contained delay={0} className="absolute top-0 left-0 right-0" />
 
         <div className="p-8 flex justify-between items-start">
           <div>
@@ -50,7 +50,7 @@ export function CartDrawer() {
           </button>
         </div>
 
-        <MetallicBeam variant="horizontal" />
+        <HeaderDividerBeam contained delay={1} />
 
         <div className="flex-1 overflow-y-auto px-8">
           {items.length === 0 ? (
@@ -63,7 +63,7 @@ export function CartDrawer() {
           ) : (
             items.map((item, index) => (
               <div key={item.id}>
-                {index > 0 ? <MetallicBeam variant="horizontal" className="my-6" animated={false} /> : null}
+                {index > 0 ? <HeaderDividerBeam contained animated={false} className="my-6" /> : null}
                 <div className="py-2 space-y-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
@@ -94,7 +94,7 @@ export function CartDrawer() {
                     >
                       −
                     </button>
-                    <span className="text-sm font-mono text-secondary w-6 text-center">{item.quantity}</span>
+                    <span className="text-sm font-mono tracking-widest uppercase text-secondary w-6 text-center">{item.quantity}</span>
                     <button
                       type="button"
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
@@ -114,7 +114,7 @@ export function CartDrawer() {
 
         {items.length > 0 && (
           <div className="p-8 space-y-4">
-            <MetallicBeam variant="horizontal" />
+            <HeaderDividerBeam contained delay={2} />
             <div className="flex justify-between text-[10px] tracking-caps uppercase text-muted pt-4">
               <span>Subtotal</span>
               <span>${subtotal.toFixed(2)}</span>

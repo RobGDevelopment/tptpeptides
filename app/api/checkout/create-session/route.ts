@@ -9,6 +9,7 @@ import {
 import { isAdminSdkConfigured } from '../../../../lib/firebase/admin';
 import { estimateShipping } from '../../../../lib/shipping/estimate';
 import { getAppBaseUrl, getStripe, isStripeConfigured } from '../../../../lib/stripe/server';
+import { getClientIpAddress } from '../../../../lib/utils/requestIp.server';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,7 +49,10 @@ export async function POST(request: Request) {
   try {
     const cart = await validateAndPriceCart(parsed.data.items);
     const shippingEstimate = estimateShipping(cart.items.length);
-    const orderTotal = cart.total + shippingEstimate;
+    const subtotal = cart.total;
+    const orderTotal = subtotal + shippingEstimate;
+    const ruoAttestationTimestamp = new Date().toISOString();
+    const ipAddress = getClientIpAddress(request);
     const stripe = getStripe();
     const baseUrl = getAppBaseUrl();
     const { getAdminFirestore } = await import('../../../../lib/firebase/admin');
@@ -107,12 +111,17 @@ export async function POST(request: Request) {
     await createPendingOrder({
       orderId,
       items: cart.items,
+      subtotal,
+      shipping: shippingEstimate,
+      tax: 0,
+      discountTotal: 0,
       total: orderTotal,
       userId: sessionUser?.uid ?? null,
       guestEmail: sessionUser ? null : email,
       stripeSessionId: session.id,
       poNumber: parsed.data.poNumber ?? null,
-      shippingEstimate,
+      ruoAttestationTimestamp,
+      ipAddress,
     });
 
     return NextResponse.json({ url: session.url, orderId });

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getSessionUserFromRequest } from '../../../../lib/firebase/auth.server';
 import { getAdminFirestore, isAdminSdkConfigured } from '../../../../lib/firebase/admin';
+import { getModuleFlags } from '../../../../lib/firebase/modules.server';
+import { isModuleEnabled } from '../../../../lib/modules/flags';
 import { guestOrderLookupSchema } from '../../../../lib/schemas/checkout';
 
 export const dynamic = 'force-dynamic';
@@ -37,6 +39,7 @@ export async function GET(request: Request) {
 
     const userDoc = await db.collection('users').doc(sessionUser.uid).get();
     const userData = userDoc.data() ?? {};
+    const flags = await getModuleFlags();
 
     return NextResponse.json({
       orders,
@@ -46,6 +49,10 @@ export async function GET(request: Request) {
         totalPointsEarned: Number(userData.totalPointsEarned ?? 0),
         shippingAddress: userData.shippingAddress ?? null,
         institutionVerified: Boolean(userData.institutionVerified ?? false),
+        institutionTier: (userData.institutionTier as string | undefined) ?? null,
+        modules: {
+          institutionVerification: isModuleEnabled(flags, 'isInstitutionVerificationEnabled'),
+        },
       },
     });
   }

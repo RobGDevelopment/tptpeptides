@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { unstable_cache } from 'next/cache';
 import { getAdminFirestore, isAdminSdkConfigured } from './admin';
 import {
   categoryMerchandisingSchema,
@@ -48,19 +49,7 @@ async function readDoc<T>(
   }
 }
 
-export async function getSiteSettings(): Promise<SiteSettings> {
-  return readDoc(CMS.settings, siteSettingsSchema, DEFAULT_SITE_SETTINGS);
-}
-
-export async function getHomepageMerchandising(): Promise<HomepageMerchandising> {
-  return readDoc(CMS.homepage, homepageMerchandisingSchema, DEFAULT_HOMEPAGE);
-}
-
-export async function getCategoryMerchandising(): Promise<CategoryMerchandising> {
-  return readDoc(CMS.categories, categoryMerchandisingSchema, buildDefaultCategoryMerchandising());
-}
-
-export async function getResearchArticlesCms(): Promise<ResearchArticleCms[]> {
+async function fetchResearchArticlesCms(): Promise<ResearchArticleCms[]> {
   if (!isAdminSdkConfigured()) return DEFAULT_RESEARCH_ARTICLES;
 
   try {
@@ -82,31 +71,7 @@ export async function getResearchArticlesCms(): Promise<ResearchArticleCms[]> {
   }
 }
 
-export async function getResearchArticleCms(slug: string): Promise<ResearchArticleCms | null> {
-  const articles = await getResearchArticlesCms();
-  return articles.find((article) => article.slug === slug) ?? null;
-}
-
-/** Admin: includes unpublished */
-export async function getAllResearchArticlesCms(): Promise<ResearchArticleCms[]> {
-  if (!isAdminSdkConfigured()) return DEFAULT_RESEARCH_ARTICLES;
-
-  try {
-    const db = getAdminFirestore();
-    const snapshot = await db.collection(CMS.research).get();
-    if (snapshot.empty) return DEFAULT_RESEARCH_ARTICLES;
-
-    return snapshot.docs
-      .map((doc) => researchArticleCmsSchema.safeParse({ slug: doc.id, ...doc.data() }))
-      .filter((result) => result.success)
-      .map((result) => result.data)
-      .sort((a, b) => a.title.localeCompare(b.title));
-  } catch {
-    return DEFAULT_RESEARCH_ARTICLES;
-  }
-}
-
-export async function getProtocolTemplatesCms(): Promise<ProtocolTemplateCms[]> {
+async function fetchProtocolTemplatesCms(): Promise<ProtocolTemplateCms[]> {
   if (!isAdminSdkConfigured()) return DEFAULT_PROTOCOLS;
 
   try {
@@ -128,6 +93,79 @@ export async function getProtocolTemplatesCms(): Promise<ProtocolTemplateCms[]> 
   }
 }
 
+const cachedSiteSettings = unstable_cache(
+  () => readDoc(CMS.settings, siteSettingsSchema, DEFAULT_SITE_SETTINGS),
+  ['cms-site-settings'],
+  { revalidate: 3600, tags: ['cms-settings'] }
+);
+
+const cachedHomepageMerchandising = unstable_cache(
+  () => readDoc(CMS.homepage, homepageMerchandisingSchema, DEFAULT_HOMEPAGE),
+  ['cms-homepage'],
+  { revalidate: 3600, tags: ['cms-homepage'] }
+);
+
+const cachedCategoryMerchandising = unstable_cache(
+  () => readDoc(CMS.categories, categoryMerchandisingSchema, buildDefaultCategoryMerchandising()),
+  ['cms-categories'],
+  { revalidate: 3600, tags: ['cms-categories'] }
+);
+
+const cachedResearchArticles = unstable_cache(fetchResearchArticlesCms, ['cms-research-articles'], {
+  revalidate: 60,
+  tags: ['cms-research'],
+});
+
+const cachedProtocolTemplates = unstable_cache(fetchProtocolTemplatesCms, ['cms-protocols'], {
+  revalidate: 60,
+  tags: ['cms-protocols'],
+});
+
+export async function getSiteSettings(): Promise<SiteSettings> {
+  return cachedSiteSettings();
+}
+
+export async function getHomepageMerchandising(): Promise<HomepageMerchandising> {
+  return cachedHomepageMerchandising();
+}
+
+export async function getCategoryMerchandising(): Promise<CategoryMerchandising> {
+  return cachedCategoryMerchandising();
+}
+
+export async function getResearchArticlesCms(): Promise<ResearchArticleCms[]> {
+  return cachedResearchArticles();
+}
+
+export async function getResearchArticleCms(slug: string): Promise<ResearchArticleCms | null> {
+  const articles = await getResearchArticlesCms();
+  return articles.find((article) => article.slug === slug) ?? null;
+}
+
+/** Admin: includes unpublished — bypasses storefront cache. */
+export async function getAllResearchArticlesCms(): Promise<ResearchArticleCms[]> {
+  if (!isAdminSdkConfigured()) return DEFAULT_RESEARCH_ARTICLES;
+
+  try {
+    const db = getAdminFirestore();
+    const snapshot = await db.collection(CMS.research).get();
+    if (snapshot.empty) return DEFAULT_RESEARCH_ARTICLES;
+
+    return snapshot.docs
+      .map((doc) => researchArticleCmsSchema.safeParse({ slug: doc.id, ...doc.data() }))
+      .filter((result) => result.success)
+      .map((result) => result.data)
+      .sort((a, b) => a.title.localeCompare(b.title));
+  } catch {
+    return DEFAULT_RESEARCH_ARTICLES;
+  }
+}
+
+export async function getProtocolTemplatesCms(): Promise<ProtocolTemplateCms[]> {
+  return cachedProtocolTemplates();
+}
+
+/** Admin: includes unpublished — bypasses storefront cache. */
 export async function getAllProtocolTemplatesCms(): Promise<ProtocolTemplateCms[]> {
   if (!isAdminSdkConfigured()) return DEFAULT_PROTOCOLS;
 

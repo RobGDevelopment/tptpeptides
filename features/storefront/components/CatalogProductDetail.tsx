@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Icons } from '../../../components/icons';
-import { MetallicBeam } from '../../../components/ui/MetallicBeam';
+import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import { TerminalButton } from '../../../components/ui/TerminalButton';
 import { TerminalPanel } from '../../../components/ui/TerminalPanel';
 import type { CatalogDetail, CatalogSummary } from '../types';
@@ -47,23 +47,23 @@ export function CatalogProductDetail({ detail, relatedProducts = [] }: CatalogPr
 
       <div className="mt-10 grid lg:grid-cols-2 gap-12 lg:gap-20 items-start">
         <TerminalPanel className="flex items-center justify-center min-h-[420px] p-12">
-          <VialThumbnail tag={selected.tag} size="lg" />
+          <VialThumbnail tag={selected.tag} />
         </TerminalPanel>
 
         <div>
-          <p className="text-[10px] tracking-caps uppercase text-muted">{detail.entry.category}</p>
-          <h1 className="text-3xl md:text-4xl font-light mt-3 text-primary tracking-title uppercase">
+          <p className="text-[10px] tracking-widest uppercase text-muted">{detail.entry.category}</p>
+          <h1 className="text-3xl md:text-4xl font-light mt-3 text-heading tracking-title uppercase">
             {detail.entry.name}
           </h1>
           <p className="text-[10px] tracking-caps uppercase text-gold-light mt-4">
             For laboratory research purposes only · Not for human or veterinary use
           </p>
-          <MetallicBeam variant="horizontal" className="my-6 max-w-24" />
+          <HeaderDividerBeam delay={1} className="my-6" />
           <p className="text-secondary font-light leading-relaxed text-sm">{detail.entry.description}</p>
 
           <div className="mt-8 flex flex-wrap gap-x-4 gap-y-2">
             {detail.entry.researchAreas.map((area) => (
-              <span key={area} className="text-[10px] tracking-caps uppercase text-muted">
+              <span key={area} className="text-[10px] tracking-widest uppercase text-muted">
                 {area}
               </span>
             ))}
@@ -85,12 +85,12 @@ export function CatalogProductDetail({ detail, relatedProducts = [] }: CatalogPr
                     onClick={() => setSelectedId(variant.id)}
                     className="terminal-variant-row"
                   >
-                    <span className="text-sm font-light">{variant.tag}</span>
+                    <span className="text-sm font-light font-mono tracking-widest uppercase">{variant.tag}</span>
                     <span className="text-right">
-                      <span className="variant-price block text-sm font-medium metallic-gold">
+                      <span className="variant-price block text-sm font-medium metallic-gold font-mono tracking-widest">
                         ${variant.price.toFixed(2)}
                       </span>
-                      <span className="text-[10px] tracking-caps uppercase text-muted">
+                      <span className="text-[10px] tracking-widest uppercase text-muted font-mono">
                         {outOfStock ? 'Unavailable' : `${variant.stock} units`}
                       </span>
                     </span>
@@ -144,7 +144,7 @@ export function CatalogProductDetail({ detail, relatedProducts = [] }: CatalogPr
           <h2 className="text-xl font-light text-primary tracking-title uppercase mb-2">
             Often Researched With
           </h2>
-          <MetallicBeam variant="horizontal" className="mb-10 max-w-32" />
+          <HeaderDividerBeam delay={2} className="mb-10" />
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-white/[0.04]">
             {relatedProducts.map((product) => (
               <div key={product.slug} className="bg-void p-1">
@@ -157,7 +157,7 @@ export function CatalogProductDetail({ detail, relatedProducts = [] }: CatalogPr
 
       <ProductFaq productName={detail.entry.name} />
 
-      <MetallicBeam variant="horizontal" className="mt-12" />
+      <HeaderDividerBeam delay={3} className="mt-12" />
       <p className="text-[10px] text-muted mt-6 tracking-caps uppercase font-light">
         Research use only ·{' '}
         <Link href="/research-policy" className="text-gold-light hover:text-gold transition-colors">

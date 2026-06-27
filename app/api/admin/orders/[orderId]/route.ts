@@ -30,7 +30,10 @@ export async function PATCH(
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    await orderRef.update({ status: body.status, updatedAt: new Date() });
+    await orderRef.update({
+      status: body.status,
+      updatedAt: new Date(),
+    });
 
     await logAdminAction({
       userId: admin.uid,

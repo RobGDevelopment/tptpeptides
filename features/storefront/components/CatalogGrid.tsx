@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { MetallicBeam } from '../../../components/ui/MetallicBeam';
+import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import type { CatalogSummary } from '../types';
 import type { CategoryMerchandising } from '../../../lib/schemas/storefrontCms';
 import {
@@ -84,12 +84,12 @@ export function CatalogGrid({
       {(title || subtitle) && (
         <div className="mb-12">
           {title ? (
-            <h2 className="text-2xl md:text-3xl font-light text-primary tracking-title uppercase mb-3">
+            <h2 className="text-2xl md:text-3xl font-light text-heading tracking-title uppercase mb-3">
               {title}
             </h2>
           ) : null}
-          {subtitle ? <p className="text-secondary font-light max-w-2xl text-sm">{subtitle}</p> : null}
-          <MetallicBeam variant="horizontal" className="mt-8 max-w-xs" />
+          {subtitle ? <p className="text-secondary font-light max-w-2xl text-sm leading-relaxed">{subtitle}</p> : null}
+          <HeaderDividerBeam delay={1} className="mt-8" />
         </div>
       )}
 
@@ -101,14 +101,16 @@ export function CatalogGrid({
                 <button
                   type="button"
                   onClick={() => setCategory(option.value)}
-                  className={`text-[10px] tracking-caps uppercase font-medium transition-colors duration-200 ${
-                    category === option.value ? 'text-gold-light' : 'text-muted hover:text-secondary'
+                  className={`text-[10px] tracking-widest uppercase font-medium px-2 py-1 -mx-2 rounded-sm transition-colors duration-200 ${
+                    category === option.value
+                      ? 'text-gold-light'
+                      : 'text-muted hover:text-secondary hover:bg-[#BF953F]/10'
                   }`}
                 >
                   {option.label}
                 </button>
                 {index < categoryOptions.length - 1 ? (
-                  <MetallicBeam variant="vertical" className="h-3" animated={false} />
+                  <span className="h-3 w-px bg-white/[0.08]" aria-hidden />
                 ) : null}
               </span>
             ))}
@@ -139,7 +141,7 @@ export function CatalogGrid({
               </select>
             </label>
           </div>
-          <MetallicBeam variant="horizontal" />
+          <HeaderDividerBeam delay={2} />
         </div>
       )}
 

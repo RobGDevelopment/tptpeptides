@@ -1,5 +1,5 @@
 import { Icons } from '../../../components/icons';
-import { MetallicBeam } from '../../../components/ui/MetallicBeam';
+import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { SITE_WORDMARK } from '../../../lib/brand';
 
@@ -32,7 +32,7 @@ export function AgeGate({ onVerify, isReady = true }: AgeGateProps) {
           {isReady ? 'I Agree — Enter Terminal' : 'Loading...'}
         </button>
 
-        <MetallicBeam variant="horizontal" className="mt-12 max-w-xs mx-auto" />
+        <HeaderDividerBeam delay={1} className="mt-12" />
 
         <p className="text-[10px] text-muted mt-6 tracking-caps uppercase">
           Facility access logged & monitored

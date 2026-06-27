@@ -24,7 +24,7 @@ export function TerminalLabel({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-2 text-[10px] tracking-caps uppercase font-medium',
+        'inline-flex items-center gap-2 text-[10px] tracking-widest uppercase font-medium',
         variantClass[variant],
         className
       )}

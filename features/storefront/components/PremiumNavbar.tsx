@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icons } from '../../../components/icons';
-import { MetallicBeam } from '../../../components/ui/MetallicBeam';
+import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import { useAuth } from '../../auth/providers/AuthProvider';
 import { SITE_WORDMARK } from '../../../lib/brand';
 import { selectCartCount, useCartStore } from '../stores/useCartStore';
@@ -30,8 +30,8 @@ export function PremiumNavbar() {
 
   return (
     <header className="fixed top-0 w-full z-40">
-      <MetallicBeam variant="top" className="absolute top-0 left-0 right-0" />
-      <nav className="bg-void/80 backdrop-blur-md border-b border-white/[0.04]">
+      <nav className="relative bg-void/70 backdrop-blur-md border-b border-white/[0.04]">
+        <HeaderDividerBeam contained delay={0} className="absolute bottom-0 left-0 right-0" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
             <Link href="/" className="flex items-center gap-3 text-primary group">

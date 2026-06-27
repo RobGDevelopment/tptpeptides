@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { Icons } from '../../../components/icons';
-import { MetallicBeam } from '../../../components/ui/MetallicBeam';
+import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import { Spinner } from '../../../components/ui/Spinner';
 import { TerminalPanel } from '../../../components/ui/TerminalPanel';
 import { useCartStore } from '../../storefront/stores/useCartStore';
@@ -87,6 +87,7 @@ function CheckoutSuccessContent() {
       </div>
       <div>
         <h1 className="text-3xl font-light text-primary tracking-title uppercase">Requisition Authorized</h1>
+        <HeaderDividerBeam delay={1} />
         <p className="text-secondary font-light mt-3 text-sm">
           Payment received. A receipt has been sent to {confirmation.email ?? 'your email on file'}.
         </p>
@@ -95,9 +96,9 @@ function CheckoutSuccessContent() {
       <TerminalPanel className="p-8 text-left space-y-4">
         <div className="flex justify-between text-sm">
           <span className="text-[10px] tracking-caps uppercase text-muted">Order ID</span>
-          <span className="font-mono text-secondary">{confirmation.orderId}</span>
+          <span className="font-mono tracking-widest uppercase text-secondary">{confirmation.orderId}</span>
         </div>
-        <MetallicBeam variant="horizontal" animated={false} />
+        <HeaderDividerBeam contained animated={false} />
         <div className="flex justify-between text-sm">
           <span className="text-[10px] tracking-caps uppercase text-muted">Total paid</span>
           <span className="metallic-gold font-medium">${confirmation.total.toFixed(2)}</span>

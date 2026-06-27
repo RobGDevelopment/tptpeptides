@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { Modal } from '../../../components/ui/Modal';
 import { Input } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
-import { MetallicBeam } from '../../../components/ui/MetallicBeam';
+import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import type { AdminProductGroup } from '../types';
 
 const numberField = (schema: z.ZodNumber) =>
@@ -295,7 +295,7 @@ export function ProductFormModal({ isOpen, onClose, initialGroup }: ProductFormM
 
         {saveError && <p className="text-red-400/90 text-sm">{saveError}</p>}
 
-        <MetallicBeam variant="horizontal" animated={false} />
+        <HeaderDividerBeam contained animated={false} />
         <div className="flex gap-6 pt-2">
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Saving...' : 'Save Product'}

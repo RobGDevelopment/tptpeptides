@@ -1,3 +1,4 @@
+import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 import { FieldValue } from 'firebase-admin/firestore';
 import { getCatalogSeedProducts } from '../../../../lib/data/seedCatalog';
@@ -43,6 +44,9 @@ export async function POST(request: Request) {
       action: 'catalog_seed',
       metadata: { productCount: products.length, source: 'lib/data/catalog.json' },
     });
+
+    revalidateTag('product-overrides', 'max');
+    revalidateTag('catalog-summaries', 'max');
 
     return NextResponse.json({
       ok: true,

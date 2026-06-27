@@ -1,7 +1,8 @@
-# MedFit — Architectural Review & Remaining Build Plan
+# TPTPeptides — Architectural Review & Remaining Build Plan
 
-> **Status:** Phase F complete. Production-ready v1.  
-> **Last updated:** June 2026
+> **Status:** Phase F complete (production v1). **V2 enterprise plan active.**  
+> **Last updated:** June 2026  
+> **→ Current roadmap:** [MASTER_ARCHITECTURE_V2.md](./MASTER_ARCHITECTURE_V2.md) · [SPRINT_1_EXECUTION.md](./SPRINT_1_EXECUTION.md)
 
 ---
 

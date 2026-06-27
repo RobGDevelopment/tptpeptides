@@ -10,7 +10,8 @@ import {
   groupProductsFromDocs,
 } from '../lib/groupProducts';
 import { Spinner } from '../../../components/ui/Spinner';
-import { MetallicBeam } from '../../../components/ui/MetallicBeam';
+import { AdminPageHeader } from '../../../components/ui/AdminPageHeader';
+import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import type { AdminProductGroup } from '../types';
 
 export function AdminDashboard() {
@@ -61,10 +62,10 @@ export function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="admin-heading">Lab Operations Dashboard</h1>
-        <p className="admin-subheading">Real-time overview of catalog, orders, and inventory health</p>
-      </header>
+      <AdminPageHeader
+        title="Lab Operations Dashboard"
+        subtitle="Real-time overview of catalog, orders, and inventory health"
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-px bg-white/[0.04]">
         {[
@@ -86,8 +87,9 @@ export function AdminDashboard() {
       </div>
 
       <section className="admin-table-section">
-        <div className="p-6 border-b border-white/[0.04]">
-          <h2 className="text-sm tracking-caps uppercase text-primary font-medium">Catalog Snapshot</h2>
+        <div className="p-6 border-b border-white/[0.04] space-y-3">
+          <h2 className="text-sm tracking-caps uppercase text-heading font-medium">Catalog Snapshot</h2>
+          <HeaderDividerBeam delay={2} />
         </div>
         <div className="overflow-x-auto">
           <table className="admin-table">
@@ -115,7 +117,6 @@ export function AdminDashboard() {
             </tbody>
           </table>
         </div>
-        <MetallicBeam variant="horizontal" animated={false} />
       </section>
     </div>
   );

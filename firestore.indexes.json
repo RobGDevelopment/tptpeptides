@@ -9,10 +9,18 @@
       ]
     },
     {
+      "collectionGroup": "institutionVerifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "submittedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "orders",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "stripeSessionId", "order": "ASCENDING" }
+        { "fieldPath": "createdAt", "order": "ASCENDING" }
       ]
     }
   ],

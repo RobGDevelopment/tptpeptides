@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Spinner } from '../../../components/ui/Spinner';
 import { Button } from '../../../components/ui/Button';
+import { AdminPageHeader } from '../../../components/ui/AdminPageHeader';
 
 interface AdminUserRow {
   uid: string;
@@ -60,10 +61,11 @@ export function UsersPageContent() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="admin-heading">User Management</h1>
-        <p className="admin-subheading">Assign roles and disable accounts</p>
-      </header>
+      <AdminPageHeader
+        title="User Management"
+        subtitle="Assign roles and disable accounts"
+        beamDelay={3}
+      />
 
       {message && <p className="text-sm text-secondary font-light">{message}</p>}
 

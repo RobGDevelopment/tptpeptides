@@ -70,5 +70,15 @@ service cloud.firestore {
     match /protocols/{id} {
       allow read, write: if isAdmin();
     }
+
+    match /settings/modules {
+      allow read, write: if isAdmin();
+    }
+
+    match /institutionVerifications/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
   }
 }

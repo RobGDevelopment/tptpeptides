@@ -1,6 +1,6 @@
 'use client';
 
-import { MetallicBeam } from '../../../components/ui/MetallicBeam';
+import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import { SITE_NAME } from '../../../lib/brand';
 
 interface FaqItem {
@@ -33,7 +33,7 @@ export function ProductFaq({ productName }: ProductFaqProps) {
   return (
     <section className="mt-20">
       <h2 className="text-xl font-light text-primary tracking-title uppercase mb-2">Research FAQ</h2>
-      <MetallicBeam variant="horizontal" className="mb-8 max-w-24" />
+      <HeaderDividerBeam delay={1} className="mb-8" />
       <div>
         {items.map((item, index) => (
           <details key={item.question} className="group border-b border-white/[0.06] py-4">

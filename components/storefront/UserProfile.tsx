@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,7 +11,7 @@ import { Spinner } from '../ui/Spinner';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
-import { MetallicBeam } from '../ui/MetallicBeam';
+import { HeaderDividerBeam } from '../ui/HeaderDividerBeam';
 import { CoaViewer } from '../../features/compliance/components/CoaViewer';
 
 interface OrderRow {
@@ -29,6 +30,10 @@ interface AccountProfile {
   totalPointsEarned: number;
   shippingAddress: ShippingAddress | null;
   institutionVerified: boolean;
+  institutionTier?: string | null;
+  modules?: {
+    institutionVerification: boolean;
+  };
 }
 
 export function UserProfile() {
@@ -100,6 +105,15 @@ export function UserProfile() {
             <p className="text-[10px] tracking-caps uppercase text-gold-light mt-3">
               {tier} Tier · {profile.loyaltyPoints.toLocaleString()} points available
             </p>
+            {profile.institutionVerified ? (
+              <p className="text-[10px] tracking-caps uppercase text-muted mt-2">
+                Institution verified · {profile.institutionTier ?? 'Bronze'} pricing tier
+              </p>
+            ) : profile.modules?.institutionVerification ? (
+              <Link href="/account/verify" className="terminal-link text-[10px] inline-block mt-4">
+                Verify Institution for B2B Access
+              </Link>
+            ) : null}
           </div>
           <button
             type="button"
@@ -141,7 +155,7 @@ export function UserProfile() {
         <div>
           {orders.map((order, index) => (
             <div key={order.id}>
-              {index > 0 ? <MetallicBeam variant="horizontal" className="my-6" animated={false} /> : null}
+              {index > 0 ? <HeaderDividerBeam contained animated={false} className="my-6" /> : null}
               <div className="py-2 space-y-3">
                 <div className="flex flex-wrap justify-between gap-2">
                   <div>

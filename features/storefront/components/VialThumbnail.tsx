@@ -25,7 +25,7 @@ export function VialThumbnail({ tag, size = 'md', className = '' }: VialThumbnai
       />
       <span className={`${sizes.label} text-muted font-medium uppercase tracking-caps mt-1`}>TPT</span>
       {tag ? (
-        <span className={`${sizes.tag} text-secondary font-mono mt-1 text-center px-1 leading-tight`}>
+        <span className={`${sizes.tag} text-secondary font-mono tracking-widest uppercase mt-1 text-center px-1 leading-relaxed`}>
           {tag}
         </span>
       ) : null}

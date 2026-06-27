@@ -2,7 +2,7 @@
 
 import { collection, limit, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import { MetallicBeam } from '../../../components/ui/MetallicBeam';
+import { AdminPageHeader } from '../../../components/ui/AdminPageHeader';
 import { db } from '../../../lib/firebase/firestore';
 import type { AuditLogRow } from '../types';
 import { Spinner } from '../../../components/ui/Spinner';
@@ -100,17 +100,16 @@ export function AuditPageContent() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="admin-heading">Compliance Audit Logs</h1>
-          <p className="admin-subheading">
-            Read-only trail of age gate verifications and admin actions for legal compliance
-          </p>
-        </div>
-        <button type="button" onClick={exportCsv} className="terminal-link text-[10px]">
-          Export CSV
-        </button>
-      </header>
+      <AdminPageHeader
+        title="Compliance Audit Logs"
+        subtitle="Read-only trail of age gate verifications and admin actions for legal compliance"
+        beamDelay={2}
+        actions={
+          <button type="button" onClick={exportCsv} className="terminal-link text-[10px]">
+            Export CSV
+          </button>
+        }
+      />
 
       <div className="flex flex-wrap gap-x-6 gap-y-2">
         {(['all', 'age', 'admin'] as const).map((value, index, arr) => (
@@ -123,7 +122,7 @@ export function AuditPageContent() {
               {value === 'all' ? 'All events' : value === 'age' ? 'Age gate' : 'Admin actions'}
             </button>
             {index < arr.length - 1 ? (
-              <MetallicBeam variant="vertical" className="h-3" animated={false} />
+              <span className="h-3 w-px bg-white/[0.08]" aria-hidden />
             ) : null}
           </span>
         ))}

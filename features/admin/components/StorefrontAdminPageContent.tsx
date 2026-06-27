@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Spinner } from '../../../components/ui/Spinner';
+import { AdminPageHeader } from '../../../components/ui/AdminPageHeader';
 import {
   DEFAULT_HOMEPAGE,
   DEFAULT_PROTOCOLS,
@@ -230,15 +231,16 @@ export function StorefrontAdminPageContent() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="admin-heading">Storefront CMS</h1>
-          <p className="admin-subheading">Edit the consumer-facing homepage, content, and merchandising</p>
-        </div>
-        <Link href="/" target="_blank" className="terminal-link text-[10px]">
-          Preview Storefront
-        </Link>
-      </header>
+      <AdminPageHeader
+        title="Storefront CMS"
+        subtitle="Edit the consumer-facing homepage, content, and merchandising"
+        beamDelay={1}
+        actions={
+          <Link href="/" target="_blank" className="terminal-link text-[10px]">
+            Preview Storefront
+          </Link>
+        }
+      />
 
       {message && <p className="admin-banner">{message}</p>}
       {error && <p className="text-sm text-red-400/90">{error}</p>}

@@ -1,4 +1,4 @@
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { FieldValue } from 'firebase-admin/firestore';
@@ -19,6 +19,8 @@ function revalidateStorefront() {
   revalidatePath('/catalog');
   revalidatePath('/research');
   revalidatePath('/protocols');
+  revalidateTag('cms-settings', 'max');
+  revalidateTag('cms-homepage', 'max');
 }
 
 function complianceErrorResponse(field: string, text: string) {
@@ -126,6 +128,7 @@ export async function PATCH(request: Request) {
     });
 
     revalidatePath('/catalog');
+    revalidateTag('cms-categories', 'max');
     return NextResponse.json({ ok: true });
   } catch (error) {
     if (error instanceof AdminAuthError) {

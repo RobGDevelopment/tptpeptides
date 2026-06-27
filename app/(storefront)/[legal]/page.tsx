@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { MetallicBeam } from '../../../components/ui/MetallicBeam';
+import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import {
   isLegalSlug,
   LEGAL_DOCUMENTS,
@@ -45,7 +45,7 @@ export default async function LegalPage({ params }: LegalPageProps) {
         <h1 className="text-3xl md:text-4xl font-light mt-3 text-primary tracking-title uppercase">
           {doc.title}
         </h1>
-        <MetallicBeam variant="horizontal" className="my-6 max-w-24" />
+        <HeaderDividerBeam delay={1} className="my-6" />
         <p className="text-secondary font-light text-sm">{doc.subtitle}</p>
         <p className="text-[10px] tracking-caps uppercase text-muted mt-4">Last updated: {doc.lastUpdated}</p>
       </header>

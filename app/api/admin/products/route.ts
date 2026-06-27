@@ -1,9 +1,11 @@
+import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { FieldValue } from 'firebase-admin/firestore';
 import { productDocSchema } from '../../../../lib/schemas/product';
 import { assertRuOProductDescription, findComplianceViolations } from '../../../../lib/compliance/copyGuard';
-import { AdminAuthError, logAdminAction, requireAdminSession } from '../../../../lib/firebase/adminAuth.server';import { getAdminFirestore, isAdminSdkConfigured } from '../../../../lib/firebase/admin';
+import { AdminAuthError, logAdminAction, requireAdminSession } from '../../../../lib/firebase/adminAuth.server';
+import { getAdminFirestore, isAdminSdkConfigured } from '../../../../lib/firebase/admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,6 +97,9 @@ export async function PUT(request: Request) {
       action: 'product_save',
       metadata: { catalogId: payload.catalogId, variantCount: payload.variants.length },
     });
+
+    revalidateTag('product-overrides', 'max');
+    revalidateTag('catalog-summaries', 'max');
 
     return NextResponse.json({ ok: true, catalogId: payload.catalogId });
   } catch (error) {

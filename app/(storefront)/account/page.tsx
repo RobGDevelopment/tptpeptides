@@ -74,7 +74,7 @@ export default function AccountPage() {
                 Look Up Order
               </Button>
               {guestOrders && (
-                <pre className="text-xs bg-void/80 p-4 overflow-auto text-secondary font-mono border-t border-white/[0.06]">
+                <pre className="text-xs bg-void/80 p-4 overflow-auto text-secondary font-mono tracking-widest uppercase border-t border-white/[0.06] leading-relaxed">
                   {JSON.stringify(guestOrders, null, 2)}
                 </pre>
               )}

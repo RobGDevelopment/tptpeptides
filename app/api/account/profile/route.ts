@@ -30,8 +30,14 @@ export async function PATCH(request: Request) {
     );
   }
 
+  const { shippingAddress } = parsed.data;
+
+  if (!shippingAddress) {
+    return NextResponse.json({ error: 'No profile fields to update' }, { status: 400 });
+  }
+
   const db = getAdminFirestore();
-  await db.collection('users').doc(sessionUser.uid).set(parsed.data, { merge: true });
+  await db.collection('users').doc(sessionUser.uid).set({ shippingAddress }, { merge: true });
 
   return NextResponse.json({ ok: true });
 }

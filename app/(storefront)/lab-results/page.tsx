@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_NAME, SITE_WORDMARK } from '../../../lib/brand';
 import { getCatalogEntries } from '../../../lib/catalog';
-import { MetallicBeam } from '../../../components/ui/MetallicBeam';
+import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { TerminalPanel } from '../../../components/ui/TerminalPanel';
 
@@ -52,7 +52,7 @@ export default function LabResultsPage() {
         <div className="grid md:grid-cols-2 gap-px bg-white/[0.04] mt-12">
           {QA_STANDARDS.map((item) => (
             <TerminalPanel key={item.title} className="p-8 bg-void">
-              <h2 className="text-sm tracking-caps uppercase text-primary font-medium mb-3">{item.title}</h2>
+              <h2 className="text-sm tracking-widest uppercase text-heading font-medium mb-3">{item.title}</h2>
               <p className="text-sm text-secondary font-light leading-relaxed">{item.body}</p>
             </TerminalPanel>
           ))}
@@ -60,12 +60,12 @@ export default function LabResultsPage() {
 
         <section className="mt-20">
           <div className="flex items-end justify-between gap-4 mb-8">
-            <h2 className="text-xl font-light text-primary tracking-title uppercase">Compound COA Index</h2>
+            <h2 className="text-xl font-light text-heading tracking-title uppercase">Compound COA Index</h2>
             <Link href="/catalog" className="terminal-link text-[10px]">
               Browse Catalog
             </Link>
           </div>
-          <MetallicBeam variant="horizontal" className="mb-10" />
+          <HeaderDividerBeam delay={1} className="mb-10" />
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-white/[0.04]">
             {compounds.map((entry) => (
@@ -75,11 +75,11 @@ export default function LabResultsPage() {
                 className="group block bg-void p-1 focus:outline-none focus-visible:ring-1 focus-visible:ring-gold/30"
               >
                 <TerminalPanel hoverBeam className="p-6 h-full">
-                  <p className="text-[10px] tracking-caps uppercase text-muted">{entry.category}</p>
+                  <p className="text-[10px] tracking-widest uppercase text-muted">{entry.category}</p>
                   <h3 className="text-sm text-primary font-light mt-2 group-hover:text-gold-light transition-colors">
                     {entry.name}
                   </h3>
-                  <p className="text-[10px] tracking-caps uppercase text-muted mt-3">
+                  <p className="text-[10px] tracking-widest uppercase text-muted mt-3 font-mono">
                     COA on request · HPLC verified
                   </p>
                 </TerminalPanel>
@@ -89,11 +89,11 @@ export default function LabResultsPage() {
         </section>
 
         <section className="mt-20">
-          <MetallicBeam variant="horizontal" className="mb-8" />
-          <h2 className="text-sm tracking-caps uppercase text-primary font-medium mb-3">
+          <HeaderDividerBeam delay={2} className="mb-8" />
+          <h2 className="text-sm tracking-widest uppercase text-heading font-medium mb-3">
             Need a signed COA for an active order?
           </h2>
-          <p className="text-sm text-secondary font-light mb-6 max-w-2xl">
+          <p className="text-sm text-secondary font-light leading-relaxed mb-6 max-w-2xl">
             Sign in to the Client Portal to download batch documentation linked to your shipments, or contact
             support with your PO number.
           </p>

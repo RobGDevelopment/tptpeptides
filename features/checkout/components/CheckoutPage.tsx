@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
-import { MetallicBeam } from '../../../components/ui/MetallicBeam';
+import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { TerminalPanel } from '../../../components/ui/TerminalPanel';
 import { SITE_WORDMARK } from '../../../lib/brand';
@@ -170,7 +170,7 @@ export function CheckoutPage() {
             <div className="space-y-4 mb-6">
               {items.map((item, index) => (
                 <div key={item.id}>
-                  {index > 0 ? <MetallicBeam variant="horizontal" className="mb-4" animated={false} /> : null}
+                  {index > 0 ? <HeaderDividerBeam contained animated={false} className="mb-4" /> : null}
                   <div className="flex justify-between text-sm gap-4">
                     <Link
                       href={`/catalog/${item.slug}`}
@@ -183,7 +183,7 @@ export function CheckoutPage() {
                 </div>
               ))}
             </div>
-            <MetallicBeam variant="horizontal" className="mb-4" animated={false} />
+            <HeaderDividerBeam contained delay={1} animated={false} className="mb-4" />
             <div className="space-y-2 text-[10px] tracking-caps uppercase text-muted">
               <div className="flex justify-between">
                 <span>Subtotal</span>

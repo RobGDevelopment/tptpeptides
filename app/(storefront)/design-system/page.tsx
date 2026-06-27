@@ -1,3 +1,5 @@
+import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
+import { SignatureBeam } from '../../../components/ui/SignatureBeam';
 import { MetallicBeam } from '../../../components/ui/MetallicBeam';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { SITE_TAGLINE, SITE_TERMINAL_VERSION, SITE_WORDMARK } from '../../../lib/brand';
@@ -13,7 +15,13 @@ export default function DesignSystemPage() {
 
         <section className="space-y-4">
           <h2 className="text-xs tracking-caps uppercase text-muted">Beams</h2>
-          <MetallicBeam variant="horizontal" />
+          <p className="text-secondary text-sm font-light">Signature beam (global, viewport top)</p>
+          <div className="relative h-8 border border-white/[0.06] overflow-hidden">
+            <SignatureBeam />
+          </div>
+          <p className="text-secondary text-sm font-light pt-4">Header divider — full viewport sweep, fades at edges</p>
+          <HeaderDividerBeam delay={1} />
+          <HeaderDividerBeam delay={2} className="mt-4" />
           <div className="flex h-16 items-center gap-4">
             <MetallicBeam variant="vertical" className="h-full" />
             <p className="text-secondary text-sm font-light">Vertical beam · 1px metallic drift</p>

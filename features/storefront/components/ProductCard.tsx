@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { CatalogSummary } from '../types';
 import { TerminalLabel } from '../../../components/ui/TerminalLabel';
 import { TerminalPanel } from '../../../components/ui/TerminalPanel';
-import { VialThumbnail } from './VialThumbnail';
+import { PeptideVial } from '../../../components/ui/PeptideVial';
 
 interface ProductCardProps {
   product: CatalogSummary;
@@ -28,10 +28,10 @@ export function ProductCard({ product, compact = false }: ProductCardProps) {
         </div>
 
         <div className="w-full h-44 flex items-center justify-center mb-8">
-          <VialThumbnail tag={featuredTag} size="md" />
+          <PeptideVial label={featuredTag ?? product.name} />
         </div>
 
-        <p className="text-[10px] tracking-caps uppercase text-muted mb-2">{product.category}</p>
+        <p className="text-[10px] tracking-widest uppercase text-muted mb-2">{product.category}</p>
 
         <div className="flex justify-between items-start gap-3 mb-3">
           <h3
@@ -42,14 +42,14 @@ export function ProductCard({ product, compact = false }: ProductCardProps) {
             {product.name}
           </h3>
           {product.fromPrice != null && (
-            <p className="text-base metallic-gold whitespace-nowrap font-medium">
+            <p className="text-base metallic-gold whitespace-nowrap font-medium font-mono tracking-widest uppercase">
               ${product.fromPrice.toFixed(0)}
               {product.purchasableVariantCount > 1 ? '+' : ''}
             </p>
           )}
         </div>
 
-        <p className={`text-sm text-secondary font-light flex-1 ${compact ? 'line-clamp-2' : 'line-clamp-3'}`}>
+        <p className={`text-sm text-secondary font-light leading-relaxed flex-1 ${compact ? 'line-clamp-2' : 'line-clamp-3'}`}>
           {product.description}
         </p>
 
