@@ -14,12 +14,20 @@ export async function resolveServerAdminAccess(params: {
 
   if (!isAdminSdkConfigured()) return false;
 
-  try {
-    const decoded = await getAdminAuth().verifyIdToken(params.idToken);
-    if (isMasterAdminEmail(decoded.email)) return true;
-    if (decoded.admin === true || decoded.role === 'admin') return true;
-  } catch {
-    return false;
+  if (params.idToken) {
+    try {
+      const auth = getAdminAuth();
+      let decoded;
+      try {
+        decoded = await auth.verifySessionCookie(params.idToken, true);
+      } catch {
+        decoded = await auth.verifyIdToken(params.idToken);
+      }
+      if (isMasterAdminEmail(decoded.email)) return true;
+      if (decoded.admin === true || decoded.role === 'admin') return true;
+    } catch {
+      return false;
+    }
   }
 
   const userDoc = await getAdminFirestore().collection('users').doc(params.uid).get();

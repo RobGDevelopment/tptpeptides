@@ -1,45 +1,23 @@
 import 'server-only';
 
-import { randomBytes } from 'crypto';
 import { MASTER_ADMIN_EMAILS } from './masterAdmin';
-import { syncMasterAdminAccess } from './syncMasterAdmin.server';
-import { buildMasterAdminAccessEmail, masterAdminUrls } from '../email/masterAdminAccess.server';
-import { isResendConfigured, sendEmail } from '../email/resend.server';
-import { getAdminAuth, getAdminFirestore, isAdminSdkConfigured } from '../firebase/admin';
+import { sendPersonaInvite } from '../email/inviteEngine.server';
 import { logAdminAction } from '../firebase/adminAuth.server';
+import { isAdminSdkConfigured } from '../firebase/admin';
+import type { InviteStatus } from '../schemas/invitation';
 
 export interface MasterAdminInviteResult {
   email: string;
   uid: string;
   created: boolean;
   emailSent: boolean;
+  inviteStatus: InviteStatus;
+  inviteId?: string;
   resetLink?: string;
   error?: string;
 }
 
-async function ensureAuthUser(email: string): Promise<{ uid: string; created: boolean }> {
-  const auth = getAdminAuth();
-  const normalized = email.trim().toLowerCase();
-
-  try {
-    const existing = await auth.getUserByEmail(normalized);
-    return { uid: existing.uid, created: false };
-  } catch (error) {
-    const code = typeof error === 'object' && error != null && 'code' in error ? String((error as { code: string }).code) : '';
-    if (code !== 'auth/user-not-found') throw error;
-  }
-
-  const tempPassword = randomBytes(24).toString('base64url');
-  const created = await auth.createUser({
-    email: normalized,
-    password: tempPassword,
-    emailVerified: false,
-  });
-
-  return { uid: created.uid, created: true };
-}
-
-/** Provisions all master admins and sends Back-Office access email via Resend. */
+/** Provisions all master admins and sends branded super-admin invite emails. */
 export async function inviteAllMasterAdmins(params: {
   siteUrl?: string;
   triggeredByUid?: string;
@@ -48,49 +26,36 @@ export async function inviteAllMasterAdmins(params: {
     throw new Error('Firebase Admin SDK is not configured');
   }
 
-  const auth = getAdminAuth();
-  const db = getAdminFirestore();
-  const { backOfficeUrl, signInUrl } = masterAdminUrls(params.siteUrl);
   const results: MasterAdminInviteResult[] = [];
 
   for (const rawEmail of MASTER_ADMIN_EMAILS) {
     const email = rawEmail.trim().toLowerCase();
 
     try {
-      const { uid, created } = await ensureAuthUser(email);
-      await syncMasterAdminAccess(uid, email);
-
-      await db.collection('users').doc(uid).set(
-        {
-          email,
-          invitedAt: new Date().toISOString(),
-          invitedBy: params.triggeredByUid ?? 'system',
-        },
-        { merge: true }
-      );
-
-      const resetLink = await auth.generatePasswordResetLink(email);
-
-      const { subject, html, text } = buildMasterAdminAccessEmail({
+      const invite = await sendPersonaInvite({
         email,
-        backOfficeUrl,
-        signInUrl,
-        passwordResetUrl: resetLink,
+        persona: 'super_admin',
+        invitedBy: params.triggeredByUid ?? 'system',
+        siteUrl: params.siteUrl,
       });
 
-      let emailSent = false;
-      if (isResendConfigured()) {
-        await sendEmail({ to: email, subject, html, text });
-        emailSent = true;
-      }
-
-      results.push({ email, uid, created, emailSent, resetLink: emailSent ? undefined : resetLink });
+      results.push({
+        email: invite.email,
+        uid: invite.uid,
+        created: invite.accountCreated,
+        emailSent: invite.emailSent,
+        inviteStatus: invite.inviteStatus,
+        inviteId: invite.inviteId,
+        resetLink: invite.passwordResetUrl,
+        error: invite.error,
+      });
     } catch (error) {
       results.push({
         email,
         uid: '',
         created: false,
         emailSent: false,
+        inviteStatus: 'failed',
         error: error instanceof Error ? error.message : 'Invite failed',
       });
     }
@@ -101,7 +66,11 @@ export async function inviteAllMasterAdmins(params: {
       userId: params.triggeredByUid,
       action: 'master_admin_invite',
       metadata: {
-        recipients: results.map((r) => ({ email: r.email, emailSent: r.emailSent, error: r.error })),
+        recipients: results.map((r) => ({
+          email: r.email,
+          inviteStatus: r.inviteStatus,
+          error: r.error,
+        })),
       },
     });
   }

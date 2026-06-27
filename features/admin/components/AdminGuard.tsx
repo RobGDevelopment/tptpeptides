@@ -24,7 +24,11 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
   }
 
   if (!user || !isAdmin) {
-    return null;
+    return (
+      <div className="min-h-screen bg-void flex items-center justify-center">
+        <Spinner label="Redirecting…" />
+      </div>
+    );
   }
 
   return <>{children}</>;

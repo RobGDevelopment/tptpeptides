@@ -55,6 +55,7 @@ export async function GET(request: Request) {
     if (error instanceof AdminAuthError) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode });
     }
+    console.error('[admin/storefront/settings] GET failed', error);
     return NextResponse.json({ error: 'Unable to load storefront settings' }, { status: 500 });
   }
 }

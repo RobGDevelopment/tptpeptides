@@ -4,6 +4,7 @@ import { isMasterAdminEmail } from '../admin/masterAdmin';
 import { resolveServerAdminAccess } from '../admin/resolveAdminAccess.server';
 import type { UserRbacProfile } from './users.server';
 import { getAdminFirestore, isAdminSdkConfigured } from './admin';
+import { AUTH_SESSION_COOKIE } from './authConstants';
 import { getSessionUserFromRequest, type SessionUser } from './auth.server';
 import { getUserRbacProfile } from './users.server';
 
@@ -46,7 +47,7 @@ export async function requireAdminSession(request: Request): Promise<SessionUser
   }
 
   const cookieHeader = request.headers.get('cookie') ?? '';
-  const match = cookieHeader.match(/(?:^|; )tpt-auth=([^;]*)/);
+  const match = cookieHeader.match(new RegExp(`(?:^|; )${AUTH_SESSION_COOKIE}=([^;]*)`));
   const token = match?.[1] ? decodeURIComponent(match[1]) : null;
 
   if (!token) {

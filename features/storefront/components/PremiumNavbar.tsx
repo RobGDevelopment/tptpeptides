@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Icons } from '../../../components/icons';
 import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import { useAuth } from '../../auth/providers/AuthProvider';
+import { navigateToAdmin } from '../../../lib/firebase/adminNav';
 import { SITE_WORDMARK } from '../../../lib/brand';
 import { selectCartCount, useCartStore } from '../stores/useCartStore';
 
@@ -62,12 +63,13 @@ export function PremiumNavbar() {
 
             <div className="flex items-center gap-6 text-primary">
               {isAdmin ? (
-                <Link
-                  href="/admin"
+                <button
+                  type="button"
+                  onClick={() => void navigateToAdmin()}
                   className="text-[10px] tracking-caps uppercase text-gold-light hover:text-gold transition-colors hidden sm:block"
                 >
                   Back-Office
-                </Link>
+                </button>
               ) : null}
               {user ? (
                 <Link

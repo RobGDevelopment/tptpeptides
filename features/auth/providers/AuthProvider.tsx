@@ -6,10 +6,16 @@ import { logoutUser, resolveUserRole, subscribeToAuthChanges } from '../../../li
 import { fetchServerAdminStatus } from '../../../lib/firebase/session';
 import type { UserRole } from '../types';
 
+/** Client-side fallback when server session APIs fail — matches firestore.rules master admin. */
+function isKnownMasterAdminEmail(email: string | null | undefined): boolean {
+  return email?.trim().toLowerCase() === 'rjg.cal@gmail.com';
+}
+
 interface AuthContextValue {
   user: User | null;
   role: UserRole | null;
   isAdmin: boolean;
+  isMasterAdmin: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
 }
@@ -20,6 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
   const [serverAdmin, setServerAdmin] = useState(false);
+  const [masterAdmin, setMasterAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,19 +40,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!currentUser) {
         setRole(null);
         setServerAdmin(false);
+        setMasterAdmin(false);
         setLoading(false);
         return;
       }
 
+      setLoading(true);
+
       void (async () => {
-        const [resolvedRole, isAdminFromServer] = await Promise.all([
+        const [resolvedRole, authStatus] = await Promise.all([
           resolveUserRole(currentUser),
           fetchServerAdminStatus(),
         ]);
 
         if (!cancelled) {
           setRole(resolvedRole);
-          setServerAdmin(isAdminFromServer);
+          setServerAdmin(authStatus.isAdmin);
+          setMasterAdmin(authStatus.isMasterAdmin);
           setLoading(false);
         }
       })();
@@ -61,11 +72,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       user,
       role,
-      isAdmin: role === 'admin' || serverAdmin,
+      isAdmin:
+        role === 'admin' ||
+        serverAdmin ||
+        Boolean(user?.email && isKnownMasterAdminEmail(user.email)),
+      isMasterAdmin: masterAdmin || Boolean(user?.email && isKnownMasterAdminEmail(user.email)),
       loading,
       signOut: logoutUser,
     }),
-    [user, role, serverAdmin, loading]
+    [user, role, serverAdmin, masterAdmin, loading]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -9,10 +9,15 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "seed:products": "tsx scripts/seed-products.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:smoke:prod": "tsx scripts/run-smoke-prod.ts",
+    "health:check": "tsx scripts/health-check.ts",
+    "sync:firebase-env": "tsx scripts/sync-firebase-env-to-vercel.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
+    "@sentry/nextjs": "^10.62.0",
     "@tailwindcss/postcss": "4.3.1",
     "dotenv": "^17.4.2",
     "firebase": "12.15.0",
@@ -37,5 +42,10 @@
     "prettier": "^3.6.2",
     "tsx": "^4.22.4",
     "typescript": "6.0.3"
+  },
+  "overrides": {
+    "jwks-rsa": {
+      "jose": "4.15.9"
+    }
   }
 }

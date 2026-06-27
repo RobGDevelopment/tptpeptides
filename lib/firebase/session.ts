@@ -6,7 +6,7 @@ export interface AuthSessionSyncResult {
 }
 
 async function postSession(idToken: string): Promise<AuthSessionSyncResult> {
-  const response = await fetch('/api/auth/session', {
+  const response = await fetch('/api/session/sync', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ idToken }),
@@ -29,20 +29,28 @@ async function postSession(idToken: string): Promise<AuthSessionSyncResult> {
 
 export async function syncAuthSession(idToken: string | null): Promise<AuthSessionSyncResult> {
   if (!idToken) {
-    await fetch('/api/auth/session', { method: 'DELETE' });
+    await fetch('/api/session/sync', { method: 'DELETE' });
     return { isAdmin: false, refreshClaims: false };
   }
 
   return postSession(idToken);
 }
 
-export async function fetchServerAdminStatus(): Promise<boolean> {
+export interface ServerAuthStatus {
+  isAdmin: boolean;
+  isMasterAdmin: boolean;
+}
+
+export async function fetchServerAdminStatus(): Promise<ServerAuthStatus> {
   try {
-    const response = await fetch('/api/auth/admin-status', { credentials: 'include' });
-    if (!response.ok) return false;
-    const data = (await response.json()) as { isAdmin?: boolean };
-    return Boolean(data.isAdmin);
+    const response = await fetch('/api/session/admin-status', { credentials: 'include' });
+    if (!response.ok) return { isAdmin: false, isMasterAdmin: false };
+    const data = (await response.json()) as { isAdmin?: boolean; isMasterAdmin?: boolean };
+    return {
+      isAdmin: Boolean(data.isAdmin),
+      isMasterAdmin: Boolean(data.isMasterAdmin),
+    };
   } catch {
-    return false;
+    return { isAdmin: false, isMasterAdmin: false };
   }
 }

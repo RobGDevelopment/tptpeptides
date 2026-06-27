@@ -12,6 +12,49 @@ function getFromAddress(): string {
   return process.env.RESEND_FROM_EMAIL?.trim() || `TPTPeptides <orders@${SITE_SUPPORT_EMAIL.split('@')[1] ?? 'tptpeptides.com'}>`;
 }
 
+/** True when using Resend's test sender — only delivers to the Resend account email. */
+export function isResendSandboxMode(): boolean {
+  const from = getFromAddress().toLowerCase();
+  return from.includes('@resend.dev');
+}
+
+export function getResendEmailConfig(): {
+  configured: boolean;
+  sandboxMode: boolean;
+  fromAddress: string;
+} {
+  return {
+    configured: isResendConfigured(),
+    sandboxMode: isResendSandboxMode(),
+    fromAddress: getFromAddress(),
+  };
+}
+
+function formatResendApiError(status: number, body: string): string {
+  let apiMessage = body;
+  try {
+    const parsed = JSON.parse(body) as { message?: string };
+    if (parsed.message) apiMessage = parsed.message;
+  } catch {
+    // keep raw body
+  }
+
+  if (
+    status === 403 &&
+    (/testing emails to your own/i.test(apiMessage) ||
+      isResendSandboxMode() ||
+      /resend\.dev/i.test(apiMessage))
+  ) {
+    return (
+      'Resend test mode (onboarding@resend.dev) only sends to your Resend account email. ' +
+      'Verify a domain at resend.com/domains, set RESEND_FROM_EMAIL to e.g. invites@tptpeptides.com, ' +
+      'update Vercel env vars, and redeploy. Until then, use Copy Link below to share the password-set URL.'
+    );
+  }
+
+  return apiMessage.trim() || `Resend send failed (${status})`;
+}
+
 interface SendEmailParams {
   to: string | string[];
   subject: string;
@@ -46,7 +89,7 @@ export async function sendEmail(params: SendEmailParams): Promise<{ id: string }
   if (!response.ok) {
     const body = await response.text();
     console.error('[email] Resend API error', response.status, body);
-    throw new Error(`Resend send failed (${response.status})`);
+    throw new Error(formatResendApiError(response.status, body));
   }
 
   const data = (await response.json()) as { id: string };

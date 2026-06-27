@@ -6,6 +6,7 @@ import { AdminRedirectHandler } from './AdminRedirectHandler';
 import { CartDrawer } from './CartDrawer';
 import { PremiumNavbar } from './PremiumNavbar';
 import { StorefrontAuthModal } from './StorefrontAuthModal';
+import { Spinner } from '../../../components/ui/Spinner';
 import { useAgeGateStore } from '../stores/useAgeGateStore';
 import { useAgeGateHydrated } from '../hooks/useAgeGateHydrated';
 import { useAuth } from '../../auth/providers/AuthProvider';
@@ -26,14 +27,21 @@ export function StorefrontShell({ children }: StorefrontShellProps) {
     void logAgeVerification(user?.uid);
   };
 
-  const showAgeGate = !hydrated || !isVerified;
+  const pendingVerification = !isVerified;
 
   return (
     <>
       <Suspense fallback={null}>
         <AdminRedirectHandler />
       </Suspense>
-      {showAgeGate && <AgeGate onVerify={handleVerify} isReady={hydrated} />}
+      {pendingVerification && !hydrated ? (
+        <div className="fixed inset-0 z-[9999] bg-void flex items-center justify-center">
+          <Spinner label="Loading terminal access..." />
+        </div>
+      ) : null}
+      {pendingVerification && hydrated ? (
+        <AgeGate onVerify={handleVerify} isReady />
+      ) : null}
       <PremiumNavbar />
       {children}
       <CartDrawer />

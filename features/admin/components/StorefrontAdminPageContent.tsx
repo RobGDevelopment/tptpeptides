@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { adminFetch } from '../../../lib/admin/adminFetch.client';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Spinner } from '../../../components/ui/Spinner';
@@ -48,9 +49,9 @@ export function StorefrontAdminPageContent() {
     setError('');
     try {
       const [settingsRes, researchRes, protocolsRes, catalogRes] = await Promise.all([
-        fetch('/api/admin/storefront/settings'),
-        fetch('/api/admin/storefront/research'),
-        fetch('/api/admin/storefront/protocols'),
+        adminFetch('/api/admin/storefront/settings'),
+        adminFetch('/api/admin/storefront/research'),
+        adminFetch('/api/admin/storefront/protocols'),
         fetch('/api/products'),
       ]);
 
@@ -91,7 +92,13 @@ export function StorefrontAdminPageContent() {
 
       if (!settingsRes.ok) {
         const data = (await settingsRes.json().catch(() => ({}))) as { error?: string };
-        setError(data.error ?? 'Unable to load storefront settings');
+        if (settingsRes.status === 401) {
+          setError('Session expired — sign out and back in, or refresh the page.');
+        } else if (settingsRes.status === 503) {
+          setError('Server configuration incomplete. Contact support if this persists.');
+        } else {
+          setError(data.error ?? 'Unable to load storefront settings');
+        }
       }
     } catch {
       setError('Failed to load storefront CMS data');
@@ -109,7 +116,7 @@ export function StorefrontAdminPageContent() {
     setMessage('');
     setError('');
     try {
-      const response = await fetch('/api/admin/storefront/settings', {
+      const response = await adminFetch('/api/admin/storefront/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ settings, homepage }),
@@ -132,7 +139,7 @@ export function StorefrontAdminPageContent() {
     setMessage('');
     setError('');
     try {
-      const response = await fetch('/api/admin/storefront/settings', {
+      const response = await adminFetch('/api/admin/storefront/settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(categories),
@@ -154,7 +161,7 @@ export function StorefrontAdminPageContent() {
     setSaving(true);
     setError('');
     try {
-      const response = await fetch('/api/admin/storefront/research', {
+      const response = await adminFetch('/api/admin/storefront/research', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(article),
@@ -176,7 +183,7 @@ export function StorefrontAdminPageContent() {
     setSaving(true);
     setError('');
     try {
-      const response = await fetch('/api/admin/storefront/protocols', {
+      const response = await adminFetch('/api/admin/storefront/protocols', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(protocol),
@@ -198,7 +205,7 @@ export function StorefrontAdminPageContent() {
     setSaving(true);
     setError('');
     try {
-      const response = await fetch('/api/admin/storefront/seed', { method: 'POST' });
+      const response = await adminFetch('/api/admin/storefront/seed', { method: 'POST' });
       const data = (await response.json()) as { error?: string; message?: string };
       if (!response.ok) {
         setError(data.error ?? 'Seed failed');

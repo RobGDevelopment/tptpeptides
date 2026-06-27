@@ -10,3 +10,6 @@ export const SITE_LEGAL_NAME = 'TPT Peptides';
 export const SITE_SUPPORT_EMAIL = 'support@tptpeptides.com';
 export const SITE_COA_EMAIL = 'coa@tptpeptides.com';
 export const SITE_TERMINAL_VERSION = 'v1';
+
+/** Live preview / staging on Vercel until the production domain is cut over. */
+export const SITE_URL_VERCEL = 'https://medfit-pro.vercel.app';

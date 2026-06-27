@@ -4,8 +4,9 @@ import { useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../auth/providers/AuthProvider';
 import { useCartStore } from '../stores/useCartStore';
+import { navigateToAdmin } from '../../../lib/firebase/adminNav';
 
-/** Handles ?redirect=admin from proxy / AdminGuard — opens sign-in or sends admins to /admin. */
+/** Handles ?redirect=admin from AdminGuard — opens sign-in or sends admins to /admin. */
 export function AdminRedirectHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -17,25 +18,20 @@ export function AdminRedirectHandler() {
     if (loading || handled.current) return;
     if (searchParams.get('redirect') !== 'admin') return;
 
-    if (user && isAdmin) {
-      handled.current = true;
-      router.replace('/admin');
+    if (!user) {
+      openAuth();
       return;
     }
 
-    if (!user) {
-      openAuth();
+    if (isAdmin) {
+      handled.current = true;
+      void navigateToAdmin();
+      return;
     }
-  }, [loading, user, isAdmin, searchParams, router, openAuth]);
-
-  useEffect(() => {
-    if (loading || !user || !isAdmin) return;
-    if (searchParams.get('redirect') !== 'admin') return;
-    if (handled.current) return;
 
     handled.current = true;
-    router.replace('/admin');
-  }, [loading, user, isAdmin, searchParams, router]);
+    router.replace('/');
+  }, [loading, user, isAdmin, searchParams, router, openAuth]);
 
   return null;
 }

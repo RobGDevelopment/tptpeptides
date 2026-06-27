@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../../features/auth/providers/AuthProvider';
+import { navigateToAdmin } from '../../lib/firebase/adminNav';
 import { calculateUserTier } from '../../lib/business/loyalty';
 import { shippingAddressSchema, type ShippingAddress } from '../../lib/schemas/user';
 import { Spinner } from '../ui/Spinner';
@@ -115,9 +116,13 @@ export function UserProfile() {
               </Link>
             ) : null}
             {isAdmin ? (
-              <Link href="/admin" className="terminal-link text-[10px] inline-block mt-4">
+              <button
+                type="button"
+                onClick={() => void navigateToAdmin()}
+                className="terminal-link text-[10px] inline-block mt-4"
+              >
                 Open Back-Office Admin
-              </Link>
+              </button>
             ) : null}
           </div>
           <button

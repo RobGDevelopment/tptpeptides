@@ -12,6 +12,14 @@ export function isAdminSdkConfigured(): boolean {
   );
 }
 
+function normalizePrivateKey(raw: string): string {
+  const trimmed = raw.trim();
+  if (trimmed.includes('\\n')) {
+    return trimmed.replace(/\\n/g, '\n');
+  }
+  return trimmed;
+}
+
 function getAdminApp(): App {
   const existing = getApps()[0];
   if (existing) return existing;
@@ -22,7 +30,7 @@ function getAdminApp(): App {
     );
   }
 
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, '\n');
+  const privateKey = normalizePrivateKey(process.env.FIREBASE_PRIVATE_KEY!);
 
   return initializeApp({
     credential: cert({

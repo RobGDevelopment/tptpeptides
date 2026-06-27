@@ -1,21 +1,21 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { isMasterAdminEmail } from '../../../../lib/admin/masterAdmin';
+import { getAdminFirestore, isAdminSdkConfigured } from '../../../../lib/firebase/admin';
 import {
   AdminAuthError,
   logAdminAction,
   requireAdminSession,
   requireAdminSessionWithProfile,
 } from '../../../../lib/firebase/adminAuth.server';
-import { getAdminFirestore, isAdminSdkConfigured } from '../../../../lib/firebase/admin';
 import { getModuleFlags } from '../../../../lib/firebase/modules.server';
-import {
-  createInvitedUser,
-  listUsersForAdmin,
-} from '../../../../lib/firebase/users.server';
+import { listUsersForAdmin } from '../../../../lib/firebase/users.server';
+import { sendPersonaInvite } from '../../../../lib/email/inviteEngine.server';
+import { getResendEmailConfig } from '../../../../lib/email/resend.server';
 import { ModuleDisabledError, requireModule } from '../../../../lib/modules/requireModule.server';
+import { adminUserInviteSchema } from '../../../../lib/schemas/invitation';
 import {
   accessLevelForRole,
-  adminUserCreateSchema,
   adminUserUpdateSchema,
 } from '../../../../lib/schemas/user';
 
@@ -36,7 +36,7 @@ export async function GET(request: Request) {
     }
 
     const users = await listUsersForAdmin(200);
-    return NextResponse.json({ users });
+    return NextResponse.json({ users, emailConfig: getResendEmailConfig() });
   } catch (error) {
     if (error instanceof AdminAuthError) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode });
@@ -109,28 +109,48 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Firebase Admin SDK not configured' }, { status: 503 });
     }
 
-    const payload = adminUserCreateSchema.parse(await request.json());
+    const payload = adminUserInviteSchema.parse(await request.json());
     const normalizedEmail = payload.email.trim().toLowerCase();
 
-    const { uid, resetLink } = await createInvitedUser({
+    if (payload.persona === 'super_admin' && !isMasterAdminEmail(admin.email)) {
+      return NextResponse.json(
+        { error: 'Only master admins can invite super admins' },
+        { status: 403 }
+      );
+    }
+
+    const invite = await sendPersonaInvite({
+      ...payload,
       email: normalizedEmail,
-      role: payload.role,
-      createdBy: admin.uid,
+      invitedBy: admin.uid,
     });
 
     await logAdminAction({
       userId: admin.uid,
       action: 'user_invite',
-      metadata: { targetUid: uid, email: normalizedEmail, role: payload.role },
+      metadata: {
+        targetUid: invite.uid,
+        email: normalizedEmail,
+        persona: payload.persona,
+        inviteStatus: invite.inviteStatus,
+        inviteId: invite.inviteId,
+      },
     });
 
     return NextResponse.json({
       ok: true,
-      uid,
-      email: normalizedEmail,
-      role: payload.role,
-      accessLevel: accessLevelForRole(payload.role),
-      resetLink,
+      uid: invite.uid,
+      email: invite.email,
+      role: invite.role,
+      accessLevel: invite.accessLevel,
+      persona: invite.persona,
+      inviteId: invite.inviteId,
+      inviteStatus: invite.inviteStatus,
+      emailSent: invite.emailSent,
+      emailDeliveryMethod: invite.emailDeliveryMethod,
+      inviteWelcomeUrl: invite.inviteWelcomeUrl,
+      error: invite.error,
+      passwordResetUrl: invite.passwordResetUrl,
     });
   } catch (error) {
     if (error instanceof AdminAuthError) {
