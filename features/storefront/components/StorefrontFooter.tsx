@@ -28,7 +28,7 @@ export function StorefrontFooter({ tagline }: { tagline: string }) {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-[10px] tracking-caps uppercase text-muted hover:text-gold-light transition-colors duration-200"
+                className="text-[10px] tracking-caps uppercase text-muted hover:text-secondary transition-colors duration-200 interactive-link"
               >
                 {link.label}
               </Link>

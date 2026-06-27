@@ -29,7 +29,7 @@ export default async function ProtocolsPage() {
         <p className="text-secondary font-light mt-8 max-w-3xl leading-relaxed text-sm">
           Curated starting points for in-vitro investigation. These are educational frameworks — not dosing
           guidance. All work must comply with institutional review and {SITE_NAME}&apos;s{' '}
-          <Link href="/research-policy" className="text-gold-light hover:text-gold transition-colors">
+          <Link href="/research-policy" className="interactive-link interactive-link-static text-gold-light transition-colors">
             Research Use Only Policy
           </Link>
           .

@@ -160,7 +160,7 @@ function ResendSandboxNotice({ config }: { config: EmailConfig }) {
           href="https://resend.com/domains"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-gold-light hover:text-gold underline-offset-2 hover:underline"
+          className="interactive-link interactive-link-static text-gold-light underline-offset-2 hover:underline"
         >
           resend.com/domains
         </a>{' '}

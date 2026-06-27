@@ -54,8 +54,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'relative block px-4 py-3 text-sm font-light transition-colors duration-200',
-                  active ? 'text-gold-light' : 'text-muted hover:text-secondary'
+                  'interactive-link relative block px-4 py-3 text-sm font-light transition-colors duration-200',
+                  active ? 'interactive-link-static text-gold-light' : 'text-muted hover:text-secondary'
                 )}
               >
                 {active ? (
@@ -76,7 +76,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={() => void signOut()}
-              className="text-[10px] tracking-caps uppercase text-muted hover:text-secondary transition-colors flex-1"
+              className="interactive-link text-[10px] tracking-caps uppercase text-muted hover:text-secondary transition-colors flex-1"
             >
               Sign Out
             </button>

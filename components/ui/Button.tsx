@@ -10,7 +10,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 const variantClasses: Record<ButtonVariant, string> = {
   primary: 'terminal-link text-sm disabled:opacity-40',
   secondary: 'terminal-link text-sm text-primary disabled:opacity-40',
-  ghost: 'text-[10px] tracking-caps uppercase text-muted hover:text-gold-light transition-colors duration-200 disabled:opacity-40',
+  ghost: 'interactive-link text-[10px] tracking-caps uppercase text-muted hover:text-gold-light transition-colors duration-200 disabled:opacity-40',
 };
 
 export function Button({

@@ -160,7 +160,7 @@ export function CatalogProductDetail({ detail, relatedProducts = [] }: CatalogPr
       <HeaderDividerBeam delay={3} className="mt-12" />
       <p className="text-[10px] text-muted mt-6 tracking-caps uppercase font-light">
         Research use only ·{' '}
-        <Link href="/research-policy" className="text-gold-light hover:text-gold transition-colors">
+        <Link href="/research-policy" className="interactive-link interactive-link-static text-gold-light transition-colors">
           RUO Policy
         </Link>
       </p>

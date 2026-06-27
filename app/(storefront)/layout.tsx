@@ -21,6 +21,9 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: CONSUMER_APP.themeColor,
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
 };
 
 export default async function StorefrontLayout({

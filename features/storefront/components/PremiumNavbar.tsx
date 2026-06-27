@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icons } from '../../../components/icons';
@@ -8,6 +9,7 @@ import { useAuth } from '../../auth/providers/AuthProvider';
 import { navigateToAdmin } from '../../../lib/firebase/adminNav';
 import { SITE_WORDMARK } from '../../../lib/brand';
 import { selectCartCount, useCartStore } from '../stores/useCartStore';
+import { MobileNavMenu } from './MobileNavMenu';
 
 const NAV_LINKS = [
   { href: '/catalog', label: 'Catalog' },
@@ -18,8 +20,8 @@ const NAV_LINKS = [
 
 function navClassName(isActive: boolean): string {
   return isActive
-    ? 'text-xs tracking-caps uppercase font-medium text-gold-light'
-    : 'text-xs tracking-caps uppercase font-medium text-muted hover:text-secondary transition-colors duration-200';
+    ? 'interactive-link interactive-link-static text-xs tracking-caps uppercase font-medium text-gold-light'
+    : 'interactive-link text-xs tracking-caps uppercase font-medium text-muted hover:text-secondary transition-colors duration-200';
 }
 
 export function PremiumNavbar() {
@@ -28,6 +30,12 @@ export function PremiumNavbar() {
   const openCart = useCartStore((state) => state.openCart);
   const openAuth = useCartStore((state) => state.openAuth);
   const { user, isAdmin } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleOpenCart = () => {
+    setMenuOpen(false);
+    openCart();
+  };
 
   return (
     <header className="fixed top-0 w-full z-40">
@@ -61,12 +69,12 @@ export function PremiumNavbar() {
               ))}
             </div>
 
-            <div className="flex items-center gap-6 text-primary">
+            <div className="flex items-center gap-3 sm:gap-6 text-primary">
               {isAdmin ? (
                 <button
                   type="button"
                   onClick={() => void navigateToAdmin()}
-                  className="text-[10px] tracking-caps uppercase text-gold-light hover:text-gold transition-colors hidden sm:block"
+                  className="interactive-link text-[10px] tracking-caps uppercase text-gold-light hidden sm:block"
                 >
                   Back-Office
                 </button>
@@ -91,20 +99,39 @@ export function PremiumNavbar() {
               )}
               <button
                 type="button"
-                onClick={openCart}
-                className="relative text-muted hover:text-gold transition-colors"
+                onClick={handleOpenCart}
+                className="relative min-h-11 min-w-11 flex items-center justify-center text-muted hover:text-gold transition-colors"
+                aria-label="Open cart"
               >
                 <Icons.Cart />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 text-[9px] font-medium text-gold">
+                  <span className="absolute top-1.5 right-1.5 text-[9px] font-medium text-gold">
                     {cartCount}
                   </span>
                 )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setMenuOpen(true)}
+                className="md:hidden min-h-11 min-w-11 flex items-center justify-center text-muted hover:text-gold transition-colors duration-200"
+                aria-label="Open menu"
+                aria-expanded={menuOpen}
+              >
+                <Icons.Menu />
               </button>
             </div>
           </div>
         </div>
       </nav>
+
+      <MobileNavMenu
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        isAdmin={isAdmin}
+        isSignedIn={Boolean(user)}
+        onOpenAuth={openAuth}
+        onOpenAdmin={() => void navigateToAdmin()}
+      />
     </header>
   );
 }
