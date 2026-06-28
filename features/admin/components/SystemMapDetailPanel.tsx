@@ -3,15 +3,17 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { adminFetchJson } from '../../../lib/admin/adminFetch.client';
-import type { SystemNode } from '../../../lib/admin/systemMapConfig';
+import type { SignalTraceHop, SystemNode } from '../../../lib/admin/systemMapConfig';
 import { SIGNAL_TRACE_ACT_LABELS, ZONE_LABELS } from '../../../lib/admin/systemMapConfig';
-import type { SignalTraceHop } from '../../../lib/admin/systemMapConfig';
 import type { ModuleFlags } from '../../../lib/schemas/modules';
 import { cn } from '../../../lib/utils/cn';
+import type { MapInteractionMode } from './SystemMapGraph';
 
 interface SystemMapDetailPanelProps {
   node: SystemNode | null;
+  connectedNodes?: SystemNode[];
   traceHop?: SignalTraceHop | null;
+  mode?: MapInteractionMode;
 }
 
 const PANEL_SHELL =
@@ -40,7 +42,12 @@ function Section({
   );
 }
 
-export function SystemMapDetailPanel({ node, traceHop = null }: SystemMapDetailPanelProps) {
+export function SystemMapDetailPanel({
+  node,
+  connectedNodes = [],
+  traceHop = null,
+  mode = 'journey',
+}: SystemMapDetailPanelProps) {
   const [moduleFlags, setModuleFlags] = useState<ModuleFlags | null>(null);
 
   useEffect(() => {
@@ -70,13 +77,32 @@ export function SystemMapDetailPanel({ node, traceHop = null }: SystemMapDetailP
   return (
     <aside className={PANEL_SHELL}>
       <div className="flex-1 overflow-y-auto px-8 py-8 space-y-8">
-        {traceHop ? (
-          <div className="rounded border border-amber-200/20 bg-white/[0.03] px-4 py-4 space-y-2">
+        {traceHop && mode === 'journey' ? (
+          <div className="rounded border border-amber-200/25 bg-gradient-to-b from-amber-200/[0.06] to-transparent px-4 py-4 space-y-2">
             <p className="text-[10px] font-bold tracking-widest uppercase text-amber-200/70">
               {SIGNAL_TRACE_ACT_LABELS[traceHop.act]}
             </p>
-            <p className="text-sm font-bold text-stone-200">{traceHop.headline}</p>
+            <p className="text-sm font-bold text-stone-100">{traceHop.headline}</p>
             <p className="text-sm text-stone-400 font-light leading-relaxed">{traceHop.detail}</p>
+          </div>
+        ) : null}
+
+        {connectedNodes.length > 0 ? (
+          <div className="rounded border border-amber-200/15 bg-amber-200/[0.03] px-4 py-4 space-y-2">
+            <p className="text-[10px] font-bold tracking-widest uppercase text-amber-200/60">
+              Linked Systems
+            </p>
+            <ul className="space-y-1.5">
+              {connectedNodes.map((linked) => (
+                <li
+                  key={linked.id}
+                  className="text-[11px] text-stone-400 font-light flex items-center gap-2"
+                >
+                  <span className="w-1 h-1 rounded-full bg-amber-200/60 shrink-0 animate-pulse" aria-hidden />
+                  {linked.label}
+                </li>
+              ))}
+            </ul>
           </div>
         ) : null}
 
@@ -87,6 +113,9 @@ export function SystemMapDetailPanel({ node, traceHop = null }: SystemMapDetailP
           <h2 className="text-2xl md:text-3xl font-bold uppercase tracking-widest text-stone-100">
             {node.label}
           </h2>
+          <div className="h-[2px] w-full mt-4 mb-2 relative overflow-hidden bg-white/[0.02] rounded-full">
+            <div className="absolute top-0 bottom-0 w-[50%] bg-gradient-to-r from-transparent via-amber-200/50 to-transparent animate-os-eye" />
+          </div>
           <div className="flex flex-wrap gap-2 mt-4">
             <span className="text-[9px] font-bold tracking-widest uppercase px-2 py-1 border border-white/10 text-stone-500">
               {ZONE_LABELS[node.zone]}

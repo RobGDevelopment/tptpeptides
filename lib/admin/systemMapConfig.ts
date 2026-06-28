@@ -40,6 +40,7 @@ export {
   SIGNAL_TRACE_DEPLOY_HOPS,
   SIGNAL_TRACE_CUSTOMER_HOPS,
   SIGNAL_TRACE_HOP_MS,
+  JOURNEY_DWELL_MS,
   SIGNAL_TRACE_ACT_LABELS,
   buildSignalTraceQueue,
   getNarrativeEdgeKeys,
@@ -48,3 +49,16 @@ export {
 } from './systemMap/signalTrace';
 
 export { SIGNAL_TRACE_POSITIONS, getTracePosition } from './systemMap/signalTraceLayout';
+
+export {
+  getActiveLinksForNode,
+  getConnectedNodeIds,
+  type ActiveLink,
+} from './systemMap/connections';
+
+export {
+  IMPACT_CASCADE_TARGETS,
+  CASCADE_BEAM_MS,
+  getLiveCascadeTargets,
+  buildCascadeEdges,
+} from './systemMap/signalTraceCascade';

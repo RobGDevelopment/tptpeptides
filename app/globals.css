@@ -87,6 +87,15 @@
 }
 
 @layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
   .signature-beam-pulse {
     animation: signature-pulse 5s ease-in-out infinite;
     transform-origin: center;
@@ -479,6 +488,59 @@
     animation-timing-function: linear;
     animation-fill-mode: forwards;
     animation-iteration-count: 1;
+    filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.95)) drop-shadow(0 0 8px rgba(253, 230, 138, 0.55));
+  }
+
+  .system-map-comet-glow {
+    stroke-dasharray: 18 82;
+    stroke-dashoffset: 100;
+    animation-name: comet-strike;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+    animation-iteration-count: 1;
+    opacity: 0.85;
+  }
+
+  .system-map-cascade-beam {
+    stroke-dasharray: 12 88;
+    stroke-dashoffset: 100;
+    animation-name: comet-strike;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+    animation-iteration-count: 1;
+    filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.75)) drop-shadow(0 0 6px rgba(253, 230, 138, 0.4));
+  }
+
+  .system-map-cascade-glow {
+    stroke-dasharray: 16 84;
+    stroke-dashoffset: 100;
+    animation-name: comet-strike;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+    animation-iteration-count: 1;
+    opacity: 0.7;
+  }
+
+  .system-map-ripple-ring {
+    opacity: 0;
+    animation: ripple-expand 0.9s ease-out forwards;
+  }
+
+  .system-map-node-breathe {
+    animation: node-breathe 3.2s ease-in-out infinite;
+  }
+
+  .system-map-node-breathe-glow {
+    background: radial-gradient(circle, rgba(253, 230, 138, 0.22) 0%, transparent 70%);
+    animation: node-breathe-glow 3.2s ease-in-out infinite;
+  }
+
+  .system-map-dot-breathe {
+    animation: dot-breathe 3.2s ease-in-out infinite;
+  }
+
+  .animate-os-eye {
+    animation: os-eye-scanner 5s ease-in-out infinite;
   }
 
   .system-map-comet-beam-dimmed {
@@ -552,6 +614,65 @@
       filter: brightness(1.12);
     }
   }
+
+  @keyframes ripple-expand {
+    0% {
+      opacity: 0.65;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(2.8);
+    }
+  }
+
+  @keyframes node-breathe {
+    0%,
+    100% {
+      box-shadow: 0 0 8px rgba(253, 230, 138, 0.12);
+      border-color: rgba(253, 230, 138, 0.28);
+    }
+    50% {
+      box-shadow: 0 0 20px rgba(253, 230, 138, 0.32);
+      border-color: rgba(253, 230, 138, 0.45);
+    }
+  }
+
+  @keyframes node-breathe-glow {
+    0%,
+    100% {
+      opacity: 0.35;
+      transform: scale(0.95);
+    }
+    50% {
+      opacity: 0.75;
+      transform: scale(1.08);
+    }
+  }
+
+  @keyframes dot-breathe {
+    0%,
+    100% {
+      opacity: 0.65;
+      transform: scale(1);
+      box-shadow: 0 0 6px rgba(253, 230, 138, 0.25);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.15);
+      box-shadow: 0 0 14px rgba(255, 255, 255, 0.45);
+    }
+  }
+
+  @keyframes os-eye-scanner {
+    0%,
+    100% {
+      left: -50%;
+    }
+    50% {
+      left: 100%;
+    }
+  }
 }
 
 @view-transition {
@@ -601,10 +722,18 @@
   }
 
   .system-map-comet-beam,
+  .system-map-comet-glow,
+  .system-map-cascade-beam,
+  .system-map-cascade-glow,
   .system-map-comet-beam-dim,
   .system-map-node-lit,
   .system-map-node-aura,
-  .system-map-hit-flare {
+  .system-map-node-breathe,
+  .system-map-node-breathe-glow,
+  .system-map-dot-breathe,
+  .system-map-ripple-ring,
+  .system-map-hit-flare,
+  .animate-os-eye {
     animation: none;
   }
 }

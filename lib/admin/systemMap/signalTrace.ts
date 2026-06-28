@@ -142,6 +142,9 @@ export const SIGNAL_TRACE_CUSTOMER_HOPS: SignalTraceHop[] = [
 
 export const SIGNAL_TRACE_HOP_MS = 1800;
 
+/** How long each guided journey stop holds before advancing. */
+export const JOURNEY_DWELL_MS = 4200;
+
 export function buildSignalTraceQueue(includeDeploy: boolean): SignalTraceHop[] {
   return includeDeploy
     ? [...SIGNAL_TRACE_DEPLOY_HOPS, ...SIGNAL_TRACE_CUSTOMER_HOPS]

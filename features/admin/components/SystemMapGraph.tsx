@@ -1,67 +1,44 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
-  SIGNAL_TRACE_HOP_MS,
   SYSTEM_NODES,
   SYSTEM_NODE_MAP,
-  buildSignalTraceQueue,
+  getConnectedNodeIds,
   getTracePosition,
   nodeRadiusFor,
   systemEdgeKey,
-  type SystemEdge,
   type SystemNodeId,
 } from '../../../lib/admin/systemMapConfig';
 import { cn } from '../../../lib/utils/cn';
 
+export type MapInteractionMode = 'journey' | 'explore';
+
 interface SystemMapGraphProps {
-  selectedId: SystemNodeId;
+  selectedId: SystemNodeId | null;
   onSelect: (id: SystemNodeId) => void;
-  activeEdgeKey: string | null;
-  visitedEdgeKeys: ReadonlySet<string>;
-  visitedNodeIds: ReadonlySet<SystemNodeId>;
-  flareNodeId: SystemNodeId | null;
-  flareGeneration: number;
-  cometGeneration: number;
-  includeDeploy: boolean;
-  activeNodeIds: ReadonlySet<SystemNodeId>;
+  mode: MapInteractionMode;
+  /** During guided journey — the upstream node we just arrived from. */
+  journeyFromId?: SystemNodeId | null;
 }
 
-interface EdgeGeometry {
+interface BeamGeometry {
   key: string;
-  edge: SystemEdge;
+  neighborId: SystemNodeId;
   d: string;
   x1: number;
   y1: number;
   x2: number;
   y2: number;
+  isJourneyPath: boolean;
 }
 
-interface StarParticle {
-  id: number;
-  x: number;
-  y: number;
-  size: number;
-  speed: number;
-}
+const SHUTTLE_DUR = '3.5s';
+const JOURNEY_SHUTTLE_DUR = '2.8s';
 
 function seededRandom(seed: number): number {
   const x = Math.sin(seed * 9999) * 10000;
   return x - Math.floor(x);
-}
-
-function createStarfield(count: number): StarParticle[] {
-  return Array.from({ length: count }, (_, i) => ({
-    id: i,
-    x: seededRandom(i * 1.1) * 100,
-    y: seededRandom(i * 2.3) * 100,
-    size: seededRandom(i * 3.7) * 2 + 1,
-    speed: seededRandom(i * 4.1) * 3 + 2,
-  }));
-}
-
-function nodePos(id: SystemNodeId): { x: number; y: number } {
-  return getTracePosition(id);
 }
 
 function trimEdgeEndpoints(
@@ -89,77 +66,124 @@ function edgePathD(x1: number, y1: number, x2: number, y2: number): string {
   const my = (y1 + y2) / 2;
   const dx = x2 - x1;
   const dy = y2 - y1;
-  const dist = Math.hypot(dx, dy);
-  const curve = Math.min(dist * 0.14, 4);
+  const dist = Math.hypot(dx, dy) || 1;
+  const curve = Math.min(dist * 0.12, 3.5);
   const cx = mx - (dy / dist) * curve;
   const cy = my + (dx / dist) * curve;
   return `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
 }
 
-function buildEdgeGeometry(edge: SystemEdge): EdgeGeometry {
-  const from = SYSTEM_NODE_MAP[edge.source];
-  const to = SYSTEM_NODE_MAP[edge.target];
-  const fromPos = nodePos(from.id);
-  const toPos = nodePos(to.id);
-  const inset = (nodeRadiusFor(from) + nodeRadiusFor(to)) / 2;
-  const trimmed = trimEdgeEndpoints(fromPos.x, fromPos.y, toPos.x, toPos.y, inset);
-  return {
-    key: systemEdgeKey(edge),
-    edge,
-    d: edgePathD(trimmed.x1, trimmed.y1, trimmed.x2, trimmed.y2),
-    x1: trimmed.x1,
-    y1: trimmed.y1,
-    x2: trimmed.x2,
-    y2: trimmed.y2,
-  };
+function CometShuttleStops({ dur }: { dur: string }) {
+  return (
+    <>
+      <stop stopColor="rgba(253,230,138,0)">
+        <animate
+          attributeName="offset"
+          values="-0.2; 1.2; -0.2"
+          dur={dur}
+          repeatCount="indefinite"
+          calcMode="spline"
+          keyTimes="0; 0.5; 1"
+          keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"
+        />
+      </stop>
+      <stop stopColor="rgba(255,255,255,0.9)">
+        <animate
+          attributeName="offset"
+          values="-0.1; 1.3; -0.1"
+          dur={dur}
+          repeatCount="indefinite"
+          calcMode="spline"
+          keyTimes="0; 0.5; 1"
+          keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"
+        />
+      </stop>
+      <stop stopColor="rgba(253,230,138,0)">
+        <animate
+          attributeName="offset"
+          values="0; 1.4; 0"
+          dur={dur}
+          repeatCount="indefinite"
+          calcMode="spline"
+          keyTimes="0; 0.5; 1"
+          keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"
+        />
+      </stop>
+    </>
+  );
 }
 
 const NODE_LABEL_CLASS =
-  'absolute top-full mt-2 w-32 text-center text-[10px] md:text-xs font-bold tracking-widest uppercase transition-colors left-1/2 -translate-x-1/2';
-
-const COMET_DUR_S = SIGNAL_TRACE_HOP_MS / 1000;
+  'absolute top-full mt-2 w-32 text-center text-[10px] md:text-xs font-bold tracking-widest uppercase transition-all duration-300 left-1/2 -translate-x-1/2';
 
 export function SystemMapGraph({
   selectedId,
   onSelect,
-  activeEdgeKey,
-  visitedEdgeKeys,
-  visitedNodeIds,
-  flareNodeId,
-  flareGeneration,
-  cometGeneration,
-  includeDeploy,
-  activeNodeIds,
+  mode,
+  journeyFromId = null,
 }: SystemMapGraphProps) {
-  const particles = useMemo(() => createStarfield(100), []);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  const edgeGeometries = useMemo(() => {
-    const seen = new Set<string>();
-    const geometries: EdgeGeometry[] = [];
-    for (const hop of buildSignalTraceQueue(includeDeploy)) {
-      const key = systemEdgeKey(hop.edge);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      geometries.push(buildEdgeGeometry(hop.edge));
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 100 }, (_, i) => ({
+        id: i,
+        x: seededRandom(i * 1.1) * 100,
+        y: seededRandom(i * 2.3) * 100,
+        speed: 0.5 + seededRandom(i * 4.1) * 2,
+        size: seededRandom(i * 3.7) * 2,
+      })),
+    []
+  );
+
+  const connectedIds = useMemo(
+    () => (selectedId ? new Set(getConnectedNodeIds(selectedId)) : new Set<SystemNodeId>()),
+    [selectedId]
+  );
+
+  const activeBeams = useMemo((): BeamGeometry[] => {
+    if (!selectedId) return [];
+
+    const selected = SYSTEM_NODE_MAP[selectedId];
+    const fromPos = getTracePosition(selected.id);
+    const fromInset = nodeRadiusFor(selected);
+
+    return getConnectedNodeIds(selectedId).map((neighborId) => {
+      const neighbor = SYSTEM_NODE_MAP[neighborId];
+      const toPos = getTracePosition(neighbor.id);
+      const trimmed = trimEdgeEndpoints(
+        fromPos.x,
+        fromPos.y,
+        toPos.x,
+        toPos.y,
+        (fromInset + nodeRadiusFor(neighbor)) / 2
+      );
+      const edge = { source: selectedId, target: neighborId };
+      return {
+        key: systemEdgeKey(edge),
+        neighborId,
+        d: edgePathD(trimmed.x1, trimmed.y1, trimmed.x2, trimmed.y2),
+        x1: trimmed.x1,
+        y1: trimmed.y1,
+        x2: trimmed.x2,
+        y2: trimmed.y2,
+        isJourneyPath: journeyFromId !== null && neighborId === journeyFromId,
+      };
+    });
+  }, [selectedId, journeyFromId]);
+
+  useEffect(() => {
+    if (!selectedId || !scrollRef.current) return;
+    const el = scrollRef.current.querySelector(`[data-system-map-node="${selectedId}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
     }
-    return geometries;
-  }, [includeDeploy]);
-
-  const activeGeometry = edgeGeometries.find((g) => g.key === activeEdgeKey) ?? null;
-
-  const narrativeNodeIds = useMemo(() => {
-    const ids = new Set<SystemNodeId>();
-    for (const hop of buildSignalTraceQueue(includeDeploy)) {
-      ids.add(hop.edge.source);
-      ids.add(hop.edge.target);
-    }
-    return ids;
-  }, [includeDeploy]);
+  }, [selectedId, mode]);
 
   return (
-    <div className="flex-1 min-h-0 overflow-auto">
+    <div ref={scrollRef} className="flex-1 min-h-0 overflow-auto">
       <div className="relative min-w-[1100px] min-h-full w-full h-full bg-black">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
+        <div className="absolute inset-0 z-0 opacity-40 overflow-hidden pointer-events-none" aria-hidden>
           {particles.map((p) => (
             <div
               key={p.id}
@@ -167,140 +191,76 @@ export function SystemMapGraph({
               style={{
                 left: `${p.x}%`,
                 top: `${p.y}%`,
-                width: p.size,
-                height: p.size,
-                animationDuration: `${p.speed}s`,
-                animationDelay: `${(p.id % 10) * 0.35}s`,
-                opacity: 0.12 + (p.size / 3) * 0.2,
+                width: `${p.size}px`,
+                height: `${p.size}px`,
+                animationDuration: `${p.speed * 5}s`,
               }}
             />
           ))}
         </div>
 
-        <svg
-          className="absolute inset-0 w-full h-full pointer-events-none"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="xMidYMid meet"
-          aria-hidden
-        >
-          <defs>
-            <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#334155" />
-              <stop offset="50%" stopColor="#57534e" stopOpacity={0.4} />
-              <stop offset="100%" stopColor="#334155" />
-            </linearGradient>
-            <linearGradient id="lineGradVisited" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#475569" />
-              <stop offset="50%" stopColor="#78716c" stopOpacity={0.55} />
-              <stop offset="100%" stopColor="#475569" />
-            </linearGradient>
-            {activeGeometry ? (
-              <linearGradient
-                key={`comet-${activeGeometry.key}-${cometGeneration}`}
-                id="comet-active"
-                gradientUnits="userSpaceOnUse"
-                x1={activeGeometry.x1}
-                y1={activeGeometry.y1}
-                x2={activeGeometry.x2}
-                y2={activeGeometry.y2}
-              >
-                <stop offset="0%" stopColor="rgba(253,230,138,0)">
-                  <animate
-                    attributeName="offset"
-                    values="-0.3;1.3"
-                    dur={`${COMET_DUR_S}s`}
-                    repeatCount={1}
-                  />
-                </stop>
-                <stop offset="0%" stopColor="rgba(255,255,255,0.9)">
-                  <animate
-                    attributeName="offset"
-                    values="-0.1;1.5"
-                    dur={`${COMET_DUR_S}s`}
-                    repeatCount={1}
-                  />
-                </stop>
-                <stop offset="0%" stopColor="rgba(253,230,138,0)">
-                  <animate
-                    attributeName="offset"
-                    values="0.1;1.7"
-                    dur={`${COMET_DUR_S}s`}
-                    repeatCount={1}
-                  />
-                </stop>
-              </linearGradient>
-            ) : null}
-          </defs>
+        {selectedId && activeBeams.length > 0 ? (
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none z-[1]"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="xMidYMid meet"
+            aria-hidden
+          >
+            <defs>
+              {activeBeams.map(({ key, x1, y1, x2, y2, isJourneyPath }) => (
+                <linearGradient
+                  key={key}
+                  id={`shuttle-${key}`}
+                  gradientUnits="userSpaceOnUse"
+                  x1={x1}
+                  y1={y1}
+                  x2={x2}
+                  y2={y2}
+                >
+                  <CometShuttleStops dur={isJourneyPath ? JOURNEY_SHUTTLE_DUR : SHUTTLE_DUR} />
+                </linearGradient>
+              ))}
+            </defs>
 
-          {/* Spine guide */}
-          <line
-            x1={2}
-            y1={48}
-            x2={98}
-            y2={48}
-            stroke="rgba(255,255,255,0.04)"
-            strokeWidth={0.15}
-            vectorEffect="non-scaling-stroke"
-          />
-
-          {edgeGeometries.map(({ key, d }) => {
-            const isActive = key === activeEdgeKey;
-            const isVisited = visitedEdgeKeys.has(key);
-            const trackWidth = isActive || isVisited ? 2 : 1.5;
-
-            return (
-              <g key={key}>
-                <path
-                  d={d}
-                  fill="none"
-                  stroke={isVisited ? 'url(#lineGradVisited)' : 'url(#lineGrad)'}
-                  strokeWidth={trackWidth}
-                  strokeLinecap="round"
-                  vectorEffect="non-scaling-stroke"
-                  opacity={isVisited || isActive ? 0.9 : 0.15}
-                />
-                {isActive && activeGeometry ? (
-                  <path
-                    key={`beam-${cometGeneration}`}
-                    d={d}
-                    fill="none"
-                    stroke="url(#comet-active)"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    vectorEffect="non-scaling-stroke"
-                  />
-                ) : null}
-              </g>
-            );
-          })}
-        </svg>
+            {activeBeams.map(({ key, d, isJourneyPath }) => (
+              <path
+                key={key}
+                d={d}
+                fill="none"
+                stroke={`url(#shuttle-${key})`}
+                strokeWidth={isJourneyPath ? 3.2 : 2.5}
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
+                opacity={isJourneyPath ? 1 : 0.65}
+              />
+            ))}
+          </svg>
+        ) : null}
 
         {SYSTEM_NODES.map((node) => {
-          const pos = nodePos(node.id);
+          const pos = getTracePosition(node.id);
           const isSelected = node.id === selectedId;
-          const isVisited = visitedNodeIds.has(node.id);
-          const isActive = activeNodeIds.has(node.id);
-          const onNarrative = narrativeNodeIds.has(node.id);
-          const showFlare = flareNodeId === node.id;
+          const isConnected = connectedIds.has(node.id);
+          const isJourneyFrom = journeyFromId === node.id && mode === 'journey';
+          const isPlanned = node.implementationStatus === 'planned';
+          const hasSelection = selectedId !== null;
+          const isLit = isSelected || isConnected;
 
           const nodeOpacity = (() => {
-            if (isSelected || isActive) return 'opacity-100';
-            if (isVisited) return 'opacity-90';
-            if (!onNarrative) {
-              if (node.implementationStatus === 'planned') return 'opacity-[0.12]';
-              return 'opacity-[0.2]';
-            }
-            if (node.implementationStatus === 'planned') return 'opacity-[0.12]';
-            return 'opacity-35';
+            if (!hasSelection) return 'opacity-[0.82]';
+            if (isSelected || isConnected) return 'opacity-100';
+            if (isPlanned) return 'opacity-[0.45]';
+            return 'opacity-[0.5]';
           })();
 
           return (
             <button
               key={node.id}
               type="button"
+              data-system-map-node={node.id}
               onClick={() => onSelect(node.id)}
               className={cn(
-                'absolute z-10 -translate-x-1/2 -translate-y-1/2 focus:outline-none focus-visible:ring-1 focus-visible:ring-amber-200/40 transition-opacity duration-500',
+                'absolute z-10 -translate-x-1/2 -translate-y-1/2 focus:outline-none focus-visible:ring-1 focus-visible:ring-amber-200/40 transition-all duration-500',
                 nodeOpacity
               )}
               style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
@@ -308,29 +268,45 @@ export function SystemMapGraph({
               aria-label={`${node.label}. ${isSelected ? 'Selected' : 'Select to view telemetry'}`}
             >
               <div className="relative flex flex-col items-center">
-                {showFlare ? (
+                {isSelected ? (
                   <span
-                    key={`flare-${node.id}-${flareGeneration}`}
-                    className="system-map-hit-flare animate-pulse-flare absolute inset-0 m-auto w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-amber-200/60 pointer-events-none"
+                    className={cn(
+                      'absolute inset-0 m-auto w-14 h-14 md:w-[4.5rem] md:h-[4.5rem] rounded-full pointer-events-none bg-[radial-gradient(circle,rgba(253,230,138,0.28)_0%,transparent_70%)]',
+                      mode === 'journey' && 'animate-pulse'
+                    )}
+                    aria-hidden
+                  />
+                ) : null}
+
+                {(isConnected || isJourneyFrom) && !isSelected ? (
+                  <span
+                    className={cn(
+                      'absolute inset-0 m-auto w-14 h-14 md:w-[4.25rem] md:h-[4.25rem] rounded-full pointer-events-none',
+                      isJourneyFrom
+                        ? 'bg-[radial-gradient(circle,rgba(253,230,138,0.22)_0%,transparent_70%)]'
+                        : 'bg-[radial-gradient(circle,rgba(253,230,138,0.14)_0%,transparent_70%)] system-map-node-breathe-glow'
+                    )}
                     aria-hidden
                   />
                 ) : null}
 
                 <div
                   className={cn(
-                    'w-12 h-12 md:w-16 md:h-16 rounded-full border flex items-center justify-center bg-black border-white/10 transition-all duration-300',
-                    (isSelected || isActive) && 'border-amber-200/40 shadow-sm',
-                    isVisited && !isSelected && !isActive && 'border-amber-200/20'
+                    'relative w-12 h-12 md:w-16 md:h-16 rounded-full border flex items-center justify-center bg-black transition-all duration-300 ease-in-out',
+                    isPlanned ? 'border-dotted border-white/25' : 'border-white/10',
+                    isSelected && 'border-amber-200/50 shadow-[0_0_20px_rgba(253,230,138,0.3)]',
+                    isJourneyFrom && 'border-amber-200/45 shadow-sm',
+                    isConnected && !isSelected && !isJourneyFrom && 'border-amber-200/35 shadow-sm',
+                    (isConnected || isJourneyFrom) && !isSelected && 'system-map-node-breathe'
                   )}
                 >
                   <div
                     className={cn(
-                      'w-3 h-3 md:w-4 md:h-4 rounded-full transition-all duration-300',
-                      isSelected || isActive
-                        ? 'bg-amber-200/40'
-                        : isVisited
-                          ? 'bg-amber-200/25'
-                          : 'bg-neutral-600'
+                      'w-3 h-3 md:w-4 md:h-4 rounded-full transition-all duration-300 ease-in-out',
+                      isSelected && 'bg-amber-200/50 shadow-[0_0_12px_rgba(255,255,255,0.5)]',
+                      isJourneyFrom && !isSelected && 'bg-amber-200/45',
+                      isConnected && !isSelected && !isJourneyFrom && 'bg-amber-200/40 system-map-dot-breathe',
+                      !isLit && (isPlanned ? 'bg-neutral-700' : 'bg-neutral-600')
                     )}
                   />
                 </div>
@@ -338,7 +314,15 @@ export function SystemMapGraph({
                 <span
                   className={cn(
                     NODE_LABEL_CLASS,
-                    isSelected || isActive ? 'text-stone-200' : isVisited ? 'text-stone-400' : 'text-stone-500'
+                    isSelected
+                      ? 'text-stone-100'
+                      : isJourneyFrom
+                        ? 'text-amber-200/80'
+                        : isConnected
+                          ? 'text-stone-300'
+                          : isPlanned
+                            ? 'text-stone-600'
+                            : 'text-stone-500'
                   )}
                 >
                   <span className="md:hidden">{node.graphLabelShort ?? node.graphLabel}</span>
