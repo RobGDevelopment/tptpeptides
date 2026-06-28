@@ -4,12 +4,14 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { adminFetchJson } from '../../../lib/admin/adminFetch.client';
 import type { SystemNode } from '../../../lib/admin/systemMapConfig';
-import { ZONE_LABELS } from '../../../lib/admin/systemMapConfig';
+import { SIGNAL_TRACE_ACT_LABELS, ZONE_LABELS } from '../../../lib/admin/systemMapConfig';
+import type { SignalTraceHop } from '../../../lib/admin/systemMapConfig';
 import type { ModuleFlags } from '../../../lib/schemas/modules';
 import { cn } from '../../../lib/utils/cn';
 
 interface SystemMapDetailPanelProps {
   node: SystemNode | null;
+  traceHop?: SignalTraceHop | null;
 }
 
 const PANEL_SHELL =
@@ -38,7 +40,7 @@ function Section({
   );
 }
 
-export function SystemMapDetailPanel({ node }: SystemMapDetailPanelProps) {
+export function SystemMapDetailPanel({ node, traceHop = null }: SystemMapDetailPanelProps) {
   const [moduleFlags, setModuleFlags] = useState<ModuleFlags | null>(null);
 
   useEffect(() => {
@@ -68,6 +70,16 @@ export function SystemMapDetailPanel({ node }: SystemMapDetailPanelProps) {
   return (
     <aside className={PANEL_SHELL}>
       <div className="flex-1 overflow-y-auto px-8 py-8 space-y-8">
+        {traceHop ? (
+          <div className="rounded border border-amber-200/20 bg-white/[0.03] px-4 py-4 space-y-2">
+            <p className="text-[10px] font-bold tracking-widest uppercase text-amber-200/70">
+              {SIGNAL_TRACE_ACT_LABELS[traceHop.act]}
+            </p>
+            <p className="text-sm font-bold text-stone-200">{traceHop.headline}</p>
+            <p className="text-sm text-stone-400 font-light leading-relaxed">{traceHop.detail}</p>
+          </div>
+        ) : null}
+
         <div>
           <p className="text-[10px] font-bold tracking-widest uppercase text-stone-500 mb-3">
             Node Telemetry

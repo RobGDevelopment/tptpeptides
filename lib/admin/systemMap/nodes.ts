@@ -724,7 +724,7 @@ export const SYSTEM_NODE_MAP = Object.fromEntries(
   SYSTEM_NODES.map((node) => [node.id, node])
 ) as Record<SystemNode['id'], SystemNode>;
 
-export const DEFAULT_SYSTEM_NODE_ID: SystemNode['id'] = 'storefront-cms';
+export const DEFAULT_SYSTEM_NODE_ID: SystemNode['id'] = 'age-gate';
 
 export const SYSTEM_NODE_RADIUS = 2.8;
 export const SYSTEM_NODE_RADIUS_SM = 2.2;

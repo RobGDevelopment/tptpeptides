@@ -17,6 +17,7 @@ export const SYSTEM_EDGES: SystemEdge[] = [
   { source: 'storefront-cms', target: 'catalog', loops: ['customer', 'deployment'] },
   { source: 'catalog', target: 'cart', loops: ['customer'] },
   { source: 'cart', target: 'age-gate', loops: ['customer', 'compliance'] },
+  { source: 'age-gate', target: 'storefront-cms' },
   { source: 'age-gate', target: 'auth', loops: ['customer', 'compliance'] },
   { source: 'auth', target: 'account-portal' },
   { source: 'catalog', target: 'algolia-search' },
@@ -32,6 +33,7 @@ export const SYSTEM_EDGES: SystemEdge[] = [
   { source: 'pricing', target: 'checkout', loops: ['customer'] },
   { source: 'cart', target: 'checkout', loops: ['customer'] },
   { source: 'checkout', target: 'geo-block', loops: ['compliance'] },
+  { source: 'geo-block', target: 'stripe' },
   { source: 'checkout', target: 'stripe', loops: ['customer'] },
   { source: 'stripe', target: 'fulfillment', loops: ['customer'] },
   { source: 'stripe', target: 'orders', loops: ['customer', 'finance'] },
@@ -70,6 +72,7 @@ export const SYSTEM_EDGES: SystemEdge[] = [
   { source: 'rbac', target: 'modules' },
   { source: 'margin-report', target: 'orders' },
   { source: 'loyalty', target: 'predictive-replenishment', loops: ['growth'] },
+  { source: 'resend', target: 'loyalty' },
   { source: 'predictive-replenishment', target: 'cart', loops: ['growth'] },
   { source: 'resend', target: 'storefront-cms', loops: ['customer', 'growth'] },
 ];

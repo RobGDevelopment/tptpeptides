@@ -23,6 +23,11 @@ const NAV_ITEMS = [
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, signOut } = useAuth();
+  const isImmersiveMap = pathname === '/admin/system-map';
+
+  if (isImmersiveMap) {
+    return <div className="min-h-screen bg-black text-primary">{children}</div>;
+  }
 
   return (
     <div className="min-h-screen bg-void text-primary flex">

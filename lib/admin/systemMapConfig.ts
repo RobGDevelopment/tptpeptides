@@ -35,3 +35,16 @@ export {
   buildPlaybackQueue,
   getLoopById,
 } from './systemMap/telemetry';
+
+export {
+  SIGNAL_TRACE_DEPLOY_HOPS,
+  SIGNAL_TRACE_CUSTOMER_HOPS,
+  SIGNAL_TRACE_HOP_MS,
+  SIGNAL_TRACE_ACT_LABELS,
+  buildSignalTraceQueue,
+  getNarrativeEdgeKeys,
+  type SignalTraceHop,
+  type SignalTraceAct,
+} from './systemMap/signalTrace';
+
+export { SIGNAL_TRACE_POSITIONS, getTracePosition } from './systemMap/signalTraceLayout';

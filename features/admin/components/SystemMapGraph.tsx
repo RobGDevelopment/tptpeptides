@@ -2,13 +2,14 @@
 
 import { useMemo } from 'react';
 import {
-  SYSTEM_EDGES,
+  SIGNAL_TRACE_HOP_MS,
   SYSTEM_NODES,
   SYSTEM_NODE_MAP,
+  buildSignalTraceQueue,
+  getTracePosition,
   nodeRadiusFor,
   systemEdgeKey,
   type SystemEdge,
-  type SystemNode,
   type SystemNodeId,
 } from '../../../lib/admin/systemMapConfig';
 import { cn } from '../../../lib/utils/cn';
@@ -16,6 +17,14 @@ import { cn } from '../../../lib/utils/cn';
 interface SystemMapGraphProps {
   selectedId: SystemNodeId;
   onSelect: (id: SystemNodeId) => void;
+  activeEdgeKey: string | null;
+  visitedEdgeKeys: ReadonlySet<string>;
+  visitedNodeIds: ReadonlySet<SystemNodeId>;
+  flareNodeId: SystemNodeId | null;
+  flareGeneration: number;
+  cometGeneration: number;
+  includeDeploy: boolean;
+  activeNodeIds: ReadonlySet<SystemNodeId>;
 }
 
 interface EdgeGeometry {
@@ -51,6 +60,10 @@ function createStarfield(count: number): StarParticle[] {
   }));
 }
 
+function nodePos(id: SystemNodeId): { x: number; y: number } {
+  return getTracePosition(id);
+}
+
 function trimEdgeEndpoints(
   x1: number,
   y1: number,
@@ -76,16 +89,20 @@ function edgePathD(x1: number, y1: number, x2: number, y2: number): string {
   const my = (y1 + y2) / 2;
   const dx = x2 - x1;
   const dy = y2 - y1;
-  const cx = mx - dy * 0.18;
-  const cy = my + dx * 0.18;
+  const dist = Math.hypot(dx, dy);
+  const curve = Math.min(dist * 0.14, 4);
+  const cx = mx - (dy / dist) * curve;
+  const cy = my + (dx / dist) * curve;
   return `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
 }
 
 function buildEdgeGeometry(edge: SystemEdge): EdgeGeometry {
   const from = SYSTEM_NODE_MAP[edge.source];
   const to = SYSTEM_NODE_MAP[edge.target];
+  const fromPos = nodePos(from.id);
+  const toPos = nodePos(to.id);
   const inset = (nodeRadiusFor(from) + nodeRadiusFor(to)) / 2;
-  const trimmed = trimEdgeEndpoints(from.x, from.y, to.x, to.y, inset);
+  const trimmed = trimEdgeEndpoints(fromPos.x, fromPos.y, toPos.x, toPos.y, inset);
   return {
     key: systemEdgeKey(edge),
     edge,
@@ -97,37 +114,51 @@ function buildEdgeGeometry(edge: SystemEdge): EdgeGeometry {
   };
 }
 
-function nodeContainerOpacity(
-  node: SystemNode,
-  isSelected: boolean,
-  isConnected: boolean
-): string {
-  if (isSelected || isConnected) return 'opacity-100';
-  if (node.implementationStatus === 'planned') return 'opacity-[0.12]';
-  if (node.implementationStatus === 'partial') return 'opacity-50';
-  return 'opacity-100';
-}
-
 const NODE_LABEL_CLASS =
   'absolute top-full mt-2 w-32 text-center text-[10px] md:text-xs font-bold tracking-widest uppercase transition-colors left-1/2 -translate-x-1/2';
 
-export function SystemMapGraph({ selectedId, onSelect }: SystemMapGraphProps) {
-  const particles = useMemo(() => createStarfield(100), []);
-  const edgeGeometries = useMemo(() => SYSTEM_EDGES.map(buildEdgeGeometry), []);
+const COMET_DUR_S = SIGNAL_TRACE_HOP_MS / 1000;
 
-  const connectedNodeIds = useMemo(() => {
-    const ids = new Set<SystemNodeId>([selectedId]);
-    for (const edge of SYSTEM_EDGES) {
-      if (edge.source === selectedId) ids.add(edge.target);
-      if (edge.target === selectedId) ids.add(edge.source);
+export function SystemMapGraph({
+  selectedId,
+  onSelect,
+  activeEdgeKey,
+  visitedEdgeKeys,
+  visitedNodeIds,
+  flareNodeId,
+  flareGeneration,
+  cometGeneration,
+  includeDeploy,
+  activeNodeIds,
+}: SystemMapGraphProps) {
+  const particles = useMemo(() => createStarfield(100), []);
+
+  const edgeGeometries = useMemo(() => {
+    const seen = new Set<string>();
+    const geometries: EdgeGeometry[] = [];
+    for (const hop of buildSignalTraceQueue(includeDeploy)) {
+      const key = systemEdgeKey(hop.edge);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      geometries.push(buildEdgeGeometry(hop.edge));
+    }
+    return geometries;
+  }, [includeDeploy]);
+
+  const activeGeometry = edgeGeometries.find((g) => g.key === activeEdgeKey) ?? null;
+
+  const narrativeNodeIds = useMemo(() => {
+    const ids = new Set<SystemNodeId>();
+    for (const hop of buildSignalTraceQueue(includeDeploy)) {
+      ids.add(hop.edge.source);
+      ids.add(hop.edge.target);
     }
     return ids;
-  }, [selectedId]);
+  }, [includeDeploy]);
 
   return (
-    <div className="system-map-pan-canvas flex-1 min-h-0 overflow-auto">
-      <div className="relative min-w-[920px] min-h-[680px] w-full h-full bg-black">
-        {/* Starfield — Falconwood DataNexus particle layer */}
+    <div className="flex-1 min-h-0 overflow-auto">
+      <div className="relative min-w-[1100px] min-h-full w-full h-full bg-black">
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
           {particles.map((p) => (
             <div
@@ -140,7 +171,7 @@ export function SystemMapGraph({ selectedId, onSelect }: SystemMapGraphProps) {
                 height: p.size,
                 animationDuration: `${p.speed}s`,
                 animationDelay: `${(p.id % 10) * 0.35}s`,
-                opacity: 0.15 + (p.size / 3) * 0.25,
+                opacity: 0.12 + (p.size / 3) * 0.2,
               }}
             />
           ))}
@@ -158,71 +189,83 @@ export function SystemMapGraph({ selectedId, onSelect }: SystemMapGraphProps) {
               <stop offset="50%" stopColor="#57534e" stopOpacity={0.4} />
               <stop offset="100%" stopColor="#334155" />
             </linearGradient>
-
-            {edgeGeometries.map(({ key, x1, y1, x2, y2 }, index) => (
+            <linearGradient id="lineGradVisited" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#475569" />
+              <stop offset="50%" stopColor="#78716c" stopOpacity={0.55} />
+              <stop offset="100%" stopColor="#475569" />
+            </linearGradient>
+            {activeGeometry ? (
               <linearGradient
-                key={`comet-grad-${key}`}
-                id={`comet-grad-${key}`}
+                key={`comet-${activeGeometry.key}-${cometGeneration}`}
+                id="comet-active"
                 gradientUnits="userSpaceOnUse"
-                x1={x1}
-                y1={y1}
-                x2={x2}
-                y2={y2}
+                x1={activeGeometry.x1}
+                y1={activeGeometry.y1}
+                x2={activeGeometry.x2}
+                y2={activeGeometry.y2}
               >
                 <stop offset="0%" stopColor="rgba(253,230,138,0)">
                   <animate
                     attributeName="offset"
                     values="-0.3;1.3"
-                    dur="6s"
-                    repeatCount="indefinite"
-                    begin={`${index * 0.08}s`}
+                    dur={`${COMET_DUR_S}s`}
+                    repeatCount={1}
                   />
                 </stop>
                 <stop offset="0%" stopColor="rgba(255,255,255,0.9)">
                   <animate
                     attributeName="offset"
                     values="-0.1;1.5"
-                    dur="6s"
-                    repeatCount="indefinite"
-                    begin={`${index * 0.08}s`}
+                    dur={`${COMET_DUR_S}s`}
+                    repeatCount={1}
                   />
                 </stop>
                 <stop offset="0%" stopColor="rgba(253,230,138,0)">
                   <animate
                     attributeName="offset"
                     values="0.1;1.7"
-                    dur="6s"
-                    repeatCount="indefinite"
-                    begin={`${index * 0.08}s`}
+                    dur={`${COMET_DUR_S}s`}
+                    repeatCount={1}
                   />
                 </stop>
               </linearGradient>
-            ))}
+            ) : null}
           </defs>
 
-          {edgeGeometries.map(({ key, d, edge }) => {
-            const isSelectedEdge =
-              edge.source === selectedId || edge.target === selectedId;
-            const trackWidth = isSelectedEdge ? 2 : 1.5;
+          {/* Spine guide */}
+          <line
+            x1={2}
+            y1={48}
+            x2={98}
+            y2={48}
+            stroke="rgba(255,255,255,0.04)"
+            strokeWidth={0.15}
+            vectorEffect="non-scaling-stroke"
+          />
+
+          {edgeGeometries.map(({ key, d }) => {
+            const isActive = key === activeEdgeKey;
+            const isVisited = visitedEdgeKeys.has(key);
+            const trackWidth = isActive || isVisited ? 2 : 1.5;
 
             return (
               <g key={key}>
                 <path
                   d={d}
                   fill="none"
-                  stroke="url(#lineGrad)"
+                  stroke={isVisited ? 'url(#lineGradVisited)' : 'url(#lineGrad)'}
                   strokeWidth={trackWidth}
                   strokeLinecap="round"
                   vectorEffect="non-scaling-stroke"
-                  strokeDasharray={edge.structural ? '4 6' : undefined}
-                  opacity={edge.structural ? 0.35 : 0.85}
+                  opacity={isVisited || isActive ? 0.9 : 0.15}
                 />
-                {!edge.structural ? (
+                {isActive && activeGeometry ? (
                   <path
+                    key={`beam-${cometGeneration}`}
                     d={d}
                     fill="none"
-                    stroke={`url(#comet-grad-${key})`}
-                    strokeWidth={trackWidth}
+                    stroke="url(#comet-active)"
+                    strokeWidth={2}
                     strokeLinecap="round"
                     vectorEffect="non-scaling-stroke"
                   />
@@ -233,8 +276,23 @@ export function SystemMapGraph({ selectedId, onSelect }: SystemMapGraphProps) {
         </svg>
 
         {SYSTEM_NODES.map((node) => {
+          const pos = nodePos(node.id);
           const isSelected = node.id === selectedId;
-          const isConnected = connectedNodeIds.has(node.id);
+          const isVisited = visitedNodeIds.has(node.id);
+          const isActive = activeNodeIds.has(node.id);
+          const onNarrative = narrativeNodeIds.has(node.id);
+          const showFlare = flareNodeId === node.id;
+
+          const nodeOpacity = (() => {
+            if (isSelected || isActive) return 'opacity-100';
+            if (isVisited) return 'opacity-90';
+            if (!onNarrative) {
+              if (node.implementationStatus === 'planned') return 'opacity-[0.12]';
+              return 'opacity-[0.2]';
+            }
+            if (node.implementationStatus === 'planned') return 'opacity-[0.12]';
+            return 'opacity-35';
+          })();
 
           return (
             <button
@@ -242,24 +300,37 @@ export function SystemMapGraph({ selectedId, onSelect }: SystemMapGraphProps) {
               type="button"
               onClick={() => onSelect(node.id)}
               className={cn(
-                'absolute z-10 -translate-x-1/2 -translate-y-1/2 focus:outline-none focus-visible:ring-1 focus-visible:ring-amber-200/40',
-                nodeContainerOpacity(node, isSelected, isConnected)
+                'absolute z-10 -translate-x-1/2 -translate-y-1/2 focus:outline-none focus-visible:ring-1 focus-visible:ring-amber-200/40 transition-opacity duration-500',
+                nodeOpacity
               )}
-              style={{ left: `${node.x}%`, top: `${node.y}%` }}
+              style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
               aria-pressed={isSelected}
               aria-label={`${node.label}. ${isSelected ? 'Selected' : 'Select to view telemetry'}`}
             >
               <div className="relative flex flex-col items-center">
+                {showFlare ? (
+                  <span
+                    key={`flare-${node.id}-${flareGeneration}`}
+                    className="system-map-hit-flare animate-pulse-flare absolute inset-0 m-auto w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-amber-200/60 pointer-events-none"
+                    aria-hidden
+                  />
+                ) : null}
+
                 <div
                   className={cn(
                     'w-12 h-12 md:w-16 md:h-16 rounded-full border flex items-center justify-center bg-black border-white/10 transition-all duration-300',
-                    isSelected && 'border-amber-200/40 shadow-sm'
+                    (isSelected || isActive) && 'border-amber-200/40 shadow-sm',
+                    isVisited && !isSelected && !isActive && 'border-amber-200/20'
                   )}
                 >
                   <div
                     className={cn(
                       'w-3 h-3 md:w-4 md:h-4 rounded-full transition-all duration-300',
-                      isSelected ? 'bg-amber-200/40' : 'bg-neutral-600'
+                      isSelected || isActive
+                        ? 'bg-amber-200/40'
+                        : isVisited
+                          ? 'bg-amber-200/25'
+                          : 'bg-neutral-600'
                     )}
                   />
                 </div>
@@ -267,7 +338,7 @@ export function SystemMapGraph({ selectedId, onSelect }: SystemMapGraphProps) {
                 <span
                   className={cn(
                     NODE_LABEL_CLASS,
-                    isSelected ? 'text-stone-200' : 'text-stone-500'
+                    isSelected || isActive ? 'text-stone-200' : isVisited ? 'text-stone-400' : 'text-stone-500'
                   )}
                 >
                   <span className="md:hidden">{node.graphLabelShort ?? node.graphLabel}</span>
