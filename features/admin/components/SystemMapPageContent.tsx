@@ -36,7 +36,7 @@ function JourneyProgressRail({
   }, [queue]);
 
   return (
-    <div className="flex items-center gap-1 md:gap-2 overflow-x-auto no-scrollbar py-1">
+    <div className="flex items-center gap-1 md:gap-1.5 overflow-x-auto no-scrollbar py-0.5">
       {ACT_ORDER.map((act) => {
         const firstHop = actIndices.get(act) ?? -1;
         if (firstHop < 0) return null;
@@ -48,27 +48,22 @@ function JourneyProgressRail({
           <div
             key={act}
             className={cn(
-              'shrink-0 flex items-center gap-1.5 px-2 md:px-3 py-1 border transition-all duration-500',
-              isCurrent && 'border-amber-200/40 bg-amber-200/[0.06]',
-              isPast && !isCurrent && 'border-white/10 bg-white/[0.02]',
-              !isPast && !isCurrent && 'border-white/5 opacity-40'
+              'shrink-0 flex items-center gap-1 px-2 py-0.5 transition-all duration-500',
+              isCurrent && 'text-amber-200/90',
+              isPast && !isCurrent && 'text-stone-500',
+              !isPast && !isCurrent && 'text-stone-600 opacity-50'
             )}
           >
             <span
               className={cn(
-                'w-1.5 h-1.5 rounded-full shrink-0 transition-all',
-                isCurrent && 'bg-amber-200 shadow-[0_0_6px_rgba(253,230,138,0.8)] animate-pulse',
-                isPast && !isCurrent && 'bg-amber-200/50',
+                'w-1 h-1 rounded-full shrink-0',
+                isCurrent && 'bg-amber-200 shadow-[0_0_4px_rgba(253,230,138,0.7)] animate-pulse',
+                isPast && !isCurrent && 'bg-amber-200/40',
                 !isPast && !isCurrent && 'bg-stone-600'
               )}
               aria-hidden
             />
-            <span
-              className={cn(
-                'text-[9px] font-bold tracking-widest uppercase whitespace-nowrap',
-                isCurrent ? 'text-stone-200' : isPast ? 'text-stone-500' : 'text-stone-600'
-              )}
-            >
+            <span className="text-[8px] md:text-[9px] font-bold tracking-widest uppercase whitespace-nowrap">
               {label}
             </span>
           </div>
@@ -83,11 +78,11 @@ export function SystemMapPageContent() {
   const [hopIndex, setHopIndex] = useState(0);
   const [includeDeploy, setIncludeDeploy] = useState(false);
   const [selectedId, setSelectedId] = useState<SystemNodeId | null>(null);
+  const [pausedHop, setPausedHop] = useState<SignalTraceHop | null>(null);
   const hopIndexRef = useRef(hopIndex);
   hopIndexRef.current = hopIndex;
 
   const queue = useMemo(() => buildSignalTraceQueue(includeDeploy), [includeDeploy]);
-
   const currentHop = queue[hopIndex] ?? null;
 
   const applyHop = useCallback(
@@ -96,6 +91,7 @@ export function SystemMapPageContent() {
       if (!hop) return;
       setHopIndex(index);
       setSelectedId(hop.edge.target);
+      setPausedHop(null);
     },
     [queue]
   );
@@ -121,7 +117,13 @@ export function SystemMapPageContent() {
     return () => window.clearTimeout(timer);
   }, [mode, hopIndex, queue, applyHop]);
 
+  const pauseJourney = () => {
+    if (currentHop) setPausedHop(currentHop);
+    setMode('explore');
+  };
+
   const handleSelect = (id: SystemNodeId) => {
+    if (currentHop) setPausedHop(currentHop);
     setMode('explore');
     setSelectedId(id);
   };
@@ -131,6 +133,7 @@ export function SystemMapPageContent() {
       const matchIndex = queue.findIndex((h) => h.edge.target === selectedId);
       if (matchIndex >= 0) setHopIndex(matchIndex);
     }
+    setPausedHop(null);
     setMode('journey');
   };
 
@@ -142,72 +145,47 @@ export function SystemMapPageContent() {
   );
 
   const journeyFromId = mode === 'journey' && currentHop ? currentHop.edge.source : null;
-  const progressLabel = queue.length > 0 ? `${hopIndex + 1} / ${queue.length}` : '—';
+  const panelTraceHop = mode === 'journey' ? currentHop : pausedHop;
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black text-primary">
-      <header className="shrink-0 px-6 md:px-10 pt-6 pb-4 border-b border-white/10">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-          <div className="space-y-3 min-w-0">
+      <header className="shrink-0 px-5 md:px-8 pt-5 pb-3 border-b border-white/10">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-2 min-w-0">
             <Link
               href="/admin"
-              className="inline-block text-[10px] font-bold tracking-widest uppercase text-stone-500 hover:text-amber-200/80 transition-colors"
+              className="inline-block text-[9px] font-bold tracking-widest uppercase text-stone-500 hover:text-amber-200/80 transition-colors"
             >
               ← Return to Dashboard
             </Link>
-            <div className="h-[2px] w-full max-w-xs relative overflow-hidden bg-white/[0.02] rounded-full">
-              <div className="absolute top-0 bottom-0 w-[50%] bg-gradient-to-r from-transparent via-amber-200/50 to-transparent animate-os-eye" />
-            </div>
             <div className="flex items-center gap-3">
-              <div>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-stone-500 mb-1">
-                  {mode === 'journey' ? 'Guided Journey' : 'Free Explore'}
-                </p>
-                <h1 className="text-xl md:text-2xl font-bold uppercase tracking-widest text-stone-100">
-                  System Architecture
-                </h1>
-              </div>
+              <h1 className="text-lg md:text-xl font-bold uppercase tracking-widest text-stone-100">
+                System Architecture
+              </h1>
               <span
                 className={cn(
-                  'hidden sm:inline-flex items-center gap-1.5 text-[9px] font-bold tracking-widest uppercase px-2 py-1 border mt-4',
-                  mode === 'journey'
-                    ? 'border-amber-200/30 text-amber-200/70 bg-amber-200/[0.04]'
-                    : 'border-white/10 text-stone-500 bg-white/[0.02]'
+                  'inline-flex items-center gap-1 text-[8px] font-bold tracking-widest uppercase',
+                  mode === 'journey' ? 'text-amber-200/70' : 'text-stone-500'
                 )}
               >
                 <span
                   className={cn(
-                    'w-1.5 h-1.5 rounded-full',
+                    'w-1 h-1 rounded-full',
                     mode === 'journey' ? 'bg-amber-200 animate-pulse' : 'bg-stone-500'
                   )}
                   aria-hidden
                 />
-                {mode === 'journey' ? 'Live' : 'Paused'}
+                {mode === 'journey' ? 'Guided' : 'Paused'}
               </span>
             </div>
           </div>
-          <div className="text-right shrink-0 max-w-sm">
-            {mode === 'journey' && currentHop ? (
-              <>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-amber-200/60">
-                  {SIGNAL_TRACE_ACT_LABELS[currentHop.act]}
-                </p>
-                <p className="text-sm font-bold text-stone-200 mt-1">{currentHop.headline}</p>
-                <p className="text-[10px] font-light text-stone-500 mt-1">Stop {progressLabel}</p>
-              </>
-            ) : (
-              <>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-stone-600">
-                  {selectedId ? `${connectedNodes.length} linked systems` : 'Exploring'}
-                </p>
-                <p className="text-[10px] font-light text-stone-500 mt-1 leading-relaxed">
-                  Journey paused — inspect any node, then continue when ready
-                </p>
-              </>
-            )}
-          </div>
+          {mode === 'journey' && currentHop ? (
+            <p className="text-[10px] font-bold text-stone-300 text-right shrink-0 max-w-[200px] leading-snug hidden sm:block">
+              {currentHop.headline}
+            </p>
+          ) : null}
         </div>
-        <div className="mt-4 pt-3 border-t border-white/5">
+        <div className="mt-3">
           <JourneyProgressRail queue={queue} hopIndex={hopIndex} mode={mode} />
         </div>
       </header>
@@ -220,51 +198,35 @@ export function SystemMapPageContent() {
             mode={mode}
             journeyFromId={journeyFromId}
           />
-
-          {mode === 'explore' ? (
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 pointer-events-none px-4 w-full max-w-md">
-              <div className="pointer-events-auto flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto bg-black/80 backdrop-blur-xl border border-white/10 shadow-2xl px-4 py-3 rounded-sm">
-                <p className="text-[10px] text-stone-500 font-light text-center sm:text-left sm:mr-2">
-                  Guided journey paused at{' '}
-                  <span className="text-stone-300">{SIGNAL_TRACE_ACT_LABELS[currentHop?.act ?? 'discover']}</span>
-                </p>
-                <button
-                  type="button"
-                  onClick={resumeJourney}
-                  className="shrink-0 text-[10px] font-bold tracking-widest uppercase px-4 py-2 border border-amber-200/40 text-amber-200/90 hover:bg-amber-200/10 hover:text-amber-200 transition-colors whitespace-nowrap"
-                >
-                  Continue Journey →
-                </button>
-              </div>
-            </div>
-          ) : null}
         </div>
 
-        <div className="w-full lg:w-[min(380px,32vw)] shrink-0 min-h-[280px] lg:min-h-0 border-t lg:border-t-0 lg:border-l border-white/10">
+        <div className="w-full lg:w-[min(340px,30vw)] shrink-0 min-h-0 border-t lg:border-t-0 lg:border-l border-white/10">
           <SystemMapDetailPanel
             node={selectedNode}
             connectedNodes={connectedNodes}
-            traceHop={mode === 'journey' ? currentHop : null}
+            traceHop={panelTraceHop}
             mode={mode}
+            hopIndex={hopIndex}
+            hopTotal={queue.length}
+            onPause={pauseJourney}
+            onResume={resumeJourney}
           />
         </div>
       </div>
 
-      <footer className="shrink-0 px-6 md:px-10 py-3 border-t border-white/10 bg-black/80 backdrop-blur-sm flex flex-wrap items-center justify-between gap-3">
-        <p className="text-[10px] font-bold tracking-widest uppercase text-stone-600">
-          Click any node to pause & explore
+      <footer className="shrink-0 px-5 md:px-8 py-2 border-t border-white/10 bg-black/80 flex items-center justify-between gap-3">
+        <p className="text-[9px] font-bold tracking-widest uppercase text-stone-600">
+          {mode === 'journey' ? 'Pause or click a node to read' : 'Resume when ready'}
         </p>
         <button
           type="button"
           onClick={() => setIncludeDeploy((d) => !d)}
           className={cn(
-            'text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 border transition-colors',
-            includeDeploy
-              ? 'border-amber-200/40 text-stone-200 bg-white/[0.06]'
-              : 'border-white/10 text-stone-500 hover:text-stone-300'
+            'text-[9px] font-bold tracking-widest uppercase px-2.5 py-1 transition-colors',
+            includeDeploy ? 'text-amber-200/80' : 'text-stone-500 hover:text-stone-400'
           )}
         >
-          {includeDeploy ? 'Act 0 · On' : 'Act 0 · Deploy'}
+          {includeDeploy ? 'Act 0 on' : 'Act 0 deploy'}
         </button>
       </footer>
     </div>

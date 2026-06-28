@@ -114,7 +114,7 @@ function CometShuttleStops({ dur }: { dur: string }) {
 }
 
 const NODE_LABEL_CLASS =
-  'absolute top-full mt-2 w-32 text-center text-[10px] md:text-xs font-bold tracking-widest uppercase transition-all duration-300 left-1/2 -translate-x-1/2';
+  'absolute top-full mt-1 w-20 md:w-24 text-center text-[8px] md:text-[9px] font-bold tracking-wider uppercase transition-all duration-300 left-1/2 -translate-x-1/2 leading-tight pointer-events-none';
 
 export function SystemMapGraph({
   selectedId,
@@ -176,13 +176,13 @@ export function SystemMapGraph({
     if (!selectedId || !scrollRef.current) return;
     const el = scrollRef.current.querySelector(`[data-system-map-node="${selectedId}"]`);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     }
   }, [selectedId, mode]);
 
   return (
-    <div ref={scrollRef} className="flex-1 min-h-0 overflow-auto">
-      <div className="relative min-w-[1100px] min-h-full w-full h-full bg-black">
+    <div ref={scrollRef} className="flex-1 min-h-0 overflow-hidden">
+      <div className="relative w-full h-full min-h-[420px] bg-black px-2 py-3 md:px-4 md:py-4">
         <div className="absolute inset-0 z-0 opacity-40 overflow-hidden pointer-events-none" aria-hidden>
           {particles.map((p) => (
             <div
@@ -271,7 +271,7 @@ export function SystemMapGraph({
                 {isSelected ? (
                   <span
                     className={cn(
-                      'absolute inset-0 m-auto w-14 h-14 md:w-[4.5rem] md:h-[4.5rem] rounded-full pointer-events-none bg-[radial-gradient(circle,rgba(253,230,138,0.28)_0%,transparent_70%)]',
+                      'absolute inset-0 m-auto w-10 h-10 md:w-12 md:h-12 rounded-full pointer-events-none bg-[radial-gradient(circle,rgba(253,230,138,0.28)_0%,transparent_70%)]',
                       mode === 'journey' && 'animate-pulse'
                     )}
                     aria-hidden
@@ -281,7 +281,7 @@ export function SystemMapGraph({
                 {(isConnected || isJourneyFrom) && !isSelected ? (
                   <span
                     className={cn(
-                      'absolute inset-0 m-auto w-14 h-14 md:w-[4.25rem] md:h-[4.25rem] rounded-full pointer-events-none',
+                      'absolute inset-0 m-auto w-10 h-10 md:w-11 md:h-11 rounded-full pointer-events-none',
                       isJourneyFrom
                         ? 'bg-[radial-gradient(circle,rgba(253,230,138,0.22)_0%,transparent_70%)]'
                         : 'bg-[radial-gradient(circle,rgba(253,230,138,0.14)_0%,transparent_70%)] system-map-node-breathe-glow'
@@ -292,9 +292,9 @@ export function SystemMapGraph({
 
                 <div
                   className={cn(
-                    'relative w-12 h-12 md:w-16 md:h-16 rounded-full border flex items-center justify-center bg-black transition-all duration-300 ease-in-out',
+                    'relative w-8 h-8 md:w-10 md:h-10 rounded-full border flex items-center justify-center bg-black transition-all duration-300 ease-in-out',
                     isPlanned ? 'border-dotted border-white/25' : 'border-white/10',
-                    isSelected && 'border-amber-200/50 shadow-[0_0_20px_rgba(253,230,138,0.3)]',
+                    isSelected && 'border-amber-200/50 shadow-[0_0_14px_rgba(253,230,138,0.28)]',
                     isJourneyFrom && 'border-amber-200/45 shadow-sm',
                     isConnected && !isSelected && !isJourneyFrom && 'border-amber-200/35 shadow-sm',
                     (isConnected || isJourneyFrom) && !isSelected && 'system-map-node-breathe'
@@ -302,7 +302,7 @@ export function SystemMapGraph({
                 >
                   <div
                     className={cn(
-                      'w-3 h-3 md:w-4 md:h-4 rounded-full transition-all duration-300 ease-in-out',
+                      'w-2 h-2 md:w-2.5 md:h-2.5 rounded-full transition-all duration-300 ease-in-out',
                       isSelected && 'bg-amber-200/50 shadow-[0_0_12px_rgba(255,255,255,0.5)]',
                       isJourneyFrom && !isSelected && 'bg-amber-200/45',
                       isConnected && !isSelected && !isJourneyFrom && 'bg-amber-200/40 system-map-dot-breathe',
@@ -326,7 +326,7 @@ export function SystemMapGraph({
                   )}
                 >
                   <span className="md:hidden">{node.graphLabelShort ?? node.graphLabel}</span>
-                  <span className="hidden md:inline">{node.graphLabel}</span>
+                  <span className="hidden md:inline">{node.graphLabelShort ?? node.graphLabel}</span>
                 </span>
               </div>
             </button>

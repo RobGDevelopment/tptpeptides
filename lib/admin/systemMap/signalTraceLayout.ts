@@ -1,51 +1,60 @@
 import type { SystemNodeId } from './types';
 
-/** Spine + wing coordinates for Signal Trace layout (0–100 viewBox). */
+/**
+ * Compact viewport-fit layout (0–100). Margins ~10–86 on X keep labels inside the canvas.
+ * Rows: infrastructure → integrations → customer spine → fulfillment → ops/compliance.
+ */
 export const SIGNAL_TRACE_POSITIONS: Record<SystemNodeId, { x: number; y: number }> = {
-  github: { x: 8, y: 10 },
-  vercel: { x: 22, y: 10 },
-  'firebase-auth': { x: 38, y: 10 },
-  firestore: { x: 54, y: 10 },
-  'firebase-storage': { x: 70, y: 10 },
+  // Row 1 — infrastructure & finance ops
+  github: { x: 12, y: 8 },
+  vercel: { x: 24, y: 8 },
+  'firebase-auth': { x: 36, y: 8 },
+  firestore: { x: 48, y: 8 },
+  'firebase-storage': { x: 60, y: 8 },
+  quickbooks: { x: 72, y: 8 },
+  'audit-logs': { x: 84, y: 8 },
 
-  'age-gate': { x: 4, y: 48 },
-  'storefront-cms': { x: 14, y: 48 },
-  catalog: { x: 24, y: 48 },
-  cart: { x: 34, y: 48 },
-  auth: { x: 44, y: 48 },
-  kyb: { x: 44, y: 28 },
-  pricing: { x: 54, y: 48 },
-  quotes: { x: 54, y: 24 },
-  checkout: { x: 64, y: 48 },
-  stripe: { x: 74, y: 48 },
-  fulfillment: { x: 84, y: 48 },
-  orders: { x: 74, y: 68 },
-  inventory: { x: 84, y: 68 },
-  easypost: { x: 92, y: 48 },
-  resend: { x: 96, y: 38 },
+  // Row 2 — integrations & messaging
+  'ai-copilot': { x: 12, y: 22 },
+  'algolia-search': { x: 24, y: 22 },
+  kyb: { x: 38, y: 22 },
+  quotes: { x: 48, y: 22 },
+  'net-terms': { x: 58, y: 22 },
+  'stripe-tax': { x: 68, y: 22 },
+  easypost: { x: 78, y: 22 },
+  resend: { x: 84, y: 22 },
 
-  'account-portal': { x: 44, y: 68 },
-  'algolia-search': { x: 24, y: 32 },
-  'ai-copilot': { x: 24, y: 22 },
-  'interactive-3d': { x: 24, y: 62 },
-  'abandoned-cart': { x: 34, y: 68 },
+  // Row 3 — primary customer spine
+  'age-gate': { x: 12, y: 40 },
+  'storefront-cms': { x: 21, y: 40 },
+  catalog: { x: 30, y: 40 },
+  cart: { x: 39, y: 40 },
+  auth: { x: 48, y: 40 },
+  pricing: { x: 57, y: 40 },
+  checkout: { x: 66, y: 40 },
+  stripe: { x: 75, y: 40 },
+  fulfillment: { x: 84, y: 40 },
 
-  loyalty: { x: 88, y: 68 },
-  'predictive-replenishment': { x: 96, y: 68 },
-  modules: { x: 54, y: 82 },
+  // Row 4 — fulfillment & account satellites
+  'interactive-3d': { x: 12, y: 56 },
+  'abandoned-cart': { x: 24, y: 56 },
+  'account-portal': { x: 39, y: 56 },
+  'geo-block': { x: 54, y: 56 },
+  orders: { x: 66, y: 56 },
+  inventory: { x: 75, y: 56 },
+  loyalty: { x: 84, y: 56 },
 
-  'stripe-tax': { x: 74, y: 28 },
-  'net-terms': { x: 64, y: 28 },
-  quickbooks: { x: 84, y: 28 },
+  // Row 5 — modules & sales ops
+  'batch-coa': { x: 12, y: 72 },
+  'lead-routing': { x: 24, y: 72 },
+  modules: { x: 39, y: 72 },
+  'predictive-replenishment': { x: 54, y: 72 },
+  rbac: { x: 66, y: 72 },
+  'sales-command': { x: 75, y: 72 },
+  'client-impersonation': { x: 84, y: 72 },
 
-  'batch-coa': { x: 14, y: 82 },
-  'geo-block': { x: 64, y: 68 },
-  'audit-logs': { x: 92, y: 28 },
-  'sales-command': { x: 64, y: 82 },
-  'client-impersonation': { x: 70, y: 88 },
-  'lead-routing': { x: 38, y: 82 },
-  rbac: { x: 48, y: 88 },
-  'margin-report': { x: 78, y: 82 },
+  // Row 6 — reporting
+  'margin-report': { x: 48, y: 86 },
 };
 
 export function getTracePosition(id: SystemNodeId): { x: number; y: number } {
