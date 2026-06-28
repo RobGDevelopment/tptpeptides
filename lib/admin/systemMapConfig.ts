@@ -180,8 +180,30 @@ export const SYSTEM_NODE_MAP = Object.fromEntries(
 
 export const DEFAULT_SYSTEM_NODE_ID: SystemNodeId = 'storefront';
 
+/** Primary telemetry spine + branch hops — comets traverse in order, one hop per interval. */
+export const SYSTEM_TELEMETRY_SEQUENCE: SystemEdge[] = [
+  { source: 'storefront', target: 'auth' },
+  { source: 'auth', target: 'kyb' },
+  { source: 'kyb', target: 'pricing' },
+  { source: 'pricing', target: 'checkout' },
+  { source: 'checkout', target: 'stripe' },
+  { source: 'stripe', target: 'fulfillment' },
+  { source: 'fulfillment', target: 'quickbooks' },
+  { source: 'fulfillment', target: 'resend' },
+  { source: 'storefront', target: 'pricing' },
+];
+
+/** Duration of one comet hop in milliseconds — flares and next hop sync to this value. */
+export const BEAM_TRAVEL_MS = 1500;
+
+export const BEAM_TRAVEL_S = BEAM_TRAVEL_MS / 1000;
+
 export function systemEdgeKey(edge: SystemEdge): string {
   return `${edge.source}-${edge.target}`;
+}
+
+export function edgesMatch(a: SystemEdge, b: SystemEdge): boolean {
+  return a.source === b.source && a.target === b.target;
 }
 
 /** Node radius as a fraction of the 0–100 coordinate space (for edge trimming). */

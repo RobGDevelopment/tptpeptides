@@ -15,7 +15,7 @@ export function SystemMapPageContent() {
   const selectedNode = SYSTEM_NODE_MAP[selectedId];
 
   return (
-    <div className="-m-8 flex flex-col min-h-[calc(100vh)] bg-void">
+    <div className="-m-8 flex flex-col min-h-[calc(100vh)] bg-[#050505]">
       <div className="px-8 pt-8 pb-4 shrink-0">
         <p className="text-[10px] tracking-caps uppercase text-gold/80 mb-2">Ownership Telemetry</p>
         <h1 className="admin-heading text-2xl md:text-3xl">System Architecture</h1>
