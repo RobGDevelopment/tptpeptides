@@ -103,6 +103,7 @@ See [SPRINT_1_EXECUTION.md](./SPRINT_1_EXECUTION.md).
 
 | Doc | Purpose |
 |-----|---------|
+| [BUILD_PLAN.md](./BUILD_PLAN.md) | **Master commercialization plan** — multi-tenant lanes, Sprints A–E, STP ops |
 | [SPRINT_1_EXECUTION.md](./SPRINT_1_EXECUTION.md) | Sprint 1 technical steps |
 | [ARCHITECTURE_ROADMAP.md](./ARCHITECTURE_ROADMAP.md) | Historical Phases A–F |
 | [STOREFRONT_CMS.md](./STOREFRONT_CMS.md) | CMS admin reference |

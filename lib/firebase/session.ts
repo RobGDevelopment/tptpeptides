@@ -39,18 +39,29 @@ export async function syncAuthSession(idToken: string | null): Promise<AuthSessi
 export interface ServerAuthStatus {
   isAdmin: boolean;
   isMasterAdmin: boolean;
+  isPartner: boolean;
+  canAccessExecutiveManual: boolean;
 }
 
 export async function fetchServerAdminStatus(): Promise<ServerAuthStatus> {
   try {
     const response = await fetch('/api/session/admin-status', { credentials: 'include' });
-    if (!response.ok) return { isAdmin: false, isMasterAdmin: false };
-    const data = (await response.json()) as { isAdmin?: boolean; isMasterAdmin?: boolean };
+    if (!response.ok) {
+      return { isAdmin: false, isMasterAdmin: false, isPartner: false, canAccessExecutiveManual: false };
+    }
+    const data = (await response.json()) as {
+      isAdmin?: boolean;
+      isMasterAdmin?: boolean;
+      isPartner?: boolean;
+      canAccessExecutiveManual?: boolean;
+    };
     return {
       isAdmin: Boolean(data.isAdmin),
       isMasterAdmin: Boolean(data.isMasterAdmin),
+      isPartner: Boolean(data.isPartner),
+      canAccessExecutiveManual: Boolean(data.canAccessExecutiveManual),
     };
   } catch {
-    return { isAdmin: false, isMasterAdmin: false };
+    return { isAdmin: false, isMasterAdmin: false, isPartner: false, canAccessExecutiveManual: false };
   }
 }

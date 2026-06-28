@@ -6,45 +6,117 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isMasterAdmin() {
-      return isSignedIn()
-        && request.auth.token.email != null
-        && request.auth.token.email == 'rjg.cal@gmail.com';
+    function claimRole() {
+      return isSignedIn() && 'role' in request.auth.token
+        ? request.auth.token.role
+        : null;
     }
 
-    function isAdmin() {
-      return isMasterAdmin() || (
-        isSignedIn() && (
+    function isSuperAdmin() {
+      return isSignedIn() && (
         request.auth.token.admin == true ||
-        request.auth.token.role == 'admin' ||
-        (
-          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-        )
-      ));
+        claimRole() == 'admin'
+      );
+    }
+
+    function isPortalRole(role) {
+      return role in ['admin', 'ops', 'finance', 'sales', 'support'];
+    }
+
+    function isLegacyPortalRole(role) {
+      return role in ['partner', 'staff'];
+    }
+
+    function isAdminPortal() {
+      return isSuperAdmin()
+        || (isSignedIn() && (
+          isPortalRole(claimRole())
+          || isLegacyPortalRole(claimRole())
+        ));
     }
 
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    function defaultTenantId() {
+      return 'tpt-b2b';
+    }
+
+    function authTenantId() {
+      return isSignedIn() && 'tenantId' in request.auth.token
+        && request.auth.token.tenantId != null
+        ? request.auth.token.tenantId
+        : null;
+    }
+
+    function effectiveAuthTenantId() {
+      return authTenantId() != null ? authTenantId() : defaultTenantId();
+    }
+
+    function documentTenantId() {
+      return ('tenantId' in resource.data && resource.data.tenantId != null)
+        ? resource.data.tenantId
+        : defaultTenantId();
+    }
+
+    function requestDocumentTenantId() {
+      return ('tenantId' in request.resource.data && request.resource.data.tenantId != null)
+        ? request.resource.data.tenantId
+        : defaultTenantId();
+    }
+
+    function tenantReadAllowed() {
+      return isSuperAdmin() || documentTenantId() == effectiveAuthTenantId();
+    }
+
+    function tenantWriteAllowed() {
+      return isSuperAdmin() || requestDocumentTenantId() == effectiveAuthTenantId();
+    }
+
+    function productTenantVisible() {
+      return !('tenantVisibility' in resource.data)
+        || resource.data.tenantVisibility == null
+        || effectiveAuthTenantId() in resource.data.tenantVisibility;
+    }
+
+    function requestProductTenantVisible() {
+      return !('tenantVisibility' in request.resource.data)
+        || request.resource.data.tenantVisibility == null
+        || effectiveAuthTenantId() in request.resource.data.tenantVisibility;
+    }
+
+    match /tenant_config/{tenantId} {
+      allow read: if isAdminPortal() || tenantId == defaultTenantId();
+      allow write: if isSuperAdmin();
+    }
+
     match /products/{productId} {
-      allow read: if resource.data.active == true || isAdmin();
-      allow create, update, delete: if isAdmin();
+      allow read: if (resource.data.active == true || isAdminPortal())
+        && tenantReadAllowed()
+        && productTenantVisible();
+      allow create, update, delete: if isAdminPortal()
+        && tenantWriteAllowed()
+        && requestProductTenantVisible();
     }
 
     match /orders/{orderId} {
-      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow read: if tenantReadAllowed() && (
+        isAdminPortal()
+        || (isSignedIn() && resource.data.userId == request.auth.uid)
+      );
       allow create: if isSignedIn()
         && request.resource.data.userId == request.auth.uid
-        && request.resource.data.keys().hasAll(['userId', 'items', 'total', 'status']);
-      allow update, delete: if isAdmin();
+        && request.resource.data.keys().hasAll(['userId', 'items', 'total', 'status'])
+        && tenantWriteAllowed();
+      allow update, delete: if isAdminPortal() && tenantWriteAllowed();
     }
 
     match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
+      allow read: if (isOwner(userId) || isAdminPortal()) && tenantReadAllowed();
 
       allow create: if isOwner(userId)
+        && tenantWriteAllowed()
         && (!('role' in request.resource.data)
           || request.resource.data.role in ['user', 'customer'])
         && (!('accessLevel' in request.resource.data)
@@ -52,62 +124,125 @@ service cloud.firestore {
         && !('disabled' in request.resource.data)
         && !('createdBy' in request.resource.data);
 
-      allow update: if isAdmin()
+      allow update: if isSuperAdmin() && tenantWriteAllowed()
         || (
           isOwner(userId)
+          && tenantWriteAllowed()
           && !request.resource.data.diff(resource.data).affectedKeys()
-            .hasAny(['role', 'accessLevel', 'disabled', 'createdBy'])
+            .hasAny(['role', 'accessLevel', 'disabled', 'createdBy', 'tenantId'])
         );
 
-      allow delete: if isAdmin();
+      allow delete: if isSuperAdmin() && tenantWriteAllowed();
     }
 
     match /auditLogs/{logId} {
-      allow create: if isSignedIn();
-      allow read: if isAdmin();
+      allow create: if isSignedIn() && tenantWriteAllowed();
+      allow read: if isSuperAdmin() && tenantReadAllowed();
       allow update, delete: if false;
     }
 
+    match /attestation_logs/{logId} {
+      allow read: if isAdminPortal() && tenantReadAllowed();
+      allow create, update, delete: if false;
+    }
+
+    match /journal_entries/{entryId} {
+      allow read: if isAdminPortal() && tenantReadAllowed();
+      allow create, update, delete: if false;
+    }
+
     match /purchaseOrders/{poId} {
-      allow read, write: if isAdmin();
+      allow read, write: if isAdminPortal() && tenantReadAllowed() && tenantWriteAllowed();
     }
 
     match /cms/settings {
-      allow read, write: if isAdmin();
+      allow read, write: if isAdminPortal() && tenantReadAllowed() && tenantWriteAllowed();
     }
 
     match /cms/homepage {
-      allow read, write: if isAdmin();
+      allow read, write: if isAdminPortal() && tenantReadAllowed() && tenantWriteAllowed();
     }
 
     match /cms/categories {
-      allow read, write: if isAdmin();
+      allow read, write: if isAdminPortal() && tenantReadAllowed() && tenantWriteAllowed();
     }
 
     match /researchArticles/{slug} {
-      allow read, write: if isAdmin();
+      allow read, write: if isAdminPortal() && tenantReadAllowed() && tenantWriteAllowed();
     }
 
     match /protocols/{id} {
-      allow read, write: if isAdmin();
+      allow read, write: if isAdminPortal() && tenantReadAllowed() && tenantWriteAllowed();
     }
 
     match /settings/modules {
-      allow read, write: if isAdmin();
+      allow read, write: if isSuperAdmin() && tenantReadAllowed() && tenantWriteAllowed();
     }
 
     match /priceLists/{tierId} {
-      allow read, write: if isAdmin();
+      allow read, write: if isAdminPortal() && tenantReadAllowed() && tenantWriteAllowed();
     }
 
     match /institutionVerifications/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow create, update: if isAdmin();
-      allow delete: if isAdmin();
+      allow read: if tenantReadAllowed() && (isOwner(userId) || isAdminPortal());
+      allow create, update: if isAdminPortal() && tenantWriteAllowed();
+      allow delete: if isSuperAdmin() && tenantWriteAllowed();
     }
 
     match /invitations/{inviteId} {
-      allow read, write: if isAdmin();
+      allow read, write: if isAdminPortal() && tenantReadAllowed() && tenantWriteAllowed();
+    }
+
+    match /quotes/{quoteId} {
+      allow read, write: if isAdminPortal() && tenantReadAllowed() && tenantWriteAllowed();
+    }
+
+    match /counters/{counterId} {
+      allow read, write: if isAdminPortal() && tenantReadAllowed() && tenantWriteAllowed();
+    }
+
+    match /batches/{batchId} {
+      allow read, write: if isAdminPortal() && tenantReadAllowed() && tenantWriteAllowed();
+    }
+
+    match /settings/compliance {
+      allow read, write: if isSuperAdmin() && tenantReadAllowed() && tenantWriteAllowed();
+    }
+
+    match /settings/operations {
+      allow read, write: if isSuperAdmin() && tenantReadAllowed() && tenantWriteAllowed();
+    }
+
+    match /ops_exceptions/{exceptionId} {
+      allow read, write: if isAdminPortal() && tenantReadAllowed() && tenantWriteAllowed();
+    }
+
+    match /suppliers/{supplierId} {
+      allow read, write: if isAdminPortal() && tenantReadAllowed() && tenantWriteAllowed();
+    }
+
+    match /settings/sales {
+      allow read, write: if isAdminPortal() && tenantReadAllowed() && tenantWriteAllowed();
+    }
+
+    match /leads/{leadId} {
+      allow read, write: if isAdminPortal() && tenantReadAllowed() && tenantWriteAllowed();
+    }
+
+    match /cartSnapshots/{snapshotId} {
+      allow read, write: if isAdminPortal() && tenantReadAllowed() && tenantWriteAllowed();
+    }
+
+    match /replenishmentEmails/{emailId} {
+      allow read, write: if isAdminPortal() && tenantReadAllowed() && tenantWriteAllowed();
+    }
+
+    match /newsletterSubscribers/{subscriberId} {
+      allow read, write: if isAdminPortal() && tenantReadAllowed() && tenantWriteAllowed();
+    }
+
+    match /researchCitations/{citationId} {
+      allow read, write: if isAdminPortal() && tenantReadAllowed() && tenantWriteAllowed();
     }
   }
 }

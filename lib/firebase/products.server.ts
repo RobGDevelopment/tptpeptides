@@ -14,6 +14,9 @@ import type {
   StorefrontProduct,
 } from '../../features/storefront/types';
 import { productDocSchema } from '../schemas/product';
+import { DEFAULT_TENANT_ID } from '../tenant/constants';
+import { getActiveTenantId } from '../tenant/getTenant.server';
+import { isProductVisibleToTenant } from '../tenant/productVisibility';
 import { getAdminFirestore, isAdminSdkConfigured } from './admin';
 
 interface VariantOverride {
@@ -44,9 +47,14 @@ function isVariantVisibleNow(override: VariantOverride | undefined, catalogActiv
   return true;
 }
 
-function parseProductDoc(id: string, data: unknown): StorefrontProduct | null {
+function parseProductDoc(
+  id: string,
+  data: unknown,
+  tenantId: string
+): StorefrontProduct | null {
   const parsed = productDocSchema.safeParse(data);
   if (!parsed.success) return null;
+  if (!isProductVisibleToTenant(parsed.data.tenantVisibility, tenantId)) return null;
 
   const override: VariantOverride = {
     stock: parsed.data.stock,
@@ -72,19 +80,21 @@ function parseProductDoc(id: string, data: unknown): StorefrontProduct | null {
   };
 }
 
-async function buildVariantOverrideEntries(): Promise<[string, VariantOverride][]> {
+async function buildVariantOverrideEntries(tenantId: string): Promise<[string, VariantOverride][]> {
   const entries = getCatalogEntries();
-  const demoStock = buildDemoStockMap(entries);
   const overrides = new Map<string, VariantOverride>();
 
-  for (const [id, stock] of Object.entries(demoStock)) {
-    overrides.set(id, {
-      stock,
-      active: true,
-      storefrontBadge: 'none',
-      activeFrom: null,
-      activeUntil: null,
-    });
+  if (tenantId === DEFAULT_TENANT_ID) {
+    const demoStock = buildDemoStockMap(entries);
+    for (const [id, stock] of Object.entries(demoStock)) {
+      overrides.set(id, {
+        stock,
+        active: true,
+        storefrontBadge: 'none',
+        activeFrom: null,
+        activeUntil: null,
+      });
+    }
   }
 
   if (!isAdminSdkConfigured()) {
@@ -97,15 +107,16 @@ async function buildVariantOverrideEntries(): Promise<[string, VariantOverride][
 
     for (const doc of snapshot.docs) {
       const parsed = productDocSchema.safeParse(doc.data());
-      if (parsed.success) {
-        overrides.set(doc.id, {
-          stock: parsed.data.stock,
-          active: parsed.data.active,
-          storefrontBadge: parsed.data.storefrontBadge ?? 'none',
-          activeFrom: parsed.data.activeFrom ?? null,
-          activeUntil: parsed.data.activeUntil ?? null,
-        });
-      }
+      if (!parsed.success) continue;
+      if (!isProductVisibleToTenant(parsed.data.tenantVisibility, tenantId)) continue;
+
+      overrides.set(doc.id, {
+        stock: parsed.data.stock,
+        active: parsed.data.active,
+        storefrontBadge: parsed.data.storefrontBadge ?? 'none',
+        activeFrom: parsed.data.activeFrom ?? null,
+        activeUntil: parsed.data.activeUntil ?? null,
+      });
     }
 
     return [...overrides.entries()];
@@ -116,24 +127,28 @@ async function buildVariantOverrideEntries(): Promise<[string, VariantOverride][
 }
 
 const cachedVariantOverrideEntries = unstable_cache(
-  buildVariantOverrideEntries,
+  async (tenantId: string) => buildVariantOverrideEntries(tenantId),
   ['product-variant-overrides'],
   { revalidate: 300, tags: ['product-overrides'] }
 );
 
-export async function getVariantOverrides(): Promise<Map<string, VariantOverride>> {
-  const entries = await cachedVariantOverrideEntries();
+async function getVariantOverridesForTenant(tenantId: string): Promise<Map<string, VariantOverride>> {
+  const entries = await cachedVariantOverrideEntries(tenantId);
   return new Map(entries);
 }
 
 function entryToSummary(
   entry: ReturnType<typeof getCatalogEntries>[number],
-  overrides: Map<string, VariantOverride>
+  overrides: Map<string, VariantOverride>,
+  tenantId: string
 ): CatalogSummary | null {
   const purchasable = getPurchasableVariants(entry);
-  const visibleVariants = purchasable.filter((variant) =>
-    isVariantVisibleNow(overrides.get(variant.id), true)
-  );
+  const visibleVariants = purchasable.filter((variant) => {
+    if (!overrides.has(variant.id)) {
+      return tenantId === DEFAULT_TENANT_ID;
+    }
+    return isVariantVisibleNow(overrides.get(variant.id), true);
+  });
 
   if (visibleVariants.length === 0) return null;
 
@@ -160,10 +175,16 @@ function entryToSummary(
 
 function entryToVariants(
   entry: ReturnType<typeof getCatalogEntries>[number],
-  overrides: Map<string, VariantOverride>
+  overrides: Map<string, VariantOverride>,
+  tenantId: string
 ): StorefrontProduct[] {
   return getPurchasableVariants(entry)
-    .filter((variant) => isVariantVisibleNow(overrides.get(variant.id), true))
+    .filter((variant) => {
+      if (!overrides.has(variant.id)) {
+        return tenantId === DEFAULT_TENANT_ID;
+      }
+      return isVariantVisibleNow(overrides.get(variant.id), true);
+    })
     .map((variant) => ({
       id: variant.id,
       slug: entry.id,
@@ -177,27 +198,26 @@ function entryToVariants(
     }));
 }
 
-const cachedCatalogSummaries = unstable_cache(
-  async (): Promise<CatalogSummary[]> => {
-    const overrides = await getVariantOverrides();
-    return getCatalogEntries()
-      .map((entry) => entryToSummary(entry, overrides))
-      .filter((entry): entry is CatalogSummary => entry != null)
-      .sort((a, b) => a.name.localeCompare(b.name));
-  },
-  ['catalog-summaries'],
-  { revalidate: 300, tags: ['product-overrides', 'catalog-summaries'] }
-);
+export async function getCatalogSummaries(tenantId?: string): Promise<CatalogSummary[]> {
+  const scopedTenantId = tenantId ?? (await getActiveTenantId());
+  const overrides = await getVariantOverridesForTenant(scopedTenantId);
 
-export async function getCatalogSummaries(): Promise<CatalogSummary[]> {
-  return cachedCatalogSummaries();
+  return getCatalogEntries()
+    .map((entry) => entryToSummary(entry, overrides, scopedTenantId))
+    .filter((entry): entry is CatalogSummary => entry != null)
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
-export async function getCatalogDetail(slug: string): Promise<CatalogDetail | null> {
+
+export async function getCatalogDetail(
+  slug: string,
+  tenantId?: string
+): Promise<CatalogDetail | null> {
   const entry = getCatalogEntry(slug);
   if (!entry) return null;
 
-  const overrides = await getVariantOverrides();
-  const variants = entryToVariants(entry, overrides);
+  const scopedTenantId = tenantId ?? (await getActiveTenantId());
+  const overrides = await getVariantOverridesForTenant(scopedTenantId);
+  const variants = entryToVariants(entry, overrides, scopedTenantId);
   if (variants.length === 0) return null;
 
   return {
@@ -213,11 +233,15 @@ export async function getCatalogDetail(slug: string): Promise<CatalogDetail | nu
 }
 
 /** @deprecated Prefer getCatalogSummaries — kept for API compatibility */
-export async function getStorefrontProducts(): Promise<StorefrontProduct[]> {
+export async function getStorefrontProducts(tenantId?: string): Promise<StorefrontProduct[]> {
+  const scopedTenantId = tenantId ?? (await getActiveTenantId());
+
   if (!isAdminSdkConfigured()) {
     console.warn('[products] Admin SDK not configured — using catalog demo inventory');
-    const overrides = await getVariantOverrides();
-    return getCatalogEntries().flatMap((entry) => entryToVariants(entry, overrides));
+    const overrides = await getVariantOverridesForTenant(scopedTenantId);
+    return getCatalogEntries().flatMap((entry) =>
+      entryToVariants(entry, overrides, scopedTenantId)
+    );
   }
 
   try {
@@ -225,29 +249,43 @@ export async function getStorefrontProducts(): Promise<StorefrontProduct[]> {
     const snapshot = await db.collection('products').get();
 
     const products = snapshot.docs
-      .map((doc) => parseProductDoc(doc.id, doc.data()))
+      .map((doc) => parseProductDoc(doc.id, doc.data(), scopedTenantId))
       .filter((product): product is StorefrontProduct => product !== null)
       .sort((a, b) => a.name.localeCompare(b.name));
 
     if (products.length === 0) {
-      console.warn('[products] No active products in Firestore — using catalog demo inventory');
-      const overrides = await getVariantOverrides();
-      return getCatalogEntries().flatMap((entry) => entryToVariants(entry, overrides));
+      console.warn('[products] No tenant-visible products in Firestore — using catalog demo inventory');
+      const overrides = await getVariantOverridesForTenant(scopedTenantId);
+      return getCatalogEntries().flatMap((entry) =>
+        entryToVariants(entry, overrides, scopedTenantId)
+      );
     }
 
     return products;
   } catch (error) {
     console.error('[products] Firestore fetch failed — using catalog demo inventory', error);
-    const overrides = await getVariantOverrides();
-    return getCatalogEntries().flatMap((entry) => entryToVariants(entry, overrides));
+    const overrides = await getVariantOverridesForTenant(scopedTenantId);
+    return getCatalogEntries().flatMap((entry) =>
+      entryToVariants(entry, overrides, scopedTenantId)
+    );
   }
 }
 
-export async function getProductStockByIds(ids: string[]): Promise<Record<string, number>> {
+export async function getProductStockByIds(
+  ids: string[],
+  tenantId?: string
+): Promise<Record<string, number>> {
   const uniqueIds = [...new Set(ids.filter(Boolean))];
   if (uniqueIds.length === 0) return {};
 
-  const overrides = await getVariantOverrides();
+  const scopedTenantId = tenantId ?? (await getActiveTenantId());
+  const overrides = await getVariantOverridesForTenant(scopedTenantId);
   return Object.fromEntries(uniqueIds.map((id) => [id, overrides.get(id)?.stock ?? 0]));
 }
 
+/** @deprecated Use getVariantOverridesForTenant */
+export async function getVariantOverrides(): Promise<Map<string, VariantOverride>> {
+  return getVariantOverridesForTenant(await getActiveTenantId());
+}
+
+export type { VariantOverride };

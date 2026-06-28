@@ -94,7 +94,7 @@ export function TierPricingPanel() {
   }
 
   return (
-    <div className="space-y-6">
+    <div id="tier-pricing" className="space-y-6 scroll-mt-8">
       <HeaderDividerBeam delay={2} />
       <div>
         <h2 className="admin-heading text-xl">Institution Tier Pricing</h2>

@@ -55,6 +55,7 @@ export async function approveVerification(params: {
   userId: string;
   reviewedBy: string;
   institutionTier?: 'Bronze' | 'Silver' | 'Gold';
+  taxExempt?: boolean;
 }): Promise<void> {
   const db = getAdminFirestore();
   const ref = db.collection(COLLECTION).doc(params.userId);
@@ -79,6 +80,7 @@ export async function approveVerification(params: {
       {
         institutionVerified: true,
         institutionTier: params.institutionTier ?? 'Bronze',
+        taxExempt: params.taxExempt === true,
         verifiedAt: now,
       },
       { merge: true }

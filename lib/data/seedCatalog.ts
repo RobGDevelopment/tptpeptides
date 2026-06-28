@@ -1,5 +1,7 @@
 import { catalogFileSchema, type CatalogEntry } from '../schemas/catalog';
 import { productDocSchema } from '../schemas/product';
+import { DEFAULT_TENANT_ID } from '../tenant/constants';
+import { isProductVisibleToTenant } from '../tenant/productVisibility';
 import catalogData from './catalog.json';
 
 const DEFAULT_MARGIN = 2.5;
@@ -45,6 +47,8 @@ export function catalogEntriesToProductDocs(entries: CatalogEntry[]): SeedProduc
         active,
         reorderThreshold: DEFAULT_REORDER_THRESHOLD,
         supplierId: 'default-supplier',
+        tenantId: DEFAULT_TENANT_ID,
+        tenantVisibility: [DEFAULT_TENANT_ID],
       });
 
       docs.push({ id: variant.id, data });

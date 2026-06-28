@@ -7,6 +7,8 @@ import { getAdminFirestore, isAdminSdkConfigured } from './admin';
 import { AUTH_SESSION_COOKIE } from './authConstants';
 import { getSessionUserFromRequest, type SessionUser } from './auth.server';
 import { getUserRbacProfile } from './users.server';
+import { getModuleFlags } from './modules.server';
+import { assertAdminRouteAccess, AdminRouteForbiddenError } from '../modules/rbac.server';
 
 export class AdminAuthError extends Error {
   constructor(
@@ -80,6 +82,19 @@ export async function requireAdminSessionWithProfile(request: Request) {
 
   if (!profile) {
     throw new AdminAuthError('User profile not found', 403);
+  }
+
+  const adminPath = request.headers.get('x-admin-path');
+  if (adminPath) {
+    const flags = await getModuleFlags();
+    try {
+      assertAdminRouteAccess(profile, adminPath, flags);
+    } catch (error) {
+      if (error instanceof AdminRouteForbiddenError) {
+        throw new AdminAuthError(error.message, 403);
+      }
+      throw error;
+    }
   }
 
   return { session, profile };

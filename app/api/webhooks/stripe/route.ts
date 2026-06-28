@@ -3,8 +3,12 @@ import { sendOrderConfirmationEmail } from '../../../../lib/email/orderConfirmat
 import {
   buildStripeFulfillmentSnapshot,
   fulfillPaidOrder,
+  type StripeFulfillmentSnapshot,
 } from '../../../../lib/firebase/orders.server';
+import { getModuleFlags } from '../../../../lib/firebase/modules.server';
+import { runPostPaymentAutomation } from '../../../../lib/procurement/postPaymentAutomation.server';
 import { getStripe, isStripeConfigured } from '../../../../lib/stripe/server';
+import type Stripe from 'stripe';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -46,28 +50,77 @@ export async function POST(request: Request) {
 
     try {
       const stripeSnapshot = buildStripeFulfillmentSnapshot(session);
-      const result = await fulfillPaidOrder(orderId, stripeSnapshot);
-
-      if (!result.alreadyFulfilled) {
-        const email =
-          session.customer_details?.email ??
-          session.metadata?.guestEmail ??
-          session.customer_email;
-
-        if (email) {
-          await sendOrderConfirmationEmail({
-            email,
-            orderId: result.orderId,
-            total: (session.amount_total ?? 0) / 100,
-            loyaltyPointsAwarded: result.loyaltyPointsAwarded,
-          });
-        }
-      }
+      await fulfillStripeOrder(orderId, stripeSnapshot, session.customer_details?.email ?? session.metadata?.guestEmail ?? session.customer_email ?? null, session.amount_total ?? 0);
     } catch (error) {
       console.error('[stripe webhook] order fulfillment failed', error);
       return NextResponse.json({ error: 'Fulfillment failed' }, { status: 500 });
     }
   }
 
+  if (event.type === 'invoice.paid') {
+    const invoice = event.data.object as Stripe.Invoice;
+    const orderId = invoice.metadata?.orderId;
+
+    if (!orderId) {
+      console.error('[stripe webhook] invoice.paid missing orderId metadata');
+      return NextResponse.json({ received: true });
+    }
+
+    try {
+      const stripeSnapshot = buildInvoiceFulfillmentSnapshot(invoice);
+      await fulfillStripeOrder(
+        orderId,
+        stripeSnapshot,
+        invoice.customer_email ?? null,
+        invoice.amount_paid ?? 0
+      );
+    } catch (error) {
+      console.error('[stripe webhook] invoice fulfillment failed', error);
+      return NextResponse.json({ error: 'Fulfillment failed' }, { status: 500 });
+    }
+  }
+
   return NextResponse.json({ received: true });
+}
+
+async function fulfillStripeOrder(
+  orderId: string,
+  stripeSnapshot: StripeFulfillmentSnapshot,
+  email: string | null,
+  amountCents: number
+) {
+  const result = await fulfillPaidOrder(orderId, stripeSnapshot);
+
+  if (!result.alreadyFulfilled) {
+    const flags = await getModuleFlags();
+    await runPostPaymentAutomation(orderId, flags);
+  }
+
+  if (!result.alreadyFulfilled && email) {
+    await sendOrderConfirmationEmail({
+      email,
+      orderId: result.orderId,
+      total: amountCents / 100,
+      loyaltyPointsAwarded: result.loyaltyPointsAwarded,
+    });
+  }
+}
+
+function buildInvoiceFulfillmentSnapshot(invoice: Stripe.Invoice): StripeFulfillmentSnapshot {
+  const paymentIntent = (invoice as Stripe.Invoice & { payment_intent?: string | Stripe.PaymentIntent | null })
+    .payment_intent;
+  const taxCents =
+    invoice.total_taxes?.reduce((sum, row) => sum + row.amount, 0) ??
+    (invoice as Stripe.Invoice & { tax?: number | null }).tax ??
+    0;
+
+  return {
+    paymentIntentId:
+      typeof paymentIntent === 'string' ? paymentIntent : paymentIntent?.id ?? null,
+    subtotal: (invoice.subtotal ?? 0) / 100,
+    tax: taxCents / 100,
+    shipping: 0,
+    discountTotal: (invoice.total_discount_amounts?.reduce((sum, row) => sum + row.amount, 0) ?? 0) / 100,
+    total: (invoice.amount_paid ?? 0) / 100,
+  };
 }

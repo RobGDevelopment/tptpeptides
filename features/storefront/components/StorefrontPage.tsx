@@ -11,12 +11,13 @@ interface StorefrontPageProps {
   featured: CatalogSummary[];
   settings: SiteSettings;
   homepage: HomepageMerchandising;
+  heroTitle?: string;
 }
 
-export function StorefrontPage({ catalog, featured, settings, homepage }: StorefrontPageProps) {
+export function StorefrontPage({ catalog, featured, settings, homepage, heroTitle }: StorefrontPageProps) {
   return (
     <main className="min-h-screen bg-void">
-      <HeroSection settings={settings} />
+      <HeroSection settings={settings} heroTitle={heroTitle} />
       <CatalogGrid
         products={featured}
         title={homepage.featuredTitle}

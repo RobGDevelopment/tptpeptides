@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DEFAULT_TENANT_ID } from '../tenant/constants';
 
 export const productDocSchema = z.object({
   name: z.string().min(1),
@@ -18,6 +19,10 @@ export const productDocSchema = z.object({
   storefrontBadge: z.enum(['none', 'new_batch']).optional().default('none'),
   activeFrom: z.string().datetime().nullable().optional(),
   activeUntil: z.string().datetime().nullable().optional(),
+  /** Owning tenant for RLS — defaults to primary B2B lane */
+  tenantId: z.string().min(1).default(DEFAULT_TENANT_ID),
+  /** Tenant slugs allowed to surface this SKU on storefront catalog */
+  tenantVisibility: z.array(z.string().min(1)).default([DEFAULT_TENANT_ID]),
 });
 export type ProductDoc = z.infer<typeof productDocSchema>;
 

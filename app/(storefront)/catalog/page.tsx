@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { SITE_NAME } from '../../../lib/brand';
 import { getCatalogSummaries } from '../../../lib/firebase/products.server';
 import { getCategoryMerchandising } from '../../../lib/firebase/storefrontCms.server';
+import { getModuleFlags } from '../../../lib/firebase/modules.server';
+import { isModuleEnabled } from '../../../lib/modules/flags';
 import { CatalogGrid } from '../../../features/storefront/components/CatalogGrid';
 
 export const metadata: Metadata = {
@@ -13,6 +15,7 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 export default async function CatalogIndexPage() {
+  const flags = await getModuleFlags();
   const [catalog, categoryMerchandising] = await Promise.all([
     getCatalogSummaries(),
     getCategoryMerchandising(),
@@ -24,10 +27,11 @@ export default async function CatalogIndexPage() {
         products={catalog}
         showFilters
         categoryMerchandising={categoryMerchandising}
+        algoliaSearchEnabled={isModuleEnabled(flags, 'isAlgoliaSearchEnabled')}
         title="Full Research Catalog"
         subtitle="Every compound links to variant-level pricing, live inventory, and research area documentation."
       />
     </main>
   );
 }
-
+

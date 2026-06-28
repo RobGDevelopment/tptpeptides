@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@config "../tailwind.config.ts";
 
 /* ─── Phase H: TPT Peptides design system ─── */
 
@@ -19,11 +20,12 @@
   --color-secondary: oklch(0.705 0.012 260);
   --color-muted: oklch(0.552 0.014 260);
 
-  --color-gold-deep: oklch(0.58 0.06 85);
-  --color-gold: oklch(0.72 0.07 88);
-  --color-gold-light: oklch(0.82 0.05 92);
+  /* Brand gold — driven by tenant theme CSS vars (Falconwood defaults on :root) */
+  --color-gold-deep: var(--theme-primary);
+  --color-gold: var(--theme-primary);
+  --color-gold-light: var(--theme-accent);
 
-  --font-display: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--theme-font-family);
 
   --tracking-caps: 0.22em;
   --tracking-title: 0.1em;
@@ -31,6 +33,13 @@
   --animate-beam-drift: beam-drift 16s linear infinite;
   --animate-beam-drift-v: beam-drift-v 16s linear infinite;
   --animate-signature-pulse: signature-pulse 5s ease-in-out infinite;
+}
+
+/* Falconwood OS defaults — overridden per-tenant via inline styles on <body> */
+:root {
+  --theme-primary: oklch(0.72 0.07 88);
+  --theme-accent: oklch(0.82 0.05 92);
+  --theme-font-family: var(--font-inter), system-ui, sans-serif;
 }
 
 @keyframes beam-drift {
@@ -139,11 +148,11 @@
 
   body {
     @apply bg-void text-primary antialiased leading-relaxed;
-    font-family: var(--font-display);
+    font-family: var(--theme-font-family);
     font-weight: 300;
     background-image: radial-gradient(
       ellipse 80% 55% at 50% 0%,
-      oklch(0.18 0.012 75 / 0.28),
+      color-mix(in oklch, var(--theme-primary) 28%, transparent),
       transparent 70%
     );
     background-attachment: fixed;
@@ -163,7 +172,7 @@
   }
 
   :focus-visible {
-    outline: 1px solid oklch(0.72 0.07 88 / 0.55);
+    outline: 1px solid color-mix(in oklch, var(--theme-primary) 55%, transparent);
     outline-offset: 2px;
   }
 
@@ -172,7 +181,7 @@
   }
 
   ::selection {
-    background: oklch(0.72 0.06 85 / 0.25);
+    background: color-mix(in oklch, var(--theme-primary) 25%, transparent);
     color: oklch(0.98 0.005 260);
   }
 }
@@ -194,9 +203,9 @@
   .metallic-gold {
     background: linear-gradient(
       105deg,
-      oklch(0.62 0.05 85) 0%,
-      oklch(0.82 0.07 90) 45%,
-      oklch(0.68 0.05 80) 100%
+      color-mix(in oklch, var(--theme-primary) 85%, black) 0%,
+      var(--theme-accent) 45%,
+      color-mix(in oklch, var(--theme-primary) 90%, black) 100%
     );
     -webkit-background-clip: text;
     background-clip: text;
@@ -208,9 +217,9 @@
     background: linear-gradient(
       90deg,
       transparent 0%,
-      oklch(0.72 0.06 85 / 0.12) 25%,
-      oklch(0.78 0.07 88 / 0.38) 50%,
-      oklch(0.72 0.06 85 / 0.12) 75%,
+      color-mix(in oklch, var(--theme-primary) 12%, transparent) 25%,
+      color-mix(in oklch, var(--theme-accent) 38%, transparent) 50%,
+      color-mix(in oklch, var(--theme-primary) 12%, transparent) 75%,
       transparent 100%
     );
     background-size: 200% 100%;
@@ -736,4 +745,20 @@
   .animate-os-eye {
     animation: none;
   }
+}
+
+/* Executive manual flipbook — Falconwood glass pages */
+.manual-flipbook {
+  filter: drop-shadow(0 24px 48px rgba(0, 0, 0, 0.55));
+}
+
+.manual-flip-page {
+  position: relative;
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.manual-flip-page-inner {
+  position: relative;
+  z-index: 1;
 }

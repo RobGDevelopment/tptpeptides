@@ -25,6 +25,9 @@ export async function POST(request: Request) {
         const decoded = await getAdminAuth().verifyIdToken(body.idToken);
         refreshClaims = await syncMasterAdminAccess(decoded.uid, decoded.email);
         void touchUserLastActive(decoded.uid);
+        void import('../../../../lib/sales/leadRouting.server').then(({ routeLeadForUser }) =>
+          routeLeadForUser(decoded.uid, decoded.email)
+        );
         isAdmin = await resolveServerAdminAccess({
           uid: decoded.uid,
           email: decoded.email,

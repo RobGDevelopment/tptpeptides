@@ -8,6 +8,8 @@ import {
 } from '../../../../lib/firebase/verification.server';
 import { uploadVerificationDocument } from '../../../../lib/firebase/storage.server';
 import { ModuleDisabledError, requireB2BProcurement } from '../../../../lib/modules/b2b.server';
+import { isModuleEnabled } from '../../../../lib/modules/flags';
+import { runMiddeskForVerification } from '../../../../lib/kyb/runMiddeskForVerification.server';
 import { verificationSubmitSchema } from '../../../../lib/schemas/verification';
 
 export const dynamic = 'force-dynamic';
@@ -87,6 +89,38 @@ export async function POST(request: Request) {
       buffer,
     });
 
+    let addressLine: string | null = null;
+    const { getAdminFirestore } = await import('../../../../lib/firebase/admin');
+    const userSnap = await getAdminFirestore().collection('users').doc(sessionUser.uid).get();
+    const shippingAddress = userSnap.data()?.shippingAddress as
+      | {
+          line1?: string;
+          city?: string;
+          state?: string;
+          postalCode?: string;
+          country?: string;
+        }
+      | undefined;
+    if (shippingAddress?.line1 && shippingAddress?.city && shippingAddress?.state) {
+      addressLine = [
+        shippingAddress.line1,
+        shippingAddress.city,
+        shippingAddress.state,
+        shippingAddress.postalCode,
+        shippingAddress.country ?? 'US',
+      ]
+        .filter(Boolean)
+        .join(', ');
+    }
+
+    const middesk = await runMiddeskForVerification({
+      flags,
+      userId: sessionUser.uid,
+      institutionName: parsed.data.institutionName,
+      einTaxId: parsed.data.einTaxId,
+      addressLine,
+    });
+
     await saveVerificationRequest({
       userId: sessionUser.uid,
       email: sessionUser.email,
@@ -97,14 +131,18 @@ export async function POST(request: Request) {
       documentFileName: file.name,
       status: 'pending',
       submittedAt: new Date().toISOString(),
+      ...(middesk ? { middesk } : {}),
     });
 
-    const { getAdminFirestore } = await import('../../../../lib/firebase/admin');
     await getAdminFirestore().collection('auditLogs').add({
       type: 'verification_review',
       userId: sessionUser.uid,
       action: 'verification_submitted',
-      metadata: { institutionName: parsed.data.institutionName },
+      metadata: {
+        institutionName: parsed.data.institutionName,
+        middeskRecommendation: middesk?.recommendation,
+        middeskEnabled: isModuleEnabled(flags, 'isMiddeskVerificationEnabled'),
+      },
       timestamp: new Date(),
     });
 

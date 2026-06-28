@@ -17,7 +17,11 @@ import { ModuleDisabledError, requireB2BProcurement } from '../../../../../lib/m
 export const dynamic = 'force-dynamic';
 
 const patchSchema = z.discriminatedUnion('action', [
-  z.object({ action: z.literal('approve'), institutionTier: z.enum(['Bronze', 'Silver', 'Gold']).optional() }),
+  z.object({
+    action: z.literal('approve'),
+    institutionTier: z.enum(['Bronze', 'Silver', 'Gold']).optional(),
+    taxExempt: z.boolean().optional(),
+  }),
   z.object({ action: z.literal('reject'), rejectionReason: z.string().max(500).optional() }),
 ]);
 
@@ -45,6 +49,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         userId,
         reviewedBy: admin.uid,
         institutionTier: tier,
+        taxExempt: body.taxExempt === true,
       });
 
       await logAdminAction({

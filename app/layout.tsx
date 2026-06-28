@@ -4,6 +4,9 @@ import { SignatureBeam } from '../components/ui/SignatureBeam';
 import { AppProviders } from './providers';
 import { getSiteUrl } from '../lib/site';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from '../lib/brand';
+import { getActiveTenantId } from '../lib/tenant/getTenant.server';
+import { getTenantConfig } from '../lib/firebase/tenant.server';
+import { tenantThemeToCssProperties } from '../lib/tenant/theme';
 import './globals.css';
 
 const inter = Inter({
@@ -61,16 +64,27 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const tenantId = await getActiveTenantId();
+  const tenantConfig = await getTenantConfig(tenantId);
+  const tenantThemeStyle = tenantThemeToCssProperties(tenantConfig);
+
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.variable} ${inter.className} min-h-screen`}>
+      <body
+        className={`${inter.variable} ${inter.className} min-h-screen`}
+        style={tenantThemeStyle}
+        data-tenant-id={tenantId}
+        data-tenant-lane={tenantConfig.lane}
+      >
         <SignatureBeam />
-        <AppProviders>{children}</AppProviders>
+        <AppProviders tenantId={tenantId} tenantConfig={tenantConfig}>
+          {children}
+        </AppProviders>
       </body>
     </html>
   );

@@ -6,6 +6,7 @@ import { productDocSchema } from '../../../../lib/schemas/product';
 import { assertRuOProductDescription, findComplianceViolations } from '../../../../lib/compliance/copyGuard';
 import { AdminAuthError, logAdminAction, requireAdminSession } from '../../../../lib/firebase/adminAuth.server';
 import { getAdminFirestore, isAdminSdkConfigured } from '../../../../lib/firebase/admin';
+import { getActiveTenantId } from '../../../../lib/tenant/getTenant.server';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,6 +56,7 @@ export async function PUT(request: Request) {
 
     const sanitizedDesc = descResult.sanitized;
     const db = getAdminFirestore();
+    const tenantId = await getActiveTenantId();
     const batch = db.batch();
 
     for (const variant of payload.variants) {
@@ -76,6 +78,8 @@ export async function PUT(request: Request) {
         activeFrom: variant.activeFrom ?? null,
         activeUntil: variant.activeUntil ?? null,
         supplierId: 'default-supplier',
+        tenantId,
+        tenantVisibility: [tenantId],
       });
 
       const ref = db.collection('products').doc(variant.id);

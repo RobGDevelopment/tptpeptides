@@ -17,7 +17,7 @@ import { Button } from '../../../components/ui/Button';
 import { Spinner } from '../../../components/ui/Spinner';
 import { AdminPageHeader } from '../../../components/ui/AdminPageHeader';
 
-export function ProductsPageContent() {
+export function ProductsPageContent({ showTierPricing }: { showTierPricing: boolean }) {
   const [groups, setGroups] = useState<AdminProductGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
@@ -133,7 +133,7 @@ export function ProductsPageContent() {
         initialGroup={editingGroup}
       />
 
-      <TierPricingPanel />
+      {showTierPricing ? <TierPricingPanel /> : null}
     </div>
   );
 }

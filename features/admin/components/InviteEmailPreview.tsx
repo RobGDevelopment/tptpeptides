@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import type { InvitePersona } from '../../../lib/schemas/invitation';
-import type { InstitutionTier } from '../../../lib/schemas/user';
+import type { AdminStaffRole, InstitutionTier } from '../../../lib/schemas/user';
 import { Spinner } from '../../../components/ui/Spinner';
 
 export interface InvitePreviewFields {
   email: string;
   persona: InvitePersona;
-  role?: 'admin' | 'partner' | 'staff';
+  role?: AdminStaffRole;
   institutionTier?: InstitutionTier;
   institutionName?: string;
   personalNote?: string;

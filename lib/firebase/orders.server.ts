@@ -8,6 +8,9 @@ import { productDocSchema } from '../schemas/product';
 import { getModuleFlags } from './modules.server';
 import { getPriceListForTier, getUserPricingTier, resolveTierUnitPrice } from './pricing.server';
 import { isB2BFeatureEnabled } from '../modules/b2b.server';
+import { isProductVisibleToTenant } from '../tenant/productVisibility';
+import { getActiveTenantId } from '../tenant/getTenant.server';
+import { DEFAULT_TENANT_ID } from '../tenant/constants';
 import { getAdminFirestore, isAdminSdkConfigured } from './admin';
 
 export interface PricedCartItem extends CartItem {
@@ -28,7 +31,7 @@ export class CheckoutValidationError extends Error {
 
 export async function validateAndPriceCart(
   requestedItems: { id: string; quantity: number }[],
-  options?: { userId?: string | null }
+  options?: { userId?: string | null; tenantId?: string }
 ): Promise<ValidatedCart> {
   if (!isAdminSdkConfigured()) {
     throw new CheckoutValidationError('Checkout is unavailable — database not configured');
@@ -36,6 +39,7 @@ export async function validateAndPriceCart(
 
   const db = getAdminFirestore();
   const flags = await getModuleFlags();
+  const tenantId = options?.tenantId ?? (await getActiveTenantId());
 
   let pricingTier: Awaited<ReturnType<typeof getUserPricingTier>>['tier'] = null;
   if (options?.userId && isB2BFeatureEnabled(flags, 'isTieredPricingEnabled')) {
@@ -56,6 +60,7 @@ export async function validateAndPriceCart(
     if (!snap.exists) continue;
     const parsed = productDocSchema.safeParse(snap.data());
     if (parsed.success && parsed.data.active) {
+      if (!isProductVisibleToTenant(parsed.data.tenantVisibility, tenantId)) continue;
       productMap.set(snap.id, parsed.data);
     }
   }
@@ -108,21 +113,33 @@ export async function createPendingOrder(params: {
   total: number;
   userId: string | null;
   guestEmail: string | null;
-  stripeSessionId: string;
+  stripeSessionId?: string | null;
+  stripeInvoiceId?: string | null;
+  paymentMethod?: 'stripe_checkout' | 'stripe_invoice';
+  status?: 'pending_payment' | 'pending_invoice';
   poNumber?: string | null;
+  quoteId?: string | null;
+  pointsRedeemed?: number;
+  loyaltyDiscount?: number;
   ruoAttestationTimestamp: string;
   ipAddress: string;
+  tenantId?: string;
+  attestationLogId?: string;
 }): Promise<string> {
   const db = getAdminFirestore();
   const docRef = params.orderId ? db.collection('orders').doc(params.orderId) : db.collection('orders').doc();
+  const tenantId = params.tenantId ?? DEFAULT_TENANT_ID;
 
   const tax = params.tax ?? 0;
   const discountTotal = params.discountTotal ?? 0;
+  const paymentMethod = params.paymentMethod ?? 'stripe_checkout';
+  const status = params.status ?? 'pending_payment';
 
   await docRef.set({
     userId: params.userId,
     guestEmail: params.guestEmail,
     poNumber: params.poNumber ?? null,
+    quoteId: params.quoteId ?? null,
     items: params.items.map(({ id, name, tag, price, stock, desc, purity, quantity, slug }) => ({
       id,
       slug,
@@ -139,12 +156,17 @@ export async function createPendingOrder(params: {
     shipping: params.shipping,
     discountTotal,
     total: params.total,
-    paymentMethod: 'stripe_checkout',
-    status: 'pending_payment',
-    stripeSessionId: params.stripeSessionId,
+    pointsRedeemed: params.pointsRedeemed ?? 0,
+    loyaltyDiscount: params.loyaltyDiscount ?? 0,
+    paymentMethod,
+    status,
+    stripeSessionId: params.stripeSessionId ?? null,
+    stripeInvoiceId: params.stripeInvoiceId ?? null,
     stripePaymentIntentId: null,
     ruoAttestationTimestamp: params.ruoAttestationTimestamp,
     ipAddress: params.ipAddress,
+    tenantId,
+    ...(params.attestationLogId ? { attestationLogId: params.attestationLogId } : {}),
     loyaltyPointsAwarded: 0,
     createdAt: FieldValue.serverTimestamp(),
   });
@@ -187,7 +209,7 @@ export async function fulfillPaidOrder(
   const db = getAdminFirestore();
   const orderRef = db.collection('orders').doc(orderId);
 
-  return db.runTransaction(async (transaction) => {
+  const result = await db.runTransaction(async (transaction) => {
     const orderSnap = await transaction.get(orderRef);
     if (!orderSnap.exists) {
       throw new Error(`Order ${orderId} not found`);
@@ -202,7 +224,7 @@ export async function fulfillPaidOrder(
       };
     }
 
-    if (order.status !== 'pending_payment') {
+    if (order.status !== 'pending_payment' && order.status !== 'pending_invoice') {
       throw new Error(`Order ${orderId} is not payable (status: ${order.status})`);
     }
 
@@ -231,15 +253,17 @@ export async function fulfillPaidOrder(
     }
 
     const orderTotal = stripeSnapshot?.total ?? Number(order.total);
-    const loyaltyPoints = order.userId ? calculatePointsForPurchase(orderTotal) : 0;
+    const pointsRedeemed = Number(order.pointsRedeemed ?? 0);
+    const loyaltyPointsEarned = order.userId ? calculatePointsForPurchase(orderTotal) : 0;
+    const loyaltyPointsNet = loyaltyPointsEarned - pointsRedeemed;
 
-    if (order.userId && loyaltyPoints > 0) {
+    if (order.userId && loyaltyPointsNet !== 0) {
       const userRef = db.collection('users').doc(order.userId);
       transaction.set(
         userRef,
         {
-          loyaltyPoints: FieldValue.increment(loyaltyPoints),
-          totalPointsEarned: FieldValue.increment(loyaltyPoints),
+          loyaltyPoints: FieldValue.increment(loyaltyPointsNet),
+          totalPointsEarned: FieldValue.increment(Math.max(loyaltyPointsEarned, 0)),
         },
         { merge: true }
       );
@@ -248,7 +272,7 @@ export async function fulfillPaidOrder(
     const financialUpdate: Record<string, unknown> = {
       status: 'paid',
       paidAt: FieldValue.serverTimestamp(),
-      loyaltyPointsAwarded: loyaltyPoints,
+      loyaltyPointsAwarded: loyaltyPointsEarned,
       financialLockedAt: new Date().toISOString(),
     };
 
@@ -263,8 +287,19 @@ export async function fulfillPaidOrder(
 
     transaction.update(orderRef, financialUpdate);
 
-    return { orderId, loyaltyPointsAwarded: loyaltyPoints, alreadyFulfilled: false };
+    return { orderId, loyaltyPointsAwarded: loyaltyPointsEarned, alreadyFulfilled: false };
   });
+
+  if (!result.alreadyFulfilled) {
+    try {
+      const { recordOrderJournalEntry } = await import('../finance/journaling.server');
+      await recordOrderJournalEntry(orderId);
+    } catch (error) {
+      console.error('[ledger] automatic journaling failed', orderId, error);
+    }
+  }
+
+  return result;
 }
 
 export interface StoredOrder {
@@ -274,6 +309,31 @@ export interface StoredOrder {
   total: number;
   status: string;
   loyaltyPointsAwarded?: number;
+}
+
+export async function getOrderByStripeInvoiceId(
+  stripeInvoiceId: string
+): Promise<StoredOrder | null> {
+  const db = getAdminFirestore();
+  const snapshot = await db
+    .collection('orders')
+    .where('stripeInvoiceId', '==', stripeInvoiceId)
+    .limit(1)
+    .get();
+
+  if (snapshot.empty) return null;
+
+  const doc = snapshot.docs[0]!;
+  const data = doc.data();
+
+  return {
+    id: doc.id,
+    userId: (data.userId as string | null) ?? null,
+    guestEmail: (data.guestEmail as string | null | undefined) ?? null,
+    total: Number(data.total),
+    status: String(data.status),
+    loyaltyPointsAwarded: Number(data.loyaltyPointsAwarded ?? 0),
+  };
 }
 
 export async function getOrderByStripeSessionId(

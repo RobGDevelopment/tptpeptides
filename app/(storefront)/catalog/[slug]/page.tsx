@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getCatalogDetail, getCatalogSummaries } from '../../../../lib/firebase/products.server';
+import { getModuleFlags } from '../../../../lib/firebase/modules.server';
+import { isModuleEnabled } from '../../../../lib/modules/flags';
 import { SITE_NAME } from '../../../../lib/brand';
 import { getSiteUrl } from '../../../../lib/site';
 import { CatalogProductDetail } from '../../../../features/storefront/components/CatalogProductDetail';
@@ -33,6 +35,7 @@ export async function generateMetadata({ params }: CatalogPageProps): Promise<Me
 
 export default async function CatalogPage({ params }: CatalogPageProps) {
   const { slug } = await params;
+  const flags = await getModuleFlags();
   const detail = await getCatalogDetail(slug);
   if (!detail) notFound();
 
@@ -80,7 +83,11 @@ export default async function CatalogPage({ params }: CatalogPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <CatalogProductDetail detail={detail} relatedProducts={relatedProducts} />
+      <CatalogProductDetail
+        detail={detail}
+        relatedProducts={relatedProducts}
+        interactive3dEnabled={isModuleEnabled(flags, 'isInteractive3dEnabled')}
+      />
     </main>
   );
 }

@@ -13,6 +13,7 @@ import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { HeaderDividerBeam } from '../ui/HeaderDividerBeam';
+import { ResearchCitationForm } from './ResearchCitationForm';
 import { CoaViewer } from '../../features/compliance/components/CoaViewer';
 
 interface OrderRow {
@@ -34,6 +35,8 @@ interface AccountProfile {
   institutionTier?: string | null;
   modules?: {
     institutionVerification: boolean;
+    batchCoa: boolean;
+    loyaltyRedemption: boolean;
   };
 }
 
@@ -157,6 +160,15 @@ export function UserProfile() {
         </form>
       </Card>
 
+      {profile.modules?.loyaltyRedemption && (
+        <Card className="p-8">
+          <h3 className="text-sm tracking-caps uppercase text-primary font-medium mb-6">
+            Research Citation Rewards
+          </h3>
+          <ResearchCitationForm />
+        </Card>
+      )}
+
       <Card className="p-8">
         <h3 className="text-sm tracking-caps uppercase text-primary font-medium mb-6">Order History</h3>
         {orders.length === 0 && (
@@ -188,8 +200,12 @@ export function UserProfile() {
                     </li>
                   ))}
                 </ul>
-                {(order.status === 'paid' || order.status === 'fulfilled') && (
-                  <CoaViewer orderId={order.id} productNames={order.items.map((i) => i.name)} />
+                {(order.status === 'paid' || order.status === 'fulfilled' || order.status === 'processing') && (
+                  <CoaViewer
+                    orderId={order.id}
+                    productNames={order.items.map((i) => i.name)}
+                    enabled={profile.modules?.batchCoa === true}
+                  />
                 )}
               </div>
             </div>

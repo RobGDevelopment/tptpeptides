@@ -19,6 +19,7 @@ export async function adminFetch(input: RequestInfo | URL, init: AdminFetchInit 
     credentials: 'include',
     ...fetchInit,
     headers: {
+      ...(typeof window !== 'undefined' ? { 'X-Admin-Path': window.location.pathname } : {}),
       ...(fetchInit.headers ?? {}),
     },
   });

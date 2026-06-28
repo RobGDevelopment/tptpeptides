@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { isMasterAdminEmail } from '../../../../lib/admin/masterAdmin';
-import { getAdminFirestore, isAdminSdkConfigured } from '../../../../lib/firebase/admin';
+import { getAdminFirestore, getAdminAuth, isAdminSdkConfigured } from '../../../../lib/firebase/admin';
 import {
   AdminAuthError,
   logAdminAction,
@@ -17,7 +17,9 @@ import { adminUserInviteSchema } from '../../../../lib/schemas/invitation';
 import {
   accessLevelForRole,
   adminUserUpdateSchema,
+  hasAdminPortalRole,
 } from '../../../../lib/schemas/user';
+import { DEFAULT_TENANT_ID } from '../../../../lib/tenant/constants';
 
 export const dynamic = 'force-dynamic';
 
@@ -77,6 +79,29 @@ export async function PATCH(request: Request) {
     if (payload.disabled != null) updates.disabled = payload.disabled;
 
     await db.collection('users').doc(payload.uid).set(updates, { merge: true });
+
+    if (payload.role) {
+      const auth = getAdminAuth();
+      if (payload.role === 'admin') {
+        await auth.setCustomUserClaims(payload.uid, {
+          admin: true,
+          role: 'admin',
+          tenantId: DEFAULT_TENANT_ID,
+        });
+      } else if (payload.role === 'user') {
+        await auth.setCustomUserClaims(payload.uid, {
+          admin: false,
+          role: 'user',
+          tenantId: DEFAULT_TENANT_ID,
+        });
+      } else if (hasAdminPortalRole(payload.role)) {
+        await auth.setCustomUserClaims(payload.uid, {
+          admin: false,
+          role: payload.role,
+          tenantId: DEFAULT_TENANT_ID,
+        });
+      }
+    }
 
     await logAdminAction({
       userId: admin.uid,

@@ -15,7 +15,7 @@ export function buildInviteEmailPreview(input: InvitePreviewInput): {
   const email = input.email?.trim() || PREVIEW_EMAIL;
   const urls = getInviteUrls(input.siteUrl);
   const roleLabel =
-    input.role != null ? USER_ROLE_LABELS[input.role] : USER_ROLE_LABELS.staff;
+    input.role != null ? USER_ROLE_LABELS[input.role] : USER_ROLE_LABELS.ops;
 
   return buildPersonaInviteEmail({
     email,

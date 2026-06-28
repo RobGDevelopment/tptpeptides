@@ -67,7 +67,9 @@ import { normalizeUserRole } from '../schemas/user';
 export const resolveUserRole = async (user: User): Promise<UserRole> => {
   const tokenResult = await user.getIdTokenResult();
   if (tokenResult.claims.admin === true) return 'admin';
-  if (tokenResult.claims.role === 'admin') return 'admin';
+  if (typeof tokenResult.claims.role === 'string') {
+    return normalizeUserRole(tokenResult.claims.role);
+  }
 
   const { getUserRoleFromFirestore } = await import('./users');
   return getUserRoleFromFirestore(user.uid);

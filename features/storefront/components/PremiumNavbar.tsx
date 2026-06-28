@@ -8,6 +8,7 @@ import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import { useAuth } from '../../auth/providers/AuthProvider';
 import { navigateToAdmin } from '../../../lib/firebase/adminNav';
 import { SITE_WORDMARK } from '../../../lib/brand';
+import { useTenantOptional } from '../../../lib/tenant/context';
 import { selectCartCount, useCartStore } from '../stores/useCartStore';
 import { MobileNavMenu } from './MobileNavMenu';
 
@@ -30,6 +31,9 @@ export function PremiumNavbar() {
   const openCart = useCartStore((state) => state.openCart);
   const openAuth = useCartStore((state) => state.openAuth);
   const { user, isAdmin } = useAuth();
+  const tenant = useTenantOptional();
+  const logoUrl = tenant?.config.theme?.logoUrl;
+  const brandName = tenant?.config.name ?? SITE_WORDMARK;
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleOpenCart = () => {
@@ -44,11 +48,20 @@ export function PremiumNavbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
             <Link href="/" className="flex items-center gap-3 text-primary group">
-              <span className="text-gold opacity-80 group-hover:opacity-100 transition-opacity">
-                <Icons.Flask />
-              </span>
+              {logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- tenant-configured remote logo URL
+                <img
+                  src={logoUrl}
+                  alt={brandName}
+                  className="h-8 w-auto max-w-[140px] object-contain opacity-90 group-hover:opacity-100 transition-opacity"
+                />
+              ) : (
+                <span className="text-gold opacity-80 group-hover:opacity-100 transition-opacity">
+                  <Icons.Flask />
+                </span>
+              )}
               <span className="text-sm font-medium tracking-title uppercase metallic-gold">
-                {SITE_WORDMARK}
+                {brandName}
               </span>
             </Link>
 

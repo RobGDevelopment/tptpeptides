@@ -5,6 +5,7 @@ import type { User } from 'firebase/auth';
 import { logoutUser, resolveUserRole, subscribeToAuthChanges } from '../../../lib/firebase/auth';
 import { fetchServerAdminStatus } from '../../../lib/firebase/session';
 import type { UserRole } from '../types';
+import { hasAdminPortalRole } from '../../../lib/schemas/user';
 
 /** Client-side fallback when server session APIs fail — matches firestore.rules master admin. */
 function isKnownMasterAdminEmail(email: string | null | undefined): boolean {
@@ -16,6 +17,8 @@ interface AuthContextValue {
   role: UserRole | null;
   isAdmin: boolean;
   isMasterAdmin: boolean;
+  isPartner: boolean;
+  canAccessExecutiveManual: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
 }
@@ -27,6 +30,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<UserRole | null>(null);
   const [serverAdmin, setServerAdmin] = useState(false);
   const [masterAdmin, setMasterAdmin] = useState(false);
+  const [isPartner, setIsPartner] = useState(false);
+  const [canAccessExecutiveManual, setCanAccessExecutiveManual] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -41,6 +46,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setRole(null);
         setServerAdmin(false);
         setMasterAdmin(false);
+        setIsPartner(false);
+        setCanAccessExecutiveManual(false);
         setLoading(false);
         return;
       }
@@ -57,6 +64,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setRole(resolvedRole);
           setServerAdmin(authStatus.isAdmin);
           setMasterAdmin(authStatus.isMasterAdmin);
+          setIsPartner(authStatus.isPartner);
+          setCanAccessExecutiveManual(authStatus.canAccessExecutiveManual);
           setLoading(false);
         }
       })();
@@ -73,14 +82,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user,
       role,
       isAdmin:
-        role === 'admin' ||
+        (role != null && hasAdminPortalRole(role)) ||
         serverAdmin ||
         Boolean(user?.email && isKnownMasterAdminEmail(user.email)),
       isMasterAdmin: masterAdmin || Boolean(user?.email && isKnownMasterAdminEmail(user.email)),
+      isPartner,
+      canAccessExecutiveManual,
       loading,
       signOut: logoutUser,
     }),
-    [user, role, serverAdmin, masterAdmin, loading]
+    [user, role, serverAdmin, masterAdmin, isPartner, canAccessExecutiveManual, loading]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

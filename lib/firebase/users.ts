@@ -5,6 +5,7 @@ import {
   normalizeUserRole,
   type UserRole,
 } from '../schemas/user';
+import { DEFAULT_TENANT_ID } from '../tenant/constants';
 import type { UserProfile } from '../../features/auth/types';
 
 export async function ensureUserProfile(
@@ -31,6 +32,7 @@ export async function ensureUserProfile(
     role,
     accessLevel: accessLevelForRole(role),
     disabled: false,
+    tenantId: DEFAULT_TENANT_ID,
     createdAt: serverTimestamp(),
   };
 

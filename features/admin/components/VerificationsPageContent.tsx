@@ -10,15 +10,96 @@ import { TerminalPanel } from '../../../components/ui/TerminalPanel';
 import {
   LAB_TYPE_LABELS,
   type InstitutionVerification,
+  type MiddeskReport,
 } from '../../../lib/schemas/verification';
 
 type VerificationRow = InstitutionVerification & { id: string };
+
+const MIDDESK_RECOMMENDATION_LABELS: Record<
+  NonNullable<MiddeskReport['recommendation']>,
+  string
+> = {
+  approve: 'Middesk · Approve',
+  review: 'Middesk · Manual review',
+  reject: 'Middesk · Reject',
+  pending: 'Middesk · Pending',
+};
+
+function MiddeskPanel({ report }: { report: MiddeskReport }) {
+  if (report.skippedReason) {
+    return (
+      <div className="sm:col-span-2 rounded border border-white/[0.06] p-4 space-y-2">
+        <p className="text-[10px] tracking-caps uppercase text-muted">Middesk KYB</p>
+        <p className="text-xs text-muted font-light">Skipped — {report.skippedReason}</p>
+      </div>
+    );
+  }
+
+  if (report.error) {
+    return (
+      <div className="sm:col-span-2 rounded border border-red-500/20 p-4 space-y-2">
+        <p className="text-[10px] tracking-caps uppercase text-muted">Middesk KYB</p>
+        <p className="text-xs text-red-400/90 font-light">{report.error}</p>
+      </div>
+    );
+  }
+
+  const badgeClass =
+    report.recommendation === 'approve'
+      ? 'text-emerald-400/90 border-emerald-500/30'
+      : report.recommendation === 'reject'
+        ? 'text-red-400/90 border-red-500/30'
+        : 'text-gold-light border-gold/30';
+
+  return (
+    <div className="sm:col-span-2 rounded border border-white/[0.06] p-4 space-y-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <p className="text-[10px] tracking-caps uppercase text-muted">Middesk KYB</p>
+        <span className={`text-[10px] tracking-caps uppercase border px-2 py-1 ${badgeClass}`}>
+          {MIDDESK_RECOMMENDATION_LABELS[report.recommendation]}
+        </span>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-3 text-sm">
+        <div>
+          <p className="text-[10px] tracking-caps uppercase text-muted">Registration status</p>
+          <p className="text-secondary font-light mt-1">
+            {report.registrationStatus ?? '—'}
+            {report.registrationState ? ` · ${report.registrationState}` : ''}
+          </p>
+        </div>
+        <div>
+          <p className="text-[10px] tracking-caps uppercase text-muted">Tax classification</p>
+          <p className="text-secondary font-light mt-1">{report.taxClassification ?? '—'}</p>
+        </div>
+        <div>
+          <p className="text-[10px] tracking-caps uppercase text-muted">TIN match</p>
+          <p className="text-secondary font-mono text-xs mt-1 uppercase">{report.tinMatch}</p>
+        </div>
+        <div>
+          <p className="text-[10px] tracking-caps uppercase text-muted">Business ID</p>
+          <p className="text-secondary font-mono text-xs mt-1 break-all">{report.businessId || '—'}</p>
+        </div>
+      </div>
+      {report.tasks.length > 0 ? (
+        <ul className="text-xs text-muted font-light space-y-1">
+          {report.tasks.slice(0, 4).map((task) => (
+            <li key={`${task.category}-${task.status}`}>
+              {task.category}: {task.status}
+              {task.message ? ` — ${task.message}` : ''}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
 
 export function VerificationsPageContent() {
   const [verifications, setVerifications] = useState<VerificationRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actingOn, setActingOn] = useState<string | null>(null);
+  const [taxExemptOnApprove, setTaxExemptOnApprove] = useState(false);
 
   const load = useCallback(async () => {
     setError('');
@@ -47,7 +128,7 @@ export function VerificationsPageContent() {
 
     const body =
       action === 'approve'
-        ? { action: 'approve' as const, institutionTier: 'Bronze' as const }
+        ? { action: 'approve' as const, institutionTier: 'Bronze' as const, taxExempt: taxExemptOnApprove }
         : {
             action: 'reject' as const,
             rejectionReason: 'Documentation requires clarification or updated W-9.',
@@ -119,10 +200,22 @@ export function VerificationsPageContent() {
                         {new Date(row.submittedAt).toLocaleString()}
                       </p>
                     </div>
+                    {row.middesk ? <MiddeskPanel report={row.middesk} /> : null}
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row lg:flex-col gap-4 shrink-0">
+                <div className="flex flex-col sm:flex-col gap-4 shrink-0">
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="mt-1 accent-gold"
+                      checked={taxExemptOnApprove}
+                      onChange={(event) => setTaxExemptOnApprove(event.target.checked)}
+                    />
+                    <span className="text-xs text-secondary font-light leading-relaxed">
+                      Mark sales tax exempt (valid resale certificate on file)
+                    </span>
+                  </label>
                   <Button
                     type="button"
                     disabled={actingOn === row.userId}

@@ -52,6 +52,8 @@ export async function GET(request: Request) {
         institutionTier: (userData.institutionTier as string | undefined) ?? null,
         modules: {
           institutionVerification: isModuleEnabled(flags, 'isInstitutionVerificationEnabled'),
+          batchCoa: isModuleEnabled(flags, 'isBatchCoaEnabled'),
+          loyaltyRedemption: isModuleEnabled(flags, 'isLoyaltyRedemptionEnabled'),
         },
       },
     });

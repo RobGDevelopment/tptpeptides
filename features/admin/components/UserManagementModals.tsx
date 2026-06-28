@@ -11,8 +11,10 @@ import {
   type InviteStatus,
 } from '../../../lib/schemas/invitation';
 import {
+  ADMIN_PORTAL_ROLES,
   ROLE_ACCESS_LEVELS,
   USER_ROLE_LABELS,
+  type AdminStaffRole,
   type InstitutionTier,
   type UserRole,
 } from '../../../lib/schemas/user';
@@ -30,7 +32,7 @@ export interface AdminUserRow {
   loyaltyPoints: number;
 }
 
-const STAFF_ROLES: UserRole[] = ['admin', 'partner', 'staff'];
+const STAFF_ROLES: UserRole[] = [...ADMIN_PORTAL_ROLES];
 
 interface ManageUserModalProps {
   user: AdminUserRow | null;
@@ -135,7 +137,7 @@ export function ManageUserModal({ user, onClose, onSaved }: ManageUserModalProps
             onChange={(event) => setRole(event.target.value as UserRole)}
             className="w-full bg-void/60 border border-white/10 px-4 py-3 text-sm text-primary font-light focus:outline-none focus:border-gold/30"
           >
-            {(['admin', 'partner', 'staff', 'user'] as UserRole[]).map((option) => (
+            {([...ADMIN_PORTAL_ROLES, 'user'] as UserRole[]).map((option) => (
               <option key={option} value={option}>
                 {USER_ROLE_LABELS[option]} ({ROLE_ACCESS_LEVELS[option]})
               </option>
@@ -180,7 +182,7 @@ interface InviteComposerModalProps {
 export interface InviteDraft {
   email: string;
   persona: InvitePersona;
-  role?: 'admin' | 'partner' | 'staff';
+  role?: AdminStaffRole;
   institutionTier?: InstitutionTier;
   institutionName?: string;
   personalNote?: string;
@@ -240,7 +242,7 @@ export function InviteComposerModal({
   const { isMasterAdmin } = useAuth();
   const [email, setEmail] = useState('');
   const [persona, setPersona] = useState<InvitePersona>('staff_partner');
-  const [role, setRole] = useState<'admin' | 'partner' | 'staff'>('staff');
+  const [role, setRole] = useState<AdminStaffRole>('ops');
   const [institutionTier, setInstitutionTier] = useState<InstitutionTier>('Bronze');
   const [institutionName, setInstitutionName] = useState('');
   const [personalNote, setPersonalNote] = useState('');
@@ -253,7 +255,7 @@ export function InviteComposerModal({
     if (!isOpen || !initialDraft) return;
     setEmail(initialDraft.email ?? '');
     setPersona(initialDraft.persona ?? 'staff_partner');
-    setRole(initialDraft.role ?? 'staff');
+    setRole(initialDraft.role ?? 'ops');
     setInstitutionTier(initialDraft.institutionTier ?? 'Bronze');
     setInstitutionName(initialDraft.institutionName ?? '');
     setPersonalNote(initialDraft.personalNote ?? '');
@@ -283,7 +285,7 @@ export function InviteComposerModal({
   const reset = () => {
     setEmail('');
     setPersona('staff_partner');
-    setRole('staff');
+    setRole('ops');
     setInstitutionTier('Bronze');
     setInstitutionName('');
     setPersonalNote('');
@@ -429,7 +431,7 @@ export function InviteComposerModal({
                 <select
                   id="create-role"
                   value={role}
-                  onChange={(event) => setRole(event.target.value as 'admin' | 'partner' | 'staff')}
+                  onChange={(event) => setRole(event.target.value as AdminStaffRole)}
                   className="bg-transparent border-0 border-b border-white/15 px-0 py-1.5 text-sm text-primary font-light focus:outline-none focus:border-gold/40 cursor-pointer"
                 >
                   {STAFF_ROLES.map((option) => (

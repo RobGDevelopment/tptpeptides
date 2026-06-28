@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { institutionTierSchema } from './user';
+import { institutionTierSchema, adminStaffRoleSchema } from './user';
 
 export const invitePersonaSchema = z.enum([
   'super_admin',
@@ -40,7 +40,7 @@ export const adminUserInviteSchema = z
   .object({
     email: z.string().email(),
     persona: invitePersonaSchema,
-    role: z.enum(['admin', 'partner', 'staff']).optional(),
+    role: adminStaffRoleSchema.optional(),
     institutionTier: institutionTierSchema.optional(),
     institutionName: z.string().max(200).optional(),
     personalNote: z.string().max(500).optional(),
@@ -62,7 +62,7 @@ export type AdminUserInviteInput = z.infer<typeof adminUserInviteSchema>;
 export const invitePreviewSchema = z.object({
   email: z.string().max(320).optional(),
   persona: invitePersonaSchema,
-  role: z.enum(['admin', 'partner', 'staff']).optional(),
+  role: adminStaffRoleSchema.optional(),
   institutionTier: institutionTierSchema.optional(),
   institutionName: z.string().max(200).optional(),
   personalNote: z.string().max(500).optional(),

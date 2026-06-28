@@ -15,11 +15,12 @@ export async function bypassAgeGate(page: Page) {
 
 /** Click through the age gate when it is shown. No-op if already verified. */
 export async function passAgeGate(page: Page) {
-  const agree = page.getByRole('button', { name: /I Agree/i });
+  const agree = page.getByRole('button', { name: /Enter Terminal/i });
   if (!(await agree.isVisible({ timeout: 3_000 }).catch(() => false))) {
     return;
   }
 
+  await page.locator('select').selectOption('21_plus');
   await expect(agree).toBeEnabled({ timeout: 30_000 });
   await agree.click();
   await expect(agree).toBeHidden({ timeout: 10_000 });

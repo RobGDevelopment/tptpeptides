@@ -1,5 +1,6 @@
 export type OrderStatus =
   | 'pending_payment'
+  | 'pending_invoice'
   | 'paid'
   | 'processing'
   | 'fulfilled'
@@ -35,6 +36,8 @@ export interface AdminOrderRow {
   status: OrderStatus;
   items: { name: string; quantity: number }[];
   createdAt?: Date | null;
+  trackingNumber?: string | null;
+  carrier?: string | null;
 }
 
 export interface LowStockVariant {
@@ -60,6 +63,7 @@ export interface AuditLogRow {
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   pending_payment: 'Pending Payment',
+  pending_invoice: 'Pending Invoice',
   paid: 'Paid',
   processing: 'Processing',
   fulfilled: 'Fulfilled',
@@ -68,6 +72,7 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
 
 export const ORDER_STATUS_FLOW: OrderStatus[] = [
   'pending_payment',
+  'pending_invoice',
   'paid',
   'processing',
   'fulfilled',

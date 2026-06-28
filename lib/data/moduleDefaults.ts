@@ -9,10 +9,16 @@ export const DEFAULT_MODULE_FLAGS: ModuleFlags = {
   isNetTermsEnabled: false,
   isStripeTaxEnabled: false,
   isAccountingExportEnabled: false,
+  isMiddeskVerificationEnabled: false,
 
   isBatchCoaEnabled: false,
   isRealShippingEnabled: false,
   isComplianceGeoBlockEnabled: false,
+  isTypedAttestationEnabled: false,
+  isAlternatePaymentRailsEnabled: false,
+  isSatelliteProvisioningEnabled: false,
+  isZeroTouchOpsEnabled: false,
+  isLexicalQuarantineEnabled: false,
 
   isSalesCommandCenterEnabled: false,
   isClientImpersonationEnabled: false,

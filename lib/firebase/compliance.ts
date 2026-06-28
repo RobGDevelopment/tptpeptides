@@ -1,11 +1,16 @@
-export async function logAgeVerification(userId?: string): Promise<void> {
+export async function logAgeVerification(params: {
+  userId?: string;
+  ageConfirmed: boolean;
+}): Promise<void> {
   try {
     await fetch('/api/compliance/age-verification', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        userId: userId ?? 'anonymous',
+        userId: params.userId ?? 'anonymous',
         userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server',
+        ageConfirmed: params.ageConfirmed,
+        confirmationMethod: 'dropdown_21_plus',
       }),
     });
   } catch (error) {

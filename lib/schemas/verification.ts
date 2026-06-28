@@ -14,6 +14,30 @@ export const verificationStatusSchema = z.enum(['pending', 'approved', 'rejected
 
 export type VerificationStatus = z.infer<typeof verificationStatusSchema>;
 
+export const middeskReportSchema = z.object({
+  businessId: z.string(),
+  status: z.string(),
+  fetchedAt: z.string(),
+  registrationStatus: z.string().nullable(),
+  registrationState: z.string().nullable(),
+  taxClassification: z.string().nullable(),
+  tinMatch: z.enum(['matched', 'unmatched', 'unknown', 'pending']),
+  recommendation: z.enum(['approve', 'review', 'reject', 'pending']),
+  tasks: z
+    .array(
+      z.object({
+        category: z.string(),
+        status: z.string(),
+        message: z.string().optional(),
+      })
+    )
+    .default([]),
+  error: z.string().optional(),
+  skippedReason: z.string().optional(),
+});
+
+export type MiddeskReport = z.infer<typeof middeskReportSchema>;
+
 export const institutionVerificationSchema = z.object({
   userId: z.string(),
   email: z.string().email(),
@@ -27,6 +51,7 @@ export const institutionVerificationSchema = z.object({
   reviewedAt: z.string().optional(),
   reviewedBy: z.string().optional(),
   rejectionReason: z.string().optional(),
+  middesk: middeskReportSchema.optional(),
 });
 
 export type InstitutionVerification = z.infer<typeof institutionVerificationSchema>;

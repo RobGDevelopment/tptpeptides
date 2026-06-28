@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import { AgeGate } from './AgeGate';
 import { AdminRedirectHandler } from './AdminRedirectHandler';
 import { CartDrawer } from './CartDrawer';
+import { CartSnapshotTracker } from './CartSnapshotTracker';
 import { PremiumNavbar } from './PremiumNavbar';
 import { StorefrontAuthModal } from './StorefrontAuthModal';
 import { Spinner } from '../../../components/ui/Spinner';
@@ -24,7 +25,7 @@ export function StorefrontShell({ children }: StorefrontShellProps) {
 
   const handleVerify = () => {
     verify();
-    void logAgeVerification(user?.uid);
+    void logAgeVerification({ userId: user?.uid, ageConfirmed: true });
   };
 
   const pendingVerification = !isVerified;
@@ -43,6 +44,7 @@ export function StorefrontShell({ children }: StorefrontShellProps) {
         <AgeGate onVerify={handleVerify} isReady />
       ) : null}
       <PremiumNavbar />
+      <CartSnapshotTracker />
       {children}
       <CartDrawer />
       <StorefrontAuthModal />

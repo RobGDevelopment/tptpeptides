@@ -24,7 +24,7 @@ const querySchema = z.object({
 export async function GET(request: Request) {
   try {
     const { profile } = await requireAdminSessionWithProfile(request);
-    requireRole(profile.role, ['admin', 'partner']);
+    requireRole(profile.role, ['admin', 'finance']);
 
     const flags = await getModuleFlags();
     requireModule(flags, 'isAccountingExportEnabled');

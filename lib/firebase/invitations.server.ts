@@ -1,7 +1,7 @@
 import 'server-only';
 
 import type { InvitePersona } from '../schemas/invitation';
-import type { InstitutionTier, UserRole } from '../schemas/user';
+import type { AdminStaffRole, InstitutionTier, UserRole } from '../schemas/user';
 import { normalizeUserRole } from '../schemas/user';
 import { getAdminFirestore, isAdminSdkConfigured } from './admin';
 
@@ -22,7 +22,7 @@ export interface StoredInvitation {
 export interface InviteDraft {
   email: string;
   persona: InvitePersona;
-  role?: 'admin' | 'partner' | 'staff';
+  role?: AdminStaffRole;
   institutionTier?: InstitutionTier;
   institutionName?: string;
   personalNote?: string;
@@ -35,7 +35,9 @@ function inferPersona(
   const stored = userData.invitePersona as InvitePersona | undefined;
   if (stored) return stored;
   if (role === 'admin') return 'super_admin';
-  if (role === 'partner' || role === 'staff') return 'staff_partner';
+  if (role === 'ops' || role === 'finance' || role === 'sales' || role === 'support') {
+    return 'staff_partner';
+  }
   if (userData.institutionTier) return 'lab_buyer';
   return 'first_purchase';
 }
@@ -52,7 +54,10 @@ function draftFromUser(uid: string, data: Record<string, unknown>): InviteDraft 
   };
 
   if (persona === 'staff_partner') {
-    draft.role = role === 'admin' || role === 'partner' || role === 'staff' ? role : 'staff';
+    draft.role =
+      role === 'admin' || role === 'ops' || role === 'finance' || role === 'sales' || role === 'support'
+        ? role
+        : 'ops';
   }
 
   if (persona === 'lab_buyer') {
@@ -122,8 +127,14 @@ export async function getInviteContextForUser(targetUid: string): Promise<{
     if (lastInvitation.institutionName) draft.institutionName = lastInvitation.institutionName;
     if (lastInvitation.persona === 'staff_partner') {
       const role = normalizeUserRole(userData.role as string | undefined);
-      if (role === 'admin' || role === 'partner' || role === 'staff') {
-        draft.role = role;
+      if (
+        role === 'admin' ||
+        role === 'ops' ||
+        role === 'finance' ||
+        role === 'sales' ||
+        role === 'support'
+      ) {
+        draft.role = role === 'admin' ? 'admin' : role;
       }
     }
   }

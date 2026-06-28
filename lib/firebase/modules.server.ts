@@ -19,7 +19,10 @@ async function readModuleFlagsFromFirestore(): Promise<ModuleFlags> {
       return DEFAULT_MODULE_FLAGS;
     }
 
-    const parsed = moduleFlagsSchema.safeParse(snap.data());
+    const parsed = moduleFlagsSchema.safeParse({
+      ...DEFAULT_MODULE_FLAGS,
+      ...snap.data(),
+    });
     if (!parsed.success) {
       console.error('[modules] Invalid settings/modules document', parsed.error.flatten());
       return DEFAULT_MODULE_FLAGS;

@@ -2,7 +2,7 @@ import 'server-only';
 
 import { isMasterAdminEmail } from './masterAdmin';
 import { getAdminAuth, getAdminFirestore, isAdminSdkConfigured } from '../firebase/admin';
-import { normalizeUserRole } from '../schemas/user';
+import { hasAdminPortalRole, normalizeUserRole } from '../schemas/user';
 
 /** Server-only admin resolution: master email bypass, claims, then Firestore role. */
 export async function resolveServerAdminAccess(params: {
@@ -24,7 +24,9 @@ export async function resolveServerAdminAccess(params: {
         decoded = await auth.verifyIdToken(params.idToken);
       }
       if (isMasterAdminEmail(decoded.email)) return true;
-      if (decoded.admin === true || decoded.role === 'admin') return true;
+      const claimRole = normalizeUserRole(decoded.role as string | undefined);
+      if (hasAdminPortalRole(claimRole)) return true;
+      if (decoded.admin === true) return true;
     } catch {
       return false;
     }
@@ -34,7 +36,7 @@ export async function resolveServerAdminAccess(params: {
     const userDoc = await getAdminFirestore().collection('users').doc(params.uid).get();
     const data = userDoc.data();
     if (data?.disabled === true) return false;
-    return normalizeUserRole(data?.role as string | undefined) === 'admin';
+    return hasAdminPortalRole(normalizeUserRole(data?.role as string | undefined));
   } catch (error) {
     console.error('[admin] resolveServerAdminAccess Firestore lookup failed', error);
     return false;

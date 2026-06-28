@@ -13,6 +13,7 @@ import type { AdminUserInviteInput, InviteStatus } from '../schemas/invitation';
 import type { InstitutionTier, UserRole } from '../schemas/user';
 
 import { accessLevelForRole, normalizeUserRole } from '../schemas/user';
+import { DEFAULT_TENANT_ID } from '../tenant/constants';
 
 import {
 
@@ -100,7 +101,7 @@ function roleForPersona(
 
     case 'staff_partner':
 
-      return role ?? 'staff';
+      return role ?? 'ops';
 
     case 'lab_buyer':
 
@@ -220,6 +221,8 @@ export async function sendPersonaInvite(
 
     disabled: false,
 
+    tenantId: DEFAULT_TENANT_ID,
+
     invitePersona: input.persona,
 
     invitedAt,
@@ -268,11 +271,11 @@ export async function sendPersonaInvite(
 
   } else if (input.persona === 'super_admin' || role === 'admin') {
 
-    await auth.setCustomUserClaims(uid, { admin: true, role: 'admin' });
+    await auth.setCustomUserClaims(uid, { admin: true, role: 'admin', tenantId: DEFAULT_TENANT_ID });
 
-  } else if (role === 'partner' || role === 'staff') {
+  } else if (role === 'ops' || role === 'finance' || role === 'sales' || role === 'support') {
 
-    await auth.setCustomUserClaims(uid, { admin: false, role });
+    await auth.setCustomUserClaims(uid, { admin: false, role, tenantId: DEFAULT_TENANT_ID });
 
   }
 
@@ -535,8 +538,15 @@ export async function resendPersonaInvite(params: {
 
 
   const staffRole =
-
-    role === 'admin' ? ('admin' as const) : role === 'partner' ? ('partner' as const) : ('staff' as const);
+    role === 'admin'
+      ? ('admin' as const)
+      : role === 'finance'
+        ? ('finance' as const)
+        : role === 'sales'
+          ? ('sales' as const)
+          : role === 'support'
+            ? ('support' as const)
+            : ('ops' as const);
 
 
 

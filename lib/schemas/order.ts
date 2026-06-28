@@ -12,7 +12,16 @@ export const cartItemSchema = z.object({
   quantity: z.number().int().positive(),
 });
 
-export const paymentMethodSchema = z.enum(['stripe_checkout']);
+export const paymentMethodSchema = z.enum(['stripe_checkout', 'stripe_invoice']);
+
+export const orderStatusSchema = z.enum([
+  'pending_payment',
+  'pending_invoice',
+  'paid',
+  'processing',
+  'fulfilled',
+  'cancelled',
+]);
 
 export const orderDocSchema = z.object({
   userId: z.string().nullable(),
@@ -25,16 +34,24 @@ export const orderDocSchema = z.object({
   shipping: z.number().min(0).default(0),
   discountTotal: z.number().min(0).default(0),
   paymentMethod: paymentMethodSchema.default('stripe_checkout'),
-  stripeSessionId: z.string().optional(),
+  stripeSessionId: z.string().nullable().optional(),
+  stripeInvoiceId: z.string().nullable().optional(),
   stripePaymentIntentId: z.string().nullable().optional(),
+  paymentProviderId: z.string().optional(),
+  providerTransactionId: z.string().optional(),
   poNumber: z.string().nullable().optional(),
+  quoteId: z.string().nullable().optional(),
   ruoAttestationTimestamp: z.string().optional(),
+  attestationLogId: z.string().optional(),
   ipAddress: z.string().optional(),
+  tenantId: z.string().optional(),
   financialLockedAt: z.string().optional(),
-  status: z
-    .enum(['pending_payment', 'paid', 'processing', 'fulfilled', 'cancelled'])
-    .default('pending_payment'),
+  paidAt: z.string().optional(),
+  status: orderStatusSchema.default('pending_payment'),
   loyaltyPointsAwarded: z.number().int().min(0).optional(),
+  pointsRedeemed: z.number().int().min(0).optional(),
+  loyaltyDiscount: z.number().min(0).optional(),
+  journalEntryId: z.string().optional(),
 });
 
 export type OrderDoc = z.infer<typeof orderDocSchema>;
@@ -48,7 +65,13 @@ export const IMMUTABLE_FINANCIAL_ORDER_FIELDS = [
   'total',
   'paymentMethod',
   'stripePaymentIntentId',
+  'stripeInvoiceId',
+  'pointsRedeemed',
+  'loyaltyDiscount',
+  'quoteId',
   'ruoAttestationTimestamp',
+  'attestationLogId',
   'ipAddress',
   'financialLockedAt',
+  'journalEntryId',
 ] as const;

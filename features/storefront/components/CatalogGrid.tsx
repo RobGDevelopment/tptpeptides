@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import type { CatalogSummary } from '../types';
 import type { CategoryMerchandising } from '../../../lib/schemas/storefrontCms';
@@ -17,6 +17,7 @@ interface CatalogGridProps {
   title?: string;
   subtitle?: string;
   categoryMerchandising?: CategoryMerchandising;
+  algoliaSearchEnabled?: boolean;
 }
 
 export function CatalogGrid({
@@ -26,10 +27,13 @@ export function CatalogGrid({
   title,
   subtitle,
   categoryMerchandising,
+  algoliaSearchEnabled = false,
 }: CatalogGridProps) {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('all');
   const [sort, setSort] = useState<'name' | 'price-asc' | 'price-desc' | 'stock'>('name');
+  const [algoliaSlugs, setAlgoliaSlugs] = useState<string[] | null>(null);
+  const [algoliaLoading, setAlgoliaLoading] = useState(false);
 
   const categoryOptions = useMemo(() => {
     const values = new Set(products.map((product) => product.category));
@@ -48,11 +52,49 @@ export function CatalogGrid({
     ];
   }, [products, categoryMerchandising]);
 
+  useEffect(() => {
+    if (!algoliaSearchEnabled || query.trim().length < 2) {
+      setAlgoliaSlugs(null);
+      return;
+    }
+
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        setAlgoliaLoading(true);
+        try {
+          const response = await fetch(`/api/search/catalog?q=${encodeURIComponent(query.trim())}`);
+          if (!response.ok) {
+            if (!cancelled) setAlgoliaSlugs(null);
+            return;
+          }
+          const data = (await response.json()) as { hits?: Array<{ slug: string }> };
+          if (!cancelled) {
+            setAlgoliaSlugs(data.hits?.map((hit) => hit.slug) ?? []);
+          }
+        } catch {
+          if (!cancelled) setAlgoliaSlugs(null);
+        } finally {
+          if (!cancelled) setAlgoliaLoading(false);
+        }
+      })();
+    }, 280);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [algoliaSearchEnabled, query]);
+
   const filtered = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
-    const matches = products.filter((product) => {
+    let matches = products.filter((product) => {
       const matchesCategory = category === 'all' || product.category === category;
+      if (algoliaSlugs) {
+        return matchesCategory && algoliaSlugs.includes(product.slug);
+      }
+
       const matchesQuery =
         normalizedQuery.length === 0 ||
         product.name.toLowerCase().includes(normalizedQuery) ||
@@ -75,7 +117,7 @@ export function CatalogGrid({
       }
       return a.name.localeCompare(b.name);
     });
-  }, [products, query, category, sort]);
+  }, [products, query, category, sort, algoliaSlugs]);
 
   const visible = limit != null ? filtered.slice(0, limit) : filtered;
 
@@ -123,9 +165,18 @@ export function CatalogGrid({
                 type="search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Compound or research area..."
+                placeholder={
+                  algoliaSearchEnabled
+                    ? 'Algolia-powered compound search…'
+                    : 'Compound or research area...'
+                }
                 className="terminal-input"
               />
+              {algoliaSearchEnabled && query.trim().length >= 2 && (
+                <p className="text-[10px] text-muted mt-2 font-light">
+                  {algoliaLoading ? 'Searching index…' : 'Typo-tolerant Algolia search active'}
+                </p>
+              )}
             </label>
             <label className="lg:w-48">
               <span className="text-[10px] tracking-caps uppercase text-muted block mb-2">Sort</span>

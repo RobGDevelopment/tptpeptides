@@ -9,6 +9,8 @@ import { Button } from '../../../components/ui/Button';
 import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import { Spinner } from '../../../components/ui/Spinner';
 import { AdminPageHeader } from '../../../components/ui/AdminPageHeader';
+import { BatchesPanel } from './BatchesPanel';
+import { GeoCompliancePanel } from './GeoCompliancePanel';
 
 const DEFAULT_THRESHOLD = 20;
 
@@ -39,7 +41,13 @@ function statusLabel(status: string): string {
   return status.replace(/_/g, ' ');
 }
 
-export function InventoryPageContent() {
+export function InventoryPageContent({
+  showBatchCoa,
+  showGeoCompliance,
+}: {
+  showBatchCoa: boolean;
+  showGeoCompliance: boolean;
+}) {
   const [variants, setVariants] = useState<LowStockVariant[]>([]);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrderRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -327,6 +335,20 @@ export function InventoryPageContent() {
           </div>
         )}
       </div>
+
+      {showBatchCoa && (
+        <div id="batch-coa">
+          <HeaderDividerBeam delay={3} />
+          <BatchesPanel />
+        </div>
+      )}
+
+      {showGeoCompliance && (
+        <div id="geo-compliance">
+          <HeaderDividerBeam delay={3} />
+          <GeoCompliancePanel />
+        </div>
+      )}
     </div>
   );
 }

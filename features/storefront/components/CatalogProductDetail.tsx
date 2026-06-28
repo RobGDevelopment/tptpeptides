@@ -9,15 +9,21 @@ import { TerminalPanel } from '../../../components/ui/TerminalPanel';
 import type { CatalogDetail, CatalogSummary } from '../types';
 import { useCartStore } from '../stores/useCartStore';
 import { VialThumbnail } from './VialThumbnail';
+import { InteractiveVialScene } from './InteractiveVialScene';
 import { ProductCard } from './ProductCard';
 import { ProductFaq } from './ProductFaq';
 
 interface CatalogProductDetailProps {
   detail: CatalogDetail;
   relatedProducts?: CatalogSummary[];
+  interactive3dEnabled?: boolean;
 }
 
-export function CatalogProductDetail({ detail, relatedProducts = [] }: CatalogProductDetailProps) {
+export function CatalogProductDetail({
+  detail,
+  relatedProducts = [],
+  interactive3dEnabled = false,
+}: CatalogProductDetailProps) {
   const addItem = useCartStore((state) => state.addItem);
   const openCart = useCartStore((state) => state.openCart);
 
@@ -46,9 +52,13 @@ export function CatalogProductDetail({ detail, relatedProducts = [] }: CatalogPr
       </Link>
 
       <div className="mt-10 grid lg:grid-cols-2 gap-12 lg:gap-20 items-start">
-        <TerminalPanel className="flex items-center justify-center min-h-[420px] p-12">
-          <VialThumbnail tag={selected.tag} />
-        </TerminalPanel>
+        {interactive3dEnabled ? (
+          <InteractiveVialScene tag={selected.tag} />
+        ) : (
+          <TerminalPanel className="flex items-center justify-center min-h-[420px] p-12">
+            <VialThumbnail tag={selected.tag} />
+          </TerminalPanel>
+        )}
 
         <div>
           <p className="text-[10px] tracking-widest uppercase text-muted">{detail.entry.category}</p>

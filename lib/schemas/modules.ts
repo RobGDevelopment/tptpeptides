@@ -11,10 +11,28 @@ export const moduleFlagsSchema = z.object({
   isStripeTaxEnabled: z.boolean(),
   isAccountingExportEnabled: z.boolean(),
 
+  /** Automated Middesk EIN / SOS lookup on institution verification submit */
+  isMiddeskVerificationEnabled: z.boolean(),
+
   // Phase 2 — Operations & Compliance
   isBatchCoaEnabled: z.boolean(),
   isRealShippingEnabled: z.boolean(),
   isComplianceGeoBlockEnabled: z.boolean(),
+
+  /** Typed research attestation + immutable attestation_logs (Sprint B) */
+  isTypedAttestationEnabled: z.boolean(),
+
+  /** Alternate payment rails (Authorize.net / NMI / ACH / crypto) — default off; Stripe remains until cutover */
+  isAlternatePaymentRailsEnabled: z.boolean(),
+
+  /** Vercel domain + tenant_config satellite provisioning (Sprint D) */
+  isSatelliteProvisioningEnabled: z.boolean(),
+
+  /** Auto-PO, auto-label, exception queue (Sprint E) */
+  isZeroTouchOpsEnabled: z.boolean(),
+
+  /** Inbound email lexical quarantine (Sprint B2) */
+  isLexicalQuarantineEnabled: z.boolean(),
 
   // Phase 3 — Sales Command Center
   isSalesCommandCenterEnabled: z.boolean(),
@@ -87,6 +105,11 @@ export const MODULE_FLAG_GROUPS: {
         label: 'Accounting Export',
         description: 'QuickBooks-ready order CSV and financial breakdown fields.',
       },
+      {
+        key: 'isMiddeskVerificationEnabled',
+        label: 'Middesk KYB Lookup',
+        description: 'Automatic EIN and corporate standing verification on /account/verify submit.',
+      },
     ],
   },
   {
@@ -107,6 +130,39 @@ export const MODULE_FLAG_GROUPS: {
         key: 'isComplianceGeoBlockEnabled',
         label: 'Geo Restrictions',
         description: 'Block checkout from restricted states / regions.',
+      },
+      {
+        key: 'isTypedAttestationEnabled',
+        label: 'Typed Research Attestation',
+        description:
+          'Require research intent dropdown + exact typed legal phrase; writes immutable attestation_logs.',
+      },
+      {
+        key: 'isAlternatePaymentRailsEnabled',
+        label: 'Alternate Payment Rails',
+        description:
+          'Enable direct gateway charges when tenant cutover disables Stripe. Stripe remains default.',
+      },
+      {
+        key: 'isZeroTouchOpsEnabled',
+        label: 'Zero-Touch Operations',
+        description: 'Auto purchase orders and auto shipping labels after payment clearance.',
+      },
+      {
+        key: 'isLexicalQuarantineEnabled',
+        label: 'Lexical Quarantine',
+        description: 'Scan inbound support email for prohibited terms and auto-hold accounts.',
+      },
+    ],
+  },
+  {
+    phase: '6',
+    label: 'Commercialization Infrastructure',
+    flags: [
+      {
+        key: 'isSatelliteProvisioningEnabled',
+        label: 'Satellite Provisioning',
+        description: 'Super Admin attaches B2C burner domains via Vercel Domains API.',
       },
     ],
   },
@@ -137,7 +193,7 @@ export const MODULE_FLAG_GROUPS: {
       {
         key: 'isGranularRbacEnabled',
         label: 'Granular RBAC',
-        description: 'ops / support / finance / sales roles.',
+        description: 'ops / finance / sales / support roles with route-level admin access.',
       },
       {
         key: 'isUserManagementEnabled',

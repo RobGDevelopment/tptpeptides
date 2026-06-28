@@ -2,30 +2,29 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useMemo } from 'react';
 import { useAuth } from '../../auth/providers/AuthProvider';
 import { cn } from '../../../lib/utils/cn';
 import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import { SITE_WORDMARK } from '../../../lib/brand';
+import type { ModuleFlags } from '../../../lib/schemas/modules';
+import { buildAdminNavSections } from '../../../lib/modules/adminNav';
 
-const NAV_ITEMS = [
-  { href: '/admin', label: 'Dashboard', exact: true },
-  { href: '/admin/products', label: 'Products' },
-  { href: '/admin/storefront', label: 'Storefront' },
-  { href: '/admin/verifications', label: 'Verifications' },
-  { href: '/admin/orders', label: 'Orders' },
-  { href: '/admin/inventory', label: 'Inventory' },
-  { href: '/admin/users', label: 'Users' },
-  { href: '/admin/modules', label: 'Modules' },
-  { href: '/admin/system-map', label: 'Master Map' },
-  { href: '/admin/audit', label: 'Audit Logs' },
-];
-
-export function AdminShell({ children }: { children: React.ReactNode }) {
+export function AdminShell({
+  children,
+  moduleFlags,
+}: {
+  children: React.ReactNode;
+  moduleFlags: ModuleFlags;
+}) {
   const pathname = usePathname();
-  const { user, signOut } = useAuth();
+  const { user, signOut, canAccessExecutiveManual } = useAuth();
   const isImmersiveMap = pathname === '/admin/system-map';
+  const isImmersiveManual = pathname === '/admin/manual';
+  const isImmersive = isImmersiveMap || isImmersiveManual;
+  const navSections = useMemo(() => buildAdminNavSections(moduleFlags), [moduleFlags]);
 
-  if (isImmersiveMap) {
+  if (isImmersive) {
     return <div className="min-h-screen bg-black text-primary">{children}</div>;
   }
 
@@ -52,25 +51,47 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <HeaderDividerBeam delay={2} />
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
-          {NAV_ITEMS.map((item) => {
-            const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  'interactive-link relative block px-4 py-3 text-sm font-light transition-colors duration-200',
-                  active ? 'interactive-link-static text-gold-light' : 'text-muted hover:text-secondary'
-                )}
-              >
-                {active ? (
-                  <span className="absolute left-0 top-2 bottom-2 w-px bg-gold/40" aria-hidden />
-                ) : null}
-                {item.label}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 p-4 space-y-6 overflow-y-auto">
+          {navSections.map((section) => (
+            <div key={section.title ?? 'core'} className="space-y-1">
+              {section.title ? (
+                <p className="px-4 pb-2 text-[10px] tracking-caps uppercase text-muted/80">{section.title}</p>
+              ) : null}
+              {section.items.map((item) => {
+                if (item.href === '/admin/manual' && !canAccessExecutiveManual) {
+                  return null;
+                }
+                const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      'interactive-link relative block px-4 py-3 text-sm font-light transition-colors duration-200 rounded-sm',
+                      item.premium
+                        ? 'mt-2 mb-1 border border-gold/25 bg-gold/[0.04] backdrop-blur-md shadow-[0_0_24px_rgba(201,169,98,0.08)]'
+                        : '',
+                      active
+                        ? 'interactive-link-static text-gold-light bg-white/[0.03]'
+                        : item.premium
+                          ? 'text-gold-light hover:bg-gold/[0.08] hover:border-gold/40'
+                          : 'text-muted hover:text-secondary hover:bg-white/[0.02]'
+                    )}
+                  >
+                    {active ? (
+                      <span className="absolute left-0 top-2 bottom-2 w-px bg-gold/40" aria-hidden />
+                    ) : null}
+                    {item.premium ? (
+                      <span className="block text-[8px] tracking-[0.22em] uppercase text-gold-light/70 mb-1">
+                        Executive
+                      </span>
+                    ) : null}
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         <div className="p-4 border-t border-white/[0.04] space-y-3">

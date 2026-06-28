@@ -7,13 +7,16 @@ import type { SiteSettings } from '../../../lib/schemas/storefrontCms';
 
 interface HeroSectionProps {
   settings: SiteSettings;
+  heroTitle?: string;
 }
 
-export function HeroSection({ settings }: HeroSectionProps) {
+export function HeroSection({ settings, heroTitle }: HeroSectionProps) {
+  const headline = heroTitle ?? settings.heroTitle;
+
   return (
     <div className="relative pt-28 pb-20">
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
-        <PageHeader wordmark={SITE_WORDMARK} title={settings.heroTitle} />
+        <PageHeader wordmark={SITE_WORDMARK} title={headline} />
 
         <p className="text-base md:text-lg text-secondary max-w-2xl mx-auto mt-10 font-light leading-relaxed text-center">
           {settings.heroBody}

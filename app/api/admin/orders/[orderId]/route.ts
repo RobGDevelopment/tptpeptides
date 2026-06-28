@@ -20,7 +20,14 @@ async function resolveOrderRecipientEmail(order: Record<string, unknown>): Promi
 }
 
 const bodySchema = z.object({
-  status: z.enum(['pending_payment', 'paid', 'processing', 'fulfilled', 'cancelled']),
+  status: z.enum([
+    'pending_payment',
+    'pending_invoice',
+    'paid',
+    'processing',
+    'fulfilled',
+    'cancelled',
+  ]),
 });
 
 export async function PATCH(

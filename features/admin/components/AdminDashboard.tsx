@@ -13,9 +13,11 @@ import {
 import { Spinner } from '../../../components/ui/Spinner';
 import { AdminPageHeader } from '../../../components/ui/AdminPageHeader';
 import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
+import type { AdminModuleLink } from '../../../lib/modules/adminModuleLinks';
+import { EnabledModulesPanel } from './EnabledModulesPanel';
 import type { AdminProductGroup } from '../types';
 
-export function AdminDashboard() {
+export function AdminDashboard({ enabledModules }: { enabledModules: AdminModuleLink[] }) {
   const { isAdmin, loading: authLoading } = useAuth();
   const [groups, setGroups] = useState<AdminProductGroup[]>([]);
   const [orderCount, setOrderCount] = useState(0);
@@ -95,6 +97,8 @@ export function AdminDashboard() {
           </div>
         ))}
       </div>
+
+      <EnabledModulesPanel modules={enabledModules} />
 
       <section className="admin-table-section">
         <div className="p-6 border-b border-white/[0.04] space-y-3">

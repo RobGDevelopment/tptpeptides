@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from 'next';
 import { AdminGuard } from '../../features/admin/components/AdminGuard';
+import { AdminRbacGate } from '../../features/admin/components/AdminRbacGate';
 import { AdminShell } from '../../features/admin/components/AdminShell';
 import { OWNER_APP } from '../../lib/app/profiles';
+import { getModuleFlags } from '../../lib/firebase/modules.server';
 
 export const metadata: Metadata = {
   title: {
@@ -29,14 +31,18 @@ export const viewport: Viewport = {
   themeColor: OWNER_APP.themeColor,
 };
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const moduleFlags = await getModuleFlags();
+
   return (
     <AdminGuard>
-      <AdminShell>{children}</AdminShell>
+      <AdminRbacGate moduleFlags={moduleFlags}>
+        <AdminShell moduleFlags={moduleFlags}>{children}</AdminShell>
+      </AdminRbacGate>
     </AdminGuard>
   );
 }

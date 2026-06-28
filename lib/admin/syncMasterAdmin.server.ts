@@ -2,6 +2,7 @@ import 'server-only';
 
 import { isMasterAdminEmail } from './masterAdmin';
 import { getAdminAuth, getAdminFirestore, isAdminSdkConfigured } from '../firebase/admin';
+import { DEFAULT_TENANT_ID } from '../tenant/constants';
 
 /** Grants master admins Firebase custom claims + Firestore profile for client-side rules. */
 export async function syncMasterAdminAccess(
@@ -13,7 +14,7 @@ export async function syncMasterAdminAccess(
   const auth = getAdminAuth();
   const db = getAdminFirestore();
 
-  await auth.setCustomUserClaims(uid, { admin: true, role: 'admin' });
+  await auth.setCustomUserClaims(uid, { admin: true, role: 'admin', tenantId: DEFAULT_TENANT_ID });
   await db.collection('users').doc(uid).set(
     {
       uid,
@@ -21,6 +22,7 @@ export async function syncMasterAdminAccess(
       role: 'admin',
       accessLevel: 100,
       disabled: false,
+      tenantId: DEFAULT_TENANT_ID,
     },
     { merge: true }
   );
