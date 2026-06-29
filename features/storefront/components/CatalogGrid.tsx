@@ -165,17 +165,11 @@ export function CatalogGrid({
                 type="search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder={
-                  algoliaSearchEnabled
-                    ? 'Algolia-powered compound search…'
-                    : 'Compound or research area...'
-                }
+                placeholder="e.g. BPC-157, GLP-1, metabolic pathway"
                 className="terminal-input"
               />
-              {algoliaSearchEnabled && query.trim().length >= 2 && (
-                <p className="text-[10px] text-muted mt-2 font-light">
-                  {algoliaLoading ? 'Searching index…' : 'Typo-tolerant Algolia search active'}
-                </p>
+              {algoliaSearchEnabled && algoliaLoading && query.trim().length >= 2 && (
+                <p className="text-[10px] text-muted mt-2 font-light">Searching catalog…</p>
               )}
             </label>
             <label className="lg:w-48">
