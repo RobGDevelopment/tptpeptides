@@ -21,7 +21,8 @@ export function AdminShell({
   const { user, signOut, canAccessExecutiveManual } = useAuth();
   const isImmersiveMap = pathname === '/admin/system-map';
   const isImmersiveManual = pathname === '/admin/manual';
-  const isImmersive = isImmersiveMap || isImmersiveManual;
+  const isImmersiveCorpStrategy = pathname === '/admin/corp-strategy';
+  const isImmersive = isImmersiveMap || isImmersiveManual || isImmersiveCorpStrategy;
   const navSections = useMemo(() => buildAdminNavSections(moduleFlags), [moduleFlags]);
 
   if (isImmersive) {
@@ -59,6 +60,9 @@ export function AdminShell({
               ) : null}
               {section.items.map((item) => {
                 if (item.href === '/admin/manual' && !canAccessExecutiveManual) {
+                  return null;
+                }
+                if (item.href === '/admin/corp-strategy' && !canAccessExecutiveManual) {
                   return null;
                 }
                 const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);

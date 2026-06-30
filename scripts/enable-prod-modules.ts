@@ -66,6 +66,7 @@ const PRODUCTION_MODULE_FLAGS = {
   isUserManagementEnabled: true,
   isAccountingExportEnabled: true,
   isTransactionalEmailEnabled: true,
+  isTelehealthEnabled: true,
 };
 
 async function main() {

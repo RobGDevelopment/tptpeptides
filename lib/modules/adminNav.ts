@@ -1,6 +1,6 @@
 import type { ModuleFlags } from '../schemas/modules';
 
-import { showQuotesNav, showSalesNav, showGrowthNav, showUsersNav, showVerificationsNav } from './adminModuleLinks';
+import { showQuotesNav, showSalesNav, showGrowthNav, showUsersNav, showVerificationsNav, showWellnessNav } from './adminModuleLinks';
 
 
 
@@ -53,6 +53,20 @@ const FLEET_NAV: AdminNavItem[] = [
   { href: '/admin/exceptions', label: 'Exceptions' },
 
   { href: '/admin/ledger', label: 'Ledger' },
+
+];
+
+
+
+const WELLNESS_NAV: AdminNavItem[] = [
+
+  { href: '/admin/wellness/patients', label: 'Patients' },
+
+  { href: '/admin/wellness/intakes', label: 'Medical Intakes' },
+
+  { href: '/admin/wellness/prescriptions', label: 'Prescriptions' },
+
+  { href: '/admin/wellness/settings', label: 'Clinic Settings' },
 
 ];
 
@@ -114,6 +128,8 @@ const UTILITY_NAV: AdminNavItem[] = [
 
   { href: '/admin/manual', label: 'Operating System', premium: true },
 
+  { href: '/admin/corp-strategy', label: 'Corp Strategy', premium: true },
+
   { href: '/admin/proforma', label: 'Proforma' },
 
   { href: '/admin/rollout', label: 'Rollout Guide' },
@@ -149,6 +165,14 @@ export function buildAdminNavSections(flags: ModuleFlags): AdminNavSection[] {
   if (moduleItems.length > 0) {
 
     sections.push({ title: 'Commercial', items: moduleItems });
+
+  }
+
+
+
+  if (showWellnessNav(flags)) {
+
+    sections.push({ title: 'Wellness', items: WELLNESS_NAV });
 
   }
 

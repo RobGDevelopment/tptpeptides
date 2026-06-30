@@ -53,6 +53,9 @@ export const moduleFlagsSchema = z.object({
   isAiCoPilotEnabled: z.boolean(),
   isInteractive3dEnabled: z.boolean(),
 
+  /** Telehealth clinic command center (Supabase / Wellness admin) */
+  isTelehealthEnabled: z.boolean(),
+
   updatedAt: z.string().optional(),
   updatedBy: z.string().optional(),
 });
@@ -246,6 +249,18 @@ export const MODULE_FLAG_GROUPS: {
         key: 'isInteractive3dEnabled',
         label: 'Interactive 3D',
         description: 'WebGL molecules and dynamic vial visuals.',
+      },
+    ],
+  },
+  {
+    phase: '7',
+    label: 'Telehealth Clinic',
+    flags: [
+      {
+        key: 'isTelehealthEnabled',
+        label: 'Wellness Command Center',
+        description:
+          'Supabase-scoped admin for patients, medical intakes, prescriptions, and clinic settings.',
       },
     ],
   },

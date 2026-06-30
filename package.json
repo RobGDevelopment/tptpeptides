@@ -14,11 +14,17 @@
     "test:smoke:prod": "tsx scripts/run-smoke-prod.ts",
     "health:check": "tsx scripts/health-check.ts",
     "sync:firebase-env": "tsx scripts/sync-firebase-env-to-vercel.ts",
-    "enable:prod-modules": "tsx scripts/enable-prod-modules.ts"
+    "enable:prod-modules": "tsx scripts/enable-prod-modules.ts",
+    "setup:clinic-dev": "tsx scripts/setup-clinic-dev.ts",
+    "seed:clinic-demo": "tsx scripts/seed-clinic-demo.ts",
+    "test:clinic-sla": "tsx scripts/run-clinic-sla-test.ts",
+    "test:clinic-dispatch": "tsx scripts/run-clinic-dispatch-test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
     "@sentry/nextjs": "^10.62.0",
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.110.0",
     "@tailwindcss/postcss": "4.3.1",
     "algoliasearch": "^5.55.1",
     "dotenv": "^17.4.2",

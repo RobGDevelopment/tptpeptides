@@ -153,6 +153,15 @@ export function getAdminModuleLinks(flags: ModuleFlags): AdminModuleLink[] {
     });
   }
 
+  if (isModuleEnabled(flags, 'isTelehealthEnabled')) {
+    links.push({
+      phase: '7',
+      label: 'Wellness Command Center',
+      href: '/admin/wellness/patients',
+      description: 'Telehealth patients, intakes, prescriptions, and clinic settings (Supabase).',
+    });
+  }
+
   if (isModuleEnabled(flags, 'isZeroTouchOpsEnabled')) {
     links.push({
       phase: '2',
@@ -202,4 +211,8 @@ export function showGrowthNav(flags: ModuleFlags): boolean {
     isModuleEnabled(flags, 'isPredictiveReplenishmentEnabled') ||
     isModuleEnabled(flags, 'isLoyaltyRedemptionEnabled')
   );
+}
+
+export function showWellnessNav(flags: ModuleFlags): boolean {
+  return isModuleEnabled(flags, 'isTelehealthEnabled');
 }

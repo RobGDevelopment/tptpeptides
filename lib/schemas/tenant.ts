@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const tenantLaneSchema = z.enum(['b2b', 'b2c']);
+export const tenantLaneSchema = z.enum(['b2b', 'b2c', 'telehealth']);
 
 export type TenantLane = z.infer<typeof tenantLaneSchema>;
 
@@ -41,6 +41,13 @@ export type TenantTheme = z.infer<typeof tenantThemeSchema>;
 
 export const tenantContentSchema = z.object({
   heroHeadline: z.string().min(1).max(200).optional(),
+  heroBody: z.string().min(1).max(500).optional(),
+  primaryCtaLabel: z.string().min(1).max(80).optional(),
+  primaryCtaHref: z.string().min(1).max(200).optional(),
+  secondaryCtaLabel: z.string().min(1).max(80).optional(),
+  secondaryCtaHref: z.string().min(1).max(200).optional(),
+  footerTagline: z.string().min(1).max(200).optional(),
+  wordmark: z.string().min(1).max(80).optional(),
   supportEmail: z.string().email().optional(),
   termsUrl: z
     .string()

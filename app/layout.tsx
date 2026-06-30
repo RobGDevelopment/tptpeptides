@@ -5,7 +5,7 @@ import { AppProviders } from './providers';
 import { getSiteUrl } from '../lib/site';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from '../lib/brand';
 import { getActiveTenantId } from '../lib/tenant/getTenant.server';
-import { getTenantConfig } from '../lib/firebase/tenant.server';
+import { getTenantConfigForRequest } from '../lib/tenant/getTenantConfig.server';
 import { tenantThemeToCssProperties } from '../lib/tenant/theme';
 import './globals.css';
 
@@ -70,11 +70,12 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const tenantId = await getActiveTenantId();
-  const tenantConfig = await getTenantConfig(tenantId);
+  const tenantConfig = await getTenantConfigForRequest(tenantId);
   const tenantThemeStyle = tenantThemeToCssProperties(tenantConfig);
+  const isTelehealth = tenantConfig.lane === 'telehealth';
 
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className={isTelehealth ? '' : 'dark'}>
       <body
         className={`${inter.variable} ${inter.className} min-h-screen`}
         style={tenantThemeStyle}

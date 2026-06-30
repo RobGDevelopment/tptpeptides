@@ -2,6 +2,7 @@
 
 import { Suspense } from 'react';
 import { AgeGate } from './AgeGate';
+import { ClinicStorefrontShell } from './ClinicStorefrontShell';
 import { AdminRedirectHandler } from './AdminRedirectHandler';
 import { CartDrawer } from './CartDrawer';
 import { CartSnapshotTracker } from './CartSnapshotTracker';
@@ -15,9 +16,11 @@ import { logAgeVerification } from '../../../lib/firebase/compliance';
 
 interface StorefrontShellProps {
   children: React.ReactNode;
+  /** Telehealth lane — skips B2B age gate and uses clinic navigation. */
+  skipAgeGate?: boolean;
 }
 
-export function StorefrontShell({ children }: StorefrontShellProps) {
+function B2bStorefrontShell({ children }: { children: React.ReactNode }) {
   const hydrated = useAgeGateHydrated();
   const isVerified = useAgeGateStore((state) => state.isVerified);
   const verify = useAgeGateStore((state) => state.verify);
@@ -50,4 +53,12 @@ export function StorefrontShell({ children }: StorefrontShellProps) {
       <StorefrontAuthModal />
     </>
   );
+}
+
+export function StorefrontShell({ children, skipAgeGate = false }: StorefrontShellProps) {
+  if (skipAgeGate) {
+    return <ClinicStorefrontShell>{children}</ClinicStorefrontShell>;
+  }
+
+  return <B2bStorefrontShell>{children}</B2bStorefrontShell>;
 }

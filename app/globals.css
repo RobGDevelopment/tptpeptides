@@ -10,15 +10,15 @@
 }
 
 @theme {
-  --color-void: #0a0a0a;
-  --color-surface: oklch(0.16 0.008 260);
-  --color-surface-elevated: oklch(0.19 0.01 260);
+  --color-void: #fcfcfc;
+  --color-surface: oklch(0.985 0.003 260);
+  --color-surface-elevated: oklch(0.97 0.004 260);
 
-  /* Off-white body — reduces halation vs pure white */
-  --color-heading: oklch(0.985 0.002 260);
-  --color-primary: oklch(0.905 0.006 260);
-  --color-secondary: oklch(0.705 0.012 260);
-  --color-muted: oklch(0.552 0.014 260);
+  /* Medical light mode — dark foreground on off-white */
+  --color-heading: oklch(0.145 0.004 260);
+  --color-primary: oklch(0.21 0.006 260);
+  --color-secondary: oklch(0.42 0.012 260);
+  --color-muted: oklch(0.52 0.014 260);
 
   /* Brand gold — driven by tenant theme CSS vars (Falconwood defaults on :root) */
   --color-gold-deep: var(--theme-primary);
@@ -33,6 +33,17 @@
   --animate-beam-drift: beam-drift 16s linear infinite;
   --animate-beam-drift-v: beam-drift-v 16s linear infinite;
   --animate-signature-pulse: signature-pulse 5s ease-in-out infinite;
+}
+
+/* B2B research lane — obsidian dark theme */
+html.dark {
+  --color-void: #0a0a0a;
+  --color-surface: oklch(0.16 0.008 260);
+  --color-surface-elevated: oklch(0.19 0.01 260);
+  --color-heading: oklch(0.985 0.002 260);
+  --color-primary: oklch(0.905 0.006 260);
+  --color-secondary: oklch(0.705 0.012 260);
+  --color-muted: oklch(0.552 0.014 260);
 }
 
 /* Falconwood OS defaults — overridden per-tenant via inline styles on <body> */
@@ -143,6 +154,10 @@
 
 @layer base {
   html {
+    color-scheme: light;
+  }
+
+  html.dark {
     color-scheme: dark;
   }
 
@@ -152,10 +167,23 @@
     font-weight: 300;
     background-image: radial-gradient(
       ellipse 80% 55% at 50% 0%,
-      color-mix(in oklch, var(--theme-primary) 28%, transparent),
+      color-mix(in oklch, var(--theme-primary) 10%, transparent),
       transparent 70%
     );
     background-attachment: fixed;
+  }
+
+  html.dark body {
+    background-image: radial-gradient(
+      ellipse 80% 55% at 50% 0%,
+      color-mix(in oklch, var(--theme-primary) 28%, transparent),
+      transparent 70%
+    );
+  }
+
+  html:not(.dark) .signature-beam-pulse {
+    opacity: 0.72;
+    filter: saturate(1.15);
   }
 
   h1,
@@ -745,7 +773,125 @@
   .animate-os-eye {
     animation: none;
   }
+
+  .corp-strategy-flow-pulse,
+  .corp-strategy-flow-particle,
+  .corp-strategy-node-pulse,
+  .corp-strategy-fade-up {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }
+
+/* Corp Strategy — immersive executive ecosystem flow */
+.corp-strategy-canvas {
+  background-color: #0b1120;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(56, 189, 248, 0.08), transparent),
+    radial-gradient(ellipse 60% 40% at 90% 80%, rgba(16, 185, 129, 0.06), transparent),
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+}
+
+.corp-strategy-glass {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+.corp-strategy-glow-tech {
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+  border-color: rgba(56, 189, 248, 0.5);
+}
+
+.corp-strategy-glow-medical {
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+  border-color: rgba(168, 85, 247, 0.5);
+}
+
+.corp-strategy-glow-supply {
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+.corp-strategy-glow-pharmacy {
+  box-shadow: 0 0 15px rgba(236, 72, 153, 0.3);
+  border-color: rgba(236, 72, 153, 0.5);
+}
+
+.corp-strategy-glow-money {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+.corp-strategy-line-connector {
+  position: absolute;
+  width: 2px;
+  background: linear-gradient(to bottom, #38bdf8, #10b981);
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  transform: translateX(-50%);
+  z-index: 0;
+}
+
+@media (max-width: 768px) {
+  .corp-strategy-line-connector {
+    left: 24px;
+  }
+}
+
+@keyframes corp-flow-pulse {
+  0%,
+  100% {
+    stroke-opacity: 0.6;
+  }
+  50% {
+    stroke-opacity: 1;
+  }
+}
+
+@keyframes corp-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes corp-node-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(56, 189, 248, 0);
+  }
+}
+
+.corp-strategy-flow-pulse {
+  animation: corp-flow-pulse 2s ease-in-out infinite;
+}
+
+.corp-strategy-fade-up {
+  animation: corp-fade-up 0.7s ease-out both;
+}
+
+.corp-strategy-node-pulse {
+  animation: corp-node-pulse 2s ease-in-out infinite;
+}
+
+.corp-strategy-flow-particle {
+  opacity: 0.8;
+  filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.8));
+}
+
 
 /* Executive manual flipbook — Falconwood glass pages */
 .manual-flipbook {

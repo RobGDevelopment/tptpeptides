@@ -35,4 +35,6 @@ export const DEFAULT_MODULE_FLAGS: ModuleFlags = {
   isAlgoliaSearchEnabled: false,
   isAiCoPilotEnabled: false,
   isInteractive3dEnabled: false,
+
+  isTelehealthEnabled: false,
 };

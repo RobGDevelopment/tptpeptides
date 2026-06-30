@@ -7,12 +7,16 @@ export interface VercelDomainResult {
 }
 
 export function isVercelDomainsConfigured(): boolean {
-  return Boolean(process.env.VERCEL_TOKEN?.trim() && process.env.VERCEL_PROJECT_ID?.trim());
+  const token = process.env.VERCEL_API_TOKEN?.trim() || process.env.VERCEL_TOKEN?.trim();
+  return Boolean(token && process.env.VERCEL_PROJECT_ID?.trim());
 }
 
 function vercelToken(): string {
-  const token = process.env.VERCEL_TOKEN?.trim();
-  if (!token) throw new Error('VERCEL_TOKEN is not configured');
+  const token =
+    process.env.VERCEL_API_TOKEN?.trim() || process.env.VERCEL_TOKEN?.trim();
+  if (!token) {
+    throw new Error('VERCEL_API_TOKEN or VERCEL_TOKEN is not configured');
+  }
   return token;
 }
 

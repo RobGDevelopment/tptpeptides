@@ -14,10 +14,18 @@ import { Spinner } from '../../../components/ui/Spinner';
 import { AdminPageHeader } from '../../../components/ui/AdminPageHeader';
 import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import type { AdminModuleLink } from '../../../lib/modules/adminModuleLinks';
+import type { LiveSitesSnapshot } from '../../../lib/tenant/liveSites.server';
 import { EnabledModulesPanel } from './EnabledModulesPanel';
+import { LiveSitesPanel } from './LiveSitesPanel';
 import type { AdminProductGroup } from '../types';
 
-export function AdminDashboard({ enabledModules }: { enabledModules: AdminModuleLink[] }) {
+export function AdminDashboard({
+  enabledModules,
+  liveSites,
+}: {
+  enabledModules: AdminModuleLink[];
+  liveSites: LiveSitesSnapshot;
+}) {
   const { isAdmin, loading: authLoading } = useAuth();
   const [groups, setGroups] = useState<AdminProductGroup[]>([]);
   const [orderCount, setOrderCount] = useState(0);
@@ -97,6 +105,8 @@ export function AdminDashboard({ enabledModules }: { enabledModules: AdminModule
           </div>
         ))}
       </div>
+
+      <LiveSitesPanel sites={liveSites} />
 
       <EnabledModulesPanel modules={enabledModules} />
 
