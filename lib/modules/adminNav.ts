@@ -66,6 +66,8 @@ const WELLNESS_NAV: AdminNavItem[] = [
 
   { href: '/admin/wellness/prescriptions', label: 'Prescriptions' },
 
+  { href: '/admin/wellness/marketing', label: 'Marketing' },
+
   { href: '/admin/wellness/settings', label: 'Clinic Settings' },
 
 ];

@@ -1,0 +1,54 @@
+import { redirect } from 'next/navigation';
+import {
+  getPricingTiers,
+  getPromotions,
+  getRevenueMetrics,
+} from '../../../../features/admin/actions/revenueActions';
+import {
+  RevenueMarketingPanel,
+  RevenueMetricsSnapshot,
+} from '../../../../features/admin/components/wellness/RevenueMarketingPanel';
+import { AdminPageHeader } from '../../../../components/ui/AdminPageHeader';
+import { getModuleFlags } from '../../../../lib/firebase/modules.server';
+import { isModuleEnabled } from '../../../../lib/modules/flags';
+
+export default async function AdminWellnessMarketingPage() {
+  const flags = await getModuleFlags();
+  if (!isModuleEnabled(flags, 'isTelehealthEnabled')) {
+    redirect('/admin');
+  }
+
+  let tiers: Awaited<ReturnType<typeof getPricingTiers>> = [];
+  let promotions: Awaited<ReturnType<typeof getPromotions>> = [];
+  let metrics: Awaited<ReturnType<typeof getRevenueMetrics>> | null = null;
+  let loadError: string | null = null;
+
+  try {
+    [tiers, promotions, metrics] = await Promise.all([
+      getPricingTiers(),
+      getPromotions(),
+      getRevenueMetrics(),
+    ]);
+  } catch (caught) {
+    loadError = caught instanceof Error ? caught.message : 'Unable to load revenue dashboard.';
+  }
+
+  return (
+    <div className="space-y-6">
+      <AdminPageHeader
+        title="Marketing & Revenue"
+        subtitle="Manage clinic pricing tiers, promotional codes, and proforma subscription metrics."
+      />
+
+      {loadError ? (
+        <div className="rounded-sm border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-300">
+          {loadError}
+        </div>
+      ) : null}
+
+      {metrics ? <RevenueMetricsSnapshot metrics={metrics} /> : null}
+
+      <RevenueMarketingPanel initialTiers={tiers} initialPromotions={promotions} />
+    </div>
+  );
+}
