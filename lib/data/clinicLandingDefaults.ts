@@ -1,5 +1,6 @@
 import type { ClinicLandingContent } from '../schemas/clinicLanding';
 import { DEFAULT_CLINIC_HERO_VIDEO_PATH } from '../clinic/defaultHeroMedia';
+import { CLINIC_BRAND_NAME } from '../tenant/constants';
 import { CLINIC_THEME_DEFAULTS } from './clinicThemeDefaults';
 
 export const DEFAULT_CLINIC_LANDING: ClinicLandingContent = {
@@ -13,7 +14,7 @@ export const DEFAULT_CLINIC_LANDING: ClinicLandingContent = {
   footerTagline: 'Physician-led telehealth · HIPAA-secured · Licensed nationwide',
   wordmark: 'Physician-Led Telehealth',
   heroImageUrl: DEFAULT_CLINIC_HERO_VIDEO_PATH,
-  heroImageAlt: 'TPT Wellness clinical excellence',
+  heroImageAlt: `${CLINIC_BRAND_NAME} clinical excellence`,
   heroMediaType: 'video',
   heroMediaAspectRatio: '16:9',
   heroMediaWidth: 1920,
@@ -24,7 +25,7 @@ export const DEFAULT_CLINIC_LANDING: ClinicLandingContent = {
   heroVideoLoopTrimStart: 0,
   heroVideoLoopTrimEnd: 0,
   logoUrl: undefined,
-  navBrandName: 'TPT Wellness',
+  navBrandName: CLINIC_BRAND_NAME,
   heroImagePosition: 'right',
   primaryColor: CLINIC_THEME_DEFAULTS.primaryColor,
   accentColor: CLINIC_THEME_DEFAULTS.accentColor,

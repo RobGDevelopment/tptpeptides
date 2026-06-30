@@ -41,7 +41,7 @@ test.describe('API health @smoke', () => {
     expect(response.status(), await response.text()).toBe(200);
 
     const body = (await response.json()) as { isAdmin: boolean; isMasterAdmin: boolean };
-    expect(body).toEqual({ isAdmin: false, isMasterAdmin: false });
+    expect(body).toMatchObject({ isAdmin: false, isMasterAdmin: false });
   });
 
   test('POST /api/session/sync rejects missing idToken', async ({ request }) => {

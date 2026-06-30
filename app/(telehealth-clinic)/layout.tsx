@@ -8,14 +8,15 @@ import {
   resolveTenantSupportEmail,
   resolveTenantTermsUrl,
 } from '../../lib/tenant/content';
+import { CLINIC_BRAND_NAME } from '../../lib/tenant/constants';
 
 export const metadata: Metadata = {
-  applicationName: 'TPT Wellness',
-  description: 'Board-certified telehealth weight loss and wellness programs.',
+  applicationName: CLINIC_BRAND_NAME,
+  description: 'Board-certified telehealth weight loss and longevity programs from TPT Clinic.',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'TPT Wellness',
+    title: CLINIC_BRAND_NAME,
   },
   formatDetection: {
     telephone: false,

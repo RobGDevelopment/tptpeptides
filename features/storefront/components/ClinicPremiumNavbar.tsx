@@ -10,6 +10,7 @@ import { useTenantOptional } from '../../../lib/tenant/context';
 import { resolveNavBrandName } from '../../../lib/clinic/landingDisplay';
 import { mergeClinicLandingContent, type ClinicLandingContent } from '../../../lib/schemas/clinicLanding';
 import { DEFAULT_CLINIC_LANDING } from '../../../lib/data/clinicLandingDefaults';
+import { CLINIC_BRAND_NAME } from '../../../lib/tenant/constants';
 
 const CLINIC_NAV_LINKS = [
   { href: '/#how-it-works', label: 'How It Works' },
@@ -34,7 +35,7 @@ export function ClinicPremiumNavbar() {
   );
   const brandName = tenant?.config.content
     ? resolveNavBrandName(landingContent)
-    : (tenant?.config.name ?? 'TPT Wellness');
+    : (tenant?.config.name ?? CLINIC_BRAND_NAME);
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (

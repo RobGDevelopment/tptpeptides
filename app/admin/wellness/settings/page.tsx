@@ -7,6 +7,7 @@ import { AdminPageHeader } from '../../../../components/ui/AdminPageHeader';
 import { getModuleFlags } from '../../../../lib/firebase/modules.server';
 import { isModuleEnabled } from '../../../../lib/modules/flags';
 import { getClinicSiteUrlFromEnv } from '../../../../lib/tenant/liveSites.edge';
+import { CLINIC_SUPPORT_EMAIL } from '../../../../lib/tenant/constants';
 
 export default async function AdminWellnessSettingsPage() {
   const flags = await getModuleFlags();
@@ -48,7 +49,7 @@ export default async function AdminWellnessSettingsPage() {
             <ClinicLandingStudio
               initialContent={landingContent}
               liveClinicUrl={liveClinicUrl}
-              supportEmail="support@tptwellness.com"
+              supportEmail={CLINIC_SUPPORT_EMAIL}
             />
           </div>
         </section>

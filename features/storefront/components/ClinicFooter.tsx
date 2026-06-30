@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import { isExternalUrl } from '../../../lib/tenant/content';
+import { CLINIC_BRAND_NAME } from '../../../lib/tenant/constants';
 
 function TermsLink({ href }: { href: string }) {
   const className =
@@ -31,7 +32,7 @@ export function ClinicFooter({
   tagline,
   supportEmail,
   termsUrl,
-  brandName = 'TPT Wellness',
+  brandName = CLINIC_BRAND_NAME,
 }: {
   tagline: string;
   supportEmail: string;

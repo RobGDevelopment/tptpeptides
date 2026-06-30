@@ -56,7 +56,7 @@ export function ClinicLandingPreview({
           <span className="h-2.5 w-2.5 rounded-full bg-amber-500/80" />
           <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
           <span className="ml-2 flex-1 text-center text-[10px] text-muted font-mono truncate">
-            medfit-clinic.vercel.app
+            www.tptclinic.com
           </span>
         </div>
 

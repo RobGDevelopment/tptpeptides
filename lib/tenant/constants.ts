@@ -19,6 +19,11 @@ export const PRIMARY_CLINIC_HOSTS = new Set([
   '127.0.0.1',
 ]);
 
+/** Patient-facing clinic brand (matches tptclinic.com). */
+export const CLINIC_BRAND_NAME = 'TPT Clinic';
+
+export const CLINIC_SUPPORT_EMAIL = 'support@tptclinic.com';
+
 /** Canonical public clinic URL (matches Vercel apex → www redirect). */
 export const CLINIC_CANONICAL_SITE_URL = 'https://www.tptclinic.com';
 

@@ -57,7 +57,7 @@ export async function sendWellnessSlaAlertEmail(intakes: StaleIntakeRow[]): Prom
 
   await sendEmail({
     to,
-    subject: `[TPT Wellness] ${intakes.length} intake${intakes.length === 1 ? '' : 's'} past 24h SLA`,
+    subject: `[TPT Clinic] ${intakes.length} intake${intakes.length === 1 ? '' : 's'} past 24h SLA`,
     html,
     text: `${intakes.length} intakes are past the 24-hour review SLA. Open ${appUrl}/admin/wellness/intakes`,
   });

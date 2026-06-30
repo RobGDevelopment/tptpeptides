@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Icons } from '../../../components/icons';
 import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
+import { CLINIC_BRAND_NAME, CLINIC_SUPPORT_EMAIL } from '../../../lib/tenant/constants';
 import { ClinicHeroLoopVideo } from './ClinicHeroLoopVideo';
 import {
   isHeroMediaLandscape,
@@ -73,13 +74,13 @@ function HeroMediaPanel({ content, preview }: { content: ClinicLandingContent; p
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={mediaUrl}
-              alt={content.heroImageAlt ?? 'Wellness clinic'}
+              alt={content.heroImageAlt ?? `${CLINIC_BRAND_NAME} care`}
               className="absolute inset-0 h-full w-full object-cover"
             />
           ) : (
             <Image
               src={mediaUrl}
-              alt={content.heroImageAlt ?? 'Wellness clinic'}
+              alt={content.heroImageAlt ?? `${CLINIC_BRAND_NAME} care`}
               fill
               priority
               className="object-cover"
@@ -229,7 +230,7 @@ export function ClinicNavbarPreview({
 
 export function ClinicFooterPreview({
   content,
-  supportEmail = 'support@tptwellness.com',
+  supportEmail = CLINIC_SUPPORT_EMAIL,
   compact = false,
 }: {
   content: ClinicLandingContent;

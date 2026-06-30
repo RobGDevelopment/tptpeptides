@@ -380,7 +380,7 @@ export function ClinicLandingStudio({
                 label="Navbar brand name"
                 value={draft.navBrandName ?? ''}
                 onChange={(e) => updateField('navBrandName', e.target.value || undefined)}
-                placeholder="TPT Wellness Clinic"
+                placeholder="TPT Clinic"
               />
               <Input
                 label="Wordmark (hero eyebrow)"

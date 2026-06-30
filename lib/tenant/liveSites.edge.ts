@@ -1,5 +1,5 @@
 import { SITE_URL_PRODUCTION, SITE_URL_VERCEL } from '../brand';
-import { PRIMARY_CLINIC_HOSTS } from './constants';
+import { CLINIC_CANONICAL_SITE_URL, PRIMARY_CLINIC_HOSTS } from './constants';
 
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1']);
 
@@ -56,5 +56,5 @@ export function getB2bAdminBaseUrl(): string {
 }
 
 export function getDefaultClinicProductionUrl(): string {
-  return SITE_URL_PRODUCTION.replace('tptpeptides.com', 'tptwellness.com');
+  return CLINIC_CANONICAL_SITE_URL;
 }

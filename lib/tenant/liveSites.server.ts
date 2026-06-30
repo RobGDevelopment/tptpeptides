@@ -71,7 +71,7 @@ export async function getLiveSitesSnapshot(): Promise<LiveSitesSnapshot> {
       label: 'Super Admin Back Office',
       url: `${adminUrl}/admin`,
       host: hostFromUrl(adminUrl),
-      description: 'Catalog, orders, storefront CMS, and wellness operations.',
+      description: 'Catalog, orders, storefront CMS, and clinic operations.',
     },
     b2b: {
       label: 'B2B Storefront',
@@ -84,7 +84,7 @@ export async function getLiveSitesSnapshot(): Promise<LiveSitesSnapshot> {
           label: 'Telehealth Clinic',
           url: clinicUrl,
           host: hostFromUrl(clinicUrl),
-          description: 'Patient intake, dashboard, and wellness storefront.',
+          description: 'Patient intake, dashboard, and TPT Clinic storefront.',
         }
       : null,
   };

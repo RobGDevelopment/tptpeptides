@@ -28,7 +28,7 @@ export function ClinicExcellenceSection() {
             Built for patients who expect institutional-grade care
           </h2>
           <p className="clinic-section-lead">
-            TPT Wellness combines physician oversight, modern telehealth infrastructure, and a patient
+            TPT Clinic combines physician oversight, modern telehealth infrastructure, and a patient
             experience worthy of a premier medical practice.
           </p>
         </div>

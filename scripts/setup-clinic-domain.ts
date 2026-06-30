@@ -15,8 +15,10 @@ import { config } from 'dotenv';
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import {
+  CLINIC_BRAND_NAME,
   CLINIC_CANONICAL_SITE_URL,
   CLINIC_ROUTING_HOSTS,
+  CLINIC_SUPPORT_EMAIL,
   CLINIC_TENANT_ID,
   PRIMARY_CLINIC_HOSTS,
 } from '../lib/tenant/constants';
@@ -121,7 +123,11 @@ async function appendClinicDomainsToFirebase(): Promise<string[]> {
     {
       slug: CLINIC_TENANT_ID,
       lane: 'telehealth',
+      name: CLINIC_BRAND_NAME,
+      supportEmail: CLINIC_SUPPORT_EMAIL,
       domains: [...merged],
+      'content.navBrandName': CLINIC_BRAND_NAME,
+      'content.heroImageAlt': `${CLINIC_BRAND_NAME} clinical excellence`,
       updatedAt: now,
       ...(snap.exists ? {} : { active: true, createdAt: now }),
     },

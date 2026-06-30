@@ -5,7 +5,7 @@ import { CLINIC_THEME_DEFAULTS } from '../data/clinicThemeDefaults';
 import { normalizeClinicLandingHeroMedia } from '../clinic/heroMedia';
 import { mergeClinicLandingContent } from '../schemas/clinicLanding';
 import { tenantConfigSchema, type TenantConfig } from '../schemas/tenant';
-import { CLINIC_TENANT_ID, PRIMARY_CLINIC_HOSTS } from './constants';
+import { CLINIC_BRAND_NAME, CLINIC_SUPPORT_EMAIL, CLINIC_TENANT_ID, PRIMARY_CLINIC_HOSTS } from './constants';
 import { getAdminFirestore, isAdminSdkConfigured } from '../firebase/admin';
 import { getTenantConfig } from '../firebase/tenant.server';
 
@@ -13,10 +13,10 @@ function getStaticClinicTenantConfig(): TenantConfig {
   const now = new Date().toISOString();
   return tenantConfigSchema.parse({
     slug: CLINIC_TENANT_ID,
-    name: 'TPT Wellness Clinic',
+    name: CLINIC_BRAND_NAME,
     lane: 'telehealth',
     domains: [...PRIMARY_CLINIC_HOSTS],
-    supportEmail: 'support@tptwellness.com',
+    supportEmail: CLINIC_SUPPORT_EMAIL,
     content: DEFAULT_CLINIC_LANDING,
     theme: {
       primaryColor: CLINIC_THEME_DEFAULTS.primaryColor,

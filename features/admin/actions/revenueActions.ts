@@ -23,7 +23,7 @@ import {
   type TelehealthBillingStrategy,
 } from '../../../lib/schemas/telehealthBilling';
 import { tenantConfigSchema, type TenantConfig } from '../../../lib/schemas/tenant';
-import { CLINIC_TENANT_ID, PRIMARY_CLINIC_HOSTS } from '../../../lib/tenant/constants';
+import { CLINIC_TENANT_ID, CLINIC_BRAND_NAME, CLINIC_SUPPORT_EMAIL, PRIMARY_CLINIC_HOSTS } from '../../../lib/tenant/constants';
 import { createAdminClient } from '../../../lib/supabase/admin';
 
 const WELLNESS_MARKETING_PATH = '/admin/wellness/marketing';
@@ -80,10 +80,10 @@ function clinicTenantBootstrap(): TenantConfig {
   const now = new Date().toISOString();
   return tenantConfigSchema.parse({
     slug: CLINIC_TENANT_ID,
-    name: 'TPT Wellness Clinic',
+    name: CLINIC_BRAND_NAME,
     lane: 'telehealth',
     domains: [...PRIMARY_CLINIC_HOSTS],
-    supportEmail: 'support@tptwellness.com',
+    supportEmail: CLINIC_SUPPORT_EMAIL,
     telehealthBillingStrategy: DEFAULT_TELEHEALTH_BILLING_STRATEGY,
     content: DEFAULT_CLINIC_LANDING,
     theme: {

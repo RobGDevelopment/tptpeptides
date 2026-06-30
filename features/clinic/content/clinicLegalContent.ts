@@ -17,13 +17,13 @@ export const CLINIC_LEGAL_SLUGS: ClinicLegalSlug[] = ['terms', 'privacy'];
 export const CLINIC_LEGAL_DOCUMENTS: Record<ClinicLegalSlug, ClinicLegalDocument> = {
   terms: {
     title: 'Terms of Service',
-    subtitle: 'TPT Wellness Telehealth Platform',
+    subtitle: 'TPT Clinic Telehealth Platform',
     lastUpdated: 'June 2026',
     sections: [
       {
         heading: '1. Agreement',
         paragraphs: [
-          'By accessing the TPT Wellness telehealth platform ("Service"), you agree to these Terms of Service. If you do not agree, do not use the Service.',
+          'By accessing the TPT Clinic telehealth platform ("Service"), you agree to these Terms of Service. If you do not agree, do not use the Service.',
           'The Service provides physician-led telehealth intake, care coordination, and patient portal access for eligible patients.',
         ],
       },
@@ -51,21 +51,21 @@ export const CLINIC_LEGAL_DOCUMENTS: Record<ClinicLegalSlug, ClinicLegalDocument
       {
         heading: '5. Limitation of Liability',
         paragraphs: [
-          'To the extent permitted by law, TPT Wellness and its affiliates are not liable for indirect or consequential damages arising from use of the Service.',
+          'To the extent permitted by law, TPT Clinic and its affiliates are not liable for indirect or consequential damages arising from use of the Service.',
           'Nothing in these Terms limits rights that cannot be waived under applicable healthcare or consumer protection laws.',
         ],
       },
       {
         heading: '6. Contact',
         paragraphs: [
-          'Questions about these Terms may be directed to support@tptwellness.com or the contact information provided in your patient portal.',
+          'Questions about these Terms may be directed to support@tptclinic.com or the contact information provided in your patient portal.',
         ],
       },
     ],
   },
   privacy: {
     title: 'Privacy Policy',
-    subtitle: 'How TPT Wellness Protects Patient Information',
+    subtitle: 'How TPT Clinic Protects Patient Information',
     lastUpdated: 'June 2026',
     sections: [
       {
@@ -100,7 +100,7 @@ export const CLINIC_LEGAL_DOCUMENTS: Record<ClinicLegalSlug, ClinicLegalDocument
         heading: '5. Your Rights',
         paragraphs: [
           'Depending on your jurisdiction, you may have rights to access, amend, or request restrictions on certain uses of your health information.',
-          'Submit privacy requests through support@tptwellness.com or your patient portal.',
+          'Submit privacy requests through support@tptclinic.com or your patient portal.',
         ],
       },
       {
