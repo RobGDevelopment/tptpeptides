@@ -8,7 +8,7 @@ type SupabasePricingTierRow = {
   name: string;
   description: string | null;
   monthly_price: number | string;
-  stripe_price_id: string | null;
+  gateway_plan_id: string | null;
   is_active: boolean;
   sort_order: number;
 };
@@ -19,7 +19,7 @@ function mapPricingTier(row: SupabasePricingTierRow): ClinicPricingTier {
     name: row.name,
     description: row.description,
     monthlyPrice: Number(row.monthly_price),
-    stripePriceId: row.stripe_price_id,
+    gatewayPlanId: row.gateway_plan_id,
     isActive: row.is_active,
     sortOrder: row.sort_order,
   };
@@ -39,7 +39,7 @@ export async function getActivePricingTiers(): Promise<ClinicPricingTier[]> {
     });
     const { data, error } = await supabase
       .from('clinic_pricing_tiers')
-      .select('id, name, description, monthly_price, stripe_price_id, is_active, sort_order')
+      .select('id, name, description, monthly_price, gateway_plan_id, is_active, sort_order')
       .eq('is_active', true)
       .order('sort_order', { ascending: true })
       .order('monthly_price', { ascending: true });

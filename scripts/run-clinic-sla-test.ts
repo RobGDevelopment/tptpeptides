@@ -48,7 +48,7 @@ async function tryCron(): Promise<void> {
 
   try {
     const response = await fetch(cronUrl, {
-      method: 'POST',
+      method: 'GET',
       headers: { Authorization: `Bearer ${secret}` },
     });
     const body = (await response.json().catch(() => ({}))) as {

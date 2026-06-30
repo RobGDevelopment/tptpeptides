@@ -2,7 +2,10 @@
 
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
+import { DEFAULT_CLINIC_LANDING } from '../../../lib/data/clinicLandingDefaults';
+import { CLINIC_THEME_DEFAULTS } from '../../../lib/data/clinicThemeDefaults';
 import { AdminAuthError, requireAdminSession } from '../../../lib/firebase/adminAuth.server';
+import { getAdminFirestore, isAdminSdkConfigured } from '../../../lib/firebase/admin';
 import { getModuleFlags } from '../../../lib/firebase/modules.server';
 import { isModuleEnabled } from '../../../lib/modules/flags';
 import {
@@ -14,6 +17,13 @@ import {
   type PricingTierUpdateInput,
   type RevenueMetrics,
 } from '../../../lib/schemas/clinicRevenue';
+import {
+  DEFAULT_TELEHEALTH_BILLING_STRATEGY,
+  telehealthBillingStrategySchema,
+  type TelehealthBillingStrategy,
+} from '../../../lib/schemas/telehealthBilling';
+import { tenantConfigSchema, type TenantConfig } from '../../../lib/schemas/tenant';
+import { CLINIC_TENANT_ID, PRIMARY_CLINIC_HOSTS } from '../../../lib/tenant/constants';
 import { createAdminClient } from '../../../lib/supabase/admin';
 
 const WELLNESS_MARKETING_PATH = '/admin/wellness/marketing';
@@ -27,7 +37,7 @@ type SupabasePricingTierRow = {
   name: string;
   description: string | null;
   monthly_price: number | string;
-  stripe_price_id: string | null;
+  gateway_plan_id: string | null;
   is_active: boolean;
   sort_order: number;
 };
@@ -66,13 +76,51 @@ async function assertWellnessAdminAccess(): Promise<void> {
   }
 }
 
+function clinicTenantBootstrap(): TenantConfig {
+  const now = new Date().toISOString();
+  return tenantConfigSchema.parse({
+    slug: CLINIC_TENANT_ID,
+    name: 'TPT Wellness Clinic',
+    lane: 'telehealth',
+    domains: [...PRIMARY_CLINIC_HOSTS],
+    supportEmail: 'support@tptwellness.com',
+    telehealthBillingStrategy: DEFAULT_TELEHEALTH_BILLING_STRATEGY,
+    content: DEFAULT_CLINIC_LANDING,
+    theme: {
+      primaryColor: CLINIC_THEME_DEFAULTS.primaryColor,
+      accentColor: CLINIC_THEME_DEFAULTS.accentColor,
+    },
+    active: true,
+    createdAt: now,
+    updatedAt: now,
+  });
+}
+
+async function loadClinicTenantConfig(): Promise<TenantConfig> {
+  if (!isAdminSdkConfigured()) {
+    return clinicTenantBootstrap();
+  }
+
+  const snap = await getAdminFirestore().collection('tenant_config').doc(CLINIC_TENANT_ID).get();
+  if (!snap.exists) {
+    return clinicTenantBootstrap();
+  }
+
+  const parsed = tenantConfigSchema.safeParse(snap.data());
+  if (!parsed.success || parsed.data.lane !== 'telehealth') {
+    return clinicTenantBootstrap();
+  }
+
+  return parsed.data;
+}
+
 function mapPricingTier(row: SupabasePricingTierRow): ClinicPricingTier {
   return {
     id: row.id,
     name: row.name,
     description: row.description,
     monthlyPrice: Number(row.monthly_price),
-    stripePriceId: row.stripe_price_id,
+    gatewayPlanId: row.gateway_plan_id,
     isActive: row.is_active,
     sortOrder: row.sort_order,
   };
@@ -105,7 +153,7 @@ export async function getPricingTiers(): Promise<ClinicPricingTier[]> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from('clinic_pricing_tiers')
-    .select('id, name, description, monthly_price, stripe_price_id, is_active, sort_order')
+    .select('id, name, description, monthly_price, gateway_plan_id, is_active, sort_order')
     .order('sort_order', { ascending: true })
     .order('monthly_price', { ascending: true });
 
@@ -148,12 +196,12 @@ export async function updatePricingTier(
         name: parsed.name,
         description: parsed.description ?? null,
         monthly_price: parsed.monthlyPrice,
-        stripe_price_id: parsed.stripePriceId?.trim() || null,
+        gateway_plan_id: parsed.gatewayPlanId?.trim() || null,
         is_active: parsed.isActive,
         ...(parsed.sortOrder !== undefined ? { sort_order: parsed.sortOrder } : {}),
       })
       .eq('id', parsed.id)
-      .select('id, name, description, monthly_price, stripe_price_id, is_active, sort_order')
+      .select('id, name, description, monthly_price, gateway_plan_id, is_active, sort_order')
       .single();
 
     if (error) {
@@ -296,4 +344,47 @@ export async function getRevenueMetrics(): Promise<RevenueMetrics> {
     activePromotions,
     totalPromotionRedemptions,
   };
+}
+
+export async function getTelehealthBillingStrategy(): Promise<TelehealthBillingStrategy> {
+  await assertWellnessAdminAccess();
+  const config = await loadClinicTenantConfig();
+  return config.telehealthBillingStrategy ?? DEFAULT_TELEHEALTH_BILLING_STRATEGY;
+}
+
+export async function updateTelehealthBillingStrategy(
+  strategy: TelehealthBillingStrategy
+): Promise<ActionResult<{ strategy: TelehealthBillingStrategy }>> {
+  try {
+    await assertWellnessAdminAccess();
+    const parsed = telehealthBillingStrategySchema.parse(strategy);
+
+    if (!isAdminSdkConfigured()) {
+      return {
+        ok: false,
+        error: 'Firebase Admin SDK is not configured. Cannot save billing strategy.',
+      };
+    }
+
+    const config = await loadClinicTenantConfig();
+    const ref = getAdminFirestore().collection('tenant_config').doc(CLINIC_TENANT_ID);
+    const updatedAt = new Date().toISOString();
+
+    await ref.set(
+      {
+        ...config,
+        telehealthBillingStrategy: parsed,
+        updatedAt,
+      },
+      { merge: true }
+    );
+
+    revalidatePath(WELLNESS_MARKETING_PATH);
+
+    return { ok: true, data: { strategy: parsed } };
+  } catch (caught) {
+    const message =
+      caught instanceof Error ? caught.message : 'Unable to update billing strategy.';
+    return { ok: false, error: message };
+  }
 }

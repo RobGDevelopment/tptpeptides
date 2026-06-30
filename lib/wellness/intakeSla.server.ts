@@ -80,3 +80,31 @@ export async function markIntakesSlaAlerted(intakeIds: string[]): Promise<void> 
     throw new Error(error.message);
   }
 }
+
+export type IntakeSlaProcessResult = {
+  staleCount: number;
+  emailed: boolean;
+  markedCount: number;
+};
+
+/** Query stale intakes, send ops alert, and stamp sla_alerted_at to dedupe future cron runs. */
+export async function processIntakeSlaViolations(slaHours = 24): Promise<IntakeSlaProcessResult> {
+  const { sendWellnessSlaAlertEmail } = await import('../email/wellnessSlaAlert.server');
+
+  const staleIntakes = await listStaleMedicalIntakes(slaHours);
+  if (staleIntakes.length === 0) {
+    return { staleCount: 0, emailed: false, markedCount: 0 };
+  }
+
+  const emailed = await sendWellnessSlaAlertEmail(staleIntakes);
+
+  if (emailed) {
+    await markIntakesSlaAlerted(staleIntakes.map((intake) => intake.id));
+  }
+
+  return {
+    staleCount: staleIntakes.length,
+    emailed,
+    markedCount: emailed ? staleIntakes.length : 0,
+  };
+}

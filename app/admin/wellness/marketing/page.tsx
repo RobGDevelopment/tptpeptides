@@ -3,7 +3,9 @@ import {
   getPricingTiers,
   getPromotions,
   getRevenueMetrics,
+  getTelehealthBillingStrategy,
 } from '../../../../features/admin/actions/revenueActions';
+import { BillingStrategyPanel } from '../../../../features/admin/components/wellness/BillingStrategyPanel';
 import {
   RevenueMarketingPanel,
   RevenueMetricsSnapshot,
@@ -21,13 +23,16 @@ export default async function AdminWellnessMarketingPage() {
   let tiers: Awaited<ReturnType<typeof getPricingTiers>> = [];
   let promotions: Awaited<ReturnType<typeof getPromotions>> = [];
   let metrics: Awaited<ReturnType<typeof getRevenueMetrics>> | null = null;
+  let billingStrategy: Awaited<ReturnType<typeof getTelehealthBillingStrategy>> =
+    'upfront_capture';
   let loadError: string | null = null;
 
   try {
-    [tiers, promotions, metrics] = await Promise.all([
+    [tiers, promotions, metrics, billingStrategy] = await Promise.all([
       getPricingTiers(),
       getPromotions(),
       getRevenueMetrics(),
+      getTelehealthBillingStrategy(),
     ]);
   } catch (caught) {
     loadError = caught instanceof Error ? caught.message : 'Unable to load revenue dashboard.';
@@ -37,7 +42,7 @@ export default async function AdminWellnessMarketingPage() {
     <div className="space-y-6">
       <AdminPageHeader
         title="Marketing & Revenue"
-        subtitle="Manage clinic pricing tiers, promotional codes, and proforma subscription metrics."
+        subtitle="Billing compliance, gateway-agnostic pricing tiers, promotions, and proforma subscription metrics."
       />
 
       {loadError ? (
@@ -45,6 +50,8 @@ export default async function AdminWellnessMarketingPage() {
           {loadError}
         </div>
       ) : null}
+
+      <BillingStrategyPanel initialStrategy={billingStrategy} />
 
       {metrics ? <RevenueMetricsSnapshot metrics={metrics} /> : null}
 

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { telehealthBillingStrategySchema } from './telehealthBilling';
 
 export const tenantLaneSchema = z.enum(['b2b', 'b2c', 'telehealth']);
 
@@ -95,6 +96,8 @@ export const tenantConfigSchema = z.object({
   domains: z.array(z.string().min(1)).default([]),
   supportEmail: z.string().email().optional(),
   payment: tenantPaymentConfigSchema.optional(),
+  /** Telehealth clinic: when membership/consultation fees are captured */
+  telehealthBillingStrategy: telehealthBillingStrategySchema.optional(),
   theme: tenantThemeSchema.optional(),
   content: tenantContentSchema.optional(),
   active: z.boolean().default(true),

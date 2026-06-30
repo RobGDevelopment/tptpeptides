@@ -29,8 +29,9 @@ export function ClinicPricingSection({ tiers }: ClinicPricingSectionProps) {
             Membership tiers designed for discretion and clinical depth
           </h2>
           <p className="clinic-section-lead">
-            Clear monthly pricing with physician-led oversight. No hidden fees — eligibility and
-            clinical fit are confirmed during your private intake.
+            Clear monthly pricing with physician-led oversight. Your initial fee covers the medical
+            consultation and secure intake review — eligibility and clinical fit are confirmed before
+            ongoing membership billing begins.
           </p>
         </div>
 
@@ -55,9 +56,10 @@ export function ClinicPricingSection({ tiers }: ClinicPricingSectionProps) {
         </div>
 
         <p className="mt-8 text-center text-xs text-muted font-light max-w-2xl mx-auto">
-          Telehealth services are provided in compliance with applicable state licensure and 2026
-          federal telehealth regulations. Pricing does not include labs, medications, or third-party
-          services billed separately when clinically indicated.
+          The listed monthly rate reflects ongoing membership after your initial consultation fee.
+          Telehealth services comply with applicable state licensure and 2026 federal telehealth
+          regulations. Labs, medications, and third-party services may be billed separately when
+          clinically indicated.
         </p>
       </div>
     </section>

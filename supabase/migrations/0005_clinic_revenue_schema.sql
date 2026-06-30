@@ -1,10 +1,10 @@
 -- =============================================================================
 -- Migration: 0005_clinic_revenue_schema
--- Telehealth Clinic — pricing tiers, promotions, subscriptions (revenue engine)
+-- Telehealth Clinic — gateway-agnostic pricing, promotions, subscriptions
 -- =============================================================================
 
 -- ---------------------------------------------------------------------------
--- Enum: subscription lifecycle (Stripe-aligned)
+-- Enum: subscription lifecycle (processor-agnostic)
 -- ---------------------------------------------------------------------------
 CREATE TYPE public.clinic_subscription_status AS ENUM (
   'trialing',
@@ -18,6 +18,18 @@ CREATE TYPE public.clinic_subscription_status AS ENUM (
 );
 
 -- ---------------------------------------------------------------------------
+-- Enum: supported high-risk / alternate payment gateways
+-- ---------------------------------------------------------------------------
+CREATE TYPE public.clinic_payment_gateway AS ENUM (
+  'nmi',
+  'authorizenet',
+  '2accept',
+  'seamlesschex',
+  'payram',
+  'stripe'
+);
+
+-- ---------------------------------------------------------------------------
 -- Table: clinic_pricing_tiers
 -- ---------------------------------------------------------------------------
 CREATE TABLE public.clinic_pricing_tiers (
@@ -25,27 +37,27 @@ CREATE TABLE public.clinic_pricing_tiers (
   name TEXT NOT NULL,
   description TEXT,
   monthly_price NUMERIC(10, 2) NOT NULL,
-  stripe_price_id TEXT,
+  gateway_plan_id TEXT,
   is_active BOOLEAN NOT NULL DEFAULT true,
   sort_order INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT clinic_pricing_tiers_name_not_empty_chk CHECK (length(trim(name)) > 0),
   CONSTRAINT clinic_pricing_tiers_monthly_price_positive_chk CHECK (monthly_price > 0),
-  CONSTRAINT clinic_pricing_tiers_stripe_price_id_len_chk CHECK (
-    stripe_price_id IS NULL OR length(trim(stripe_price_id)) > 0
+  CONSTRAINT clinic_pricing_tiers_gateway_plan_id_len_chk CHECK (
+    gateway_plan_id IS NULL OR length(trim(gateway_plan_id)) > 0
   )
 );
 
 COMMENT ON TABLE public.clinic_pricing_tiers IS
-  'Telehealth membership tiers. Public landing reads active tiers; Stripe price IDs wired at cutover.';
+  'Telehealth membership tiers. Public landing reads active tiers; gateway_plan_id wired at processor cutover.';
 
 CREATE INDEX clinic_pricing_tiers_active_sort_idx
   ON public.clinic_pricing_tiers (is_active, sort_order, monthly_price);
 
-CREATE UNIQUE INDEX clinic_pricing_tiers_stripe_price_id_uidx
-  ON public.clinic_pricing_tiers (stripe_price_id)
-  WHERE stripe_price_id IS NOT NULL;
+CREATE UNIQUE INDEX clinic_pricing_tiers_gateway_plan_id_uidx
+  ON public.clinic_pricing_tiers (gateway_plan_id)
+  WHERE gateway_plan_id IS NOT NULL;
 
 -- ---------------------------------------------------------------------------
 -- Table: clinic_promotions
@@ -93,18 +105,19 @@ CREATE TABLE public.clinic_subscriptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   patient_id UUID NOT NULL REFERENCES public.patient_profiles (id) ON DELETE CASCADE,
   tier_id UUID NOT NULL REFERENCES public.clinic_pricing_tiers (id) ON DELETE RESTRICT,
-  stripe_subscription_id TEXT,
+  gateway_subscription_id TEXT,
+  payment_gateway public.clinic_payment_gateway,
   status public.clinic_subscription_status NOT NULL DEFAULT 'incomplete',
   current_period_end TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  CONSTRAINT clinic_subscriptions_stripe_id_len_chk CHECK (
-    stripe_subscription_id IS NULL OR length(trim(stripe_subscription_id)) > 0
+  CONSTRAINT clinic_subscriptions_gateway_subscription_id_len_chk CHECK (
+    gateway_subscription_id IS NULL OR length(trim(gateway_subscription_id)) > 0
   )
 );
 
 COMMENT ON TABLE public.clinic_subscriptions IS
-  'Patient membership subscriptions. Stripe IDs populated when billing goes live.';
+  'Patient membership subscriptions. Gateway IDs populated when billing goes live (NMI, 2Accept, etc.).';
 
 CREATE INDEX clinic_subscriptions_patient_id_idx
   ON public.clinic_subscriptions (patient_id);
@@ -112,9 +125,9 @@ CREATE INDEX clinic_subscriptions_patient_id_idx
 CREATE INDEX clinic_subscriptions_status_period_idx
   ON public.clinic_subscriptions (status, current_period_end DESC);
 
-CREATE UNIQUE INDEX clinic_subscriptions_stripe_subscription_id_uidx
-  ON public.clinic_subscriptions (stripe_subscription_id)
-  WHERE stripe_subscription_id IS NOT NULL;
+CREATE UNIQUE INDEX clinic_subscriptions_gateway_subscription_id_uidx
+  ON public.clinic_subscriptions (gateway_subscription_id, payment_gateway)
+  WHERE gateway_subscription_id IS NOT NULL AND payment_gateway IS NOT NULL;
 
 -- ---------------------------------------------------------------------------
 -- Triggers: updated_at
@@ -197,9 +210,10 @@ GRANT ALL ON public.clinic_pricing_tiers TO service_role;
 GRANT ALL ON public.clinic_promotions TO service_role;
 GRANT ALL ON public.clinic_subscriptions TO service_role;
 GRANT USAGE ON TYPE public.clinic_subscription_status TO authenticated, service_role;
+GRANT USAGE ON TYPE public.clinic_payment_gateway TO authenticated, service_role;
 
 -- ---------------------------------------------------------------------------
--- Seed: default HNW-oriented tiers (stripe_price_id null until Stripe cutover)
+-- Seed: default HNW-oriented tiers (gateway_plan_id null until processor cutover)
 -- ---------------------------------------------------------------------------
 INSERT INTO public.clinic_pricing_tiers (name, description, monthly_price, sort_order, is_active)
 VALUES

@@ -13,12 +13,23 @@ export const clinicSubscriptionStatusSchema = z.enum([
 
 export type ClinicSubscriptionStatus = z.infer<typeof clinicSubscriptionStatusSchema>;
 
+export const clinicPaymentGatewaySchema = z.enum([
+  'nmi',
+  'authorizenet',
+  '2accept',
+  'seamlesschex',
+  'payram',
+  'stripe',
+]);
+
+export type ClinicPaymentGateway = z.infer<typeof clinicPaymentGatewaySchema>;
+
 export const pricingTierUpdateSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(120),
   description: z.string().max(500).optional().nullable(),
   monthlyPrice: z.number().positive().max(999_999),
-  stripePriceId: z.string().max(200).optional().nullable(),
+  gatewayPlanId: z.string().max(200).optional().nullable(),
   isActive: z.boolean(),
   sortOrder: z.number().int().min(0).max(9999).optional(),
 });
@@ -46,7 +57,7 @@ export type ClinicPricingTier = {
   name: string;
   description: string | null;
   monthlyPrice: number;
-  stripePriceId: string | null;
+  gatewayPlanId: string | null;
   isActive: boolean;
   sortOrder: number;
 };

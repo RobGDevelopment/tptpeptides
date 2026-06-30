@@ -8,8 +8,8 @@ import type { StaleIntakeRow } from '../wellness/intakeSla.server';
 
 function wellnessAlertEmail(): string | null {
   return (
-    process.env.WELLNESS_SLA_ALERT_EMAIL?.trim() ||
     process.env.OPS_ALERT_EMAIL?.trim() ||
+    process.env.WELLNESS_SLA_ALERT_EMAIL?.trim() ||
     process.env.RESEND_FROM_EMAIL?.match(/<([^>]+)>/)?.[1] ||
     process.env.RESEND_FROM_EMAIL?.trim() ||
     null

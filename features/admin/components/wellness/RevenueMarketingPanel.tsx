@@ -68,7 +68,7 @@ export function RevenueMarketingPanel({
         name: tier.name,
         description: tier.description,
         monthlyPrice: tier.monthlyPrice,
-        stripePriceId: tier.stripePriceId,
+        gatewayPlanId: tier.gatewayPlanId,
         isActive: tier.isActive,
         sortOrder: tier.sortOrder,
       });
@@ -171,7 +171,7 @@ export function RevenueMarketingPanel({
                 <th>Tier</th>
                 <th>Description</th>
                 <th>Monthly</th>
-                <th>Stripe Price ID</th>
+                <th>Gateway Plan ID</th>
                 <th>Sort</th>
                 <th>Active</th>
                 <th />
@@ -218,10 +218,10 @@ export function RevenueMarketingPanel({
                     <td>
                       <input
                         className="w-full min-w-[10rem] rounded-sm border border-white/10 bg-void/40 px-2 py-1.5 text-xs font-mono text-muted"
-                        value={tier.stripePriceId ?? ''}
-                        placeholder="price_…"
+                        value={tier.gatewayPlanId ?? ''}
+                        placeholder="plan_…"
                         onChange={(event) =>
-                          updateTierField(tier.id, 'stripePriceId', event.target.value || null)
+                          updateTierField(tier.id, 'gatewayPlanId', event.target.value || null)
                         }
                       />
                     </td>
