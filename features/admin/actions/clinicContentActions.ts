@@ -14,6 +14,8 @@ import {
 } from '../../../lib/schemas/clinicLanding';
 import { tenantConfigSchema, type TenantConfig } from '../../../lib/schemas/tenant';
 import { CLINIC_TENANT_ID, PRIMARY_CLINIC_HOSTS } from '../../../lib/tenant/constants';
+import { sanitizeThemeInput } from '../../../lib/tenant/theme';
+import { CLINIC_THEME_DEFAULTS } from '../../../lib/data/clinicThemeDefaults';
 
 const WELLNESS_SETTINGS_PATH = '/admin/wellness/settings';
 const ADMIN_PATH = '/admin';
@@ -27,6 +29,10 @@ function clinicTenantBootstrap(): TenantConfig {
     domains: [...PRIMARY_CLINIC_HOSTS],
     supportEmail: 'support@tptwellness.com',
     content: DEFAULT_CLINIC_LANDING,
+    theme: {
+      primaryColor: CLINIC_THEME_DEFAULTS.primaryColor,
+      accentColor: CLINIC_THEME_DEFAULTS.accentColor,
+    },
     active: true,
     createdAt: now,
     updatedAt: now,
@@ -68,7 +74,13 @@ async function loadClinicTenantConfig(): Promise<TenantConfig> {
 export async function getClinicLandingContent(): Promise<ClinicLandingContent> {
   await assertWellnessAdminAccess();
   const config = await loadClinicTenantConfig();
-  return mergeClinicLandingContent(config.content, DEFAULT_CLINIC_LANDING);
+  const merged = mergeClinicLandingContent(config.content, DEFAULT_CLINIC_LANDING);
+  return clinicLandingContentSchema.parse({
+    ...merged,
+    primaryColor: config.theme?.primaryColor ?? merged.primaryColor,
+    accentColor: config.theme?.accentColor ?? merged.accentColor,
+    logoUrl: config.theme?.logoUrl ?? merged.logoUrl,
+  });
 }
 
 export async function updateClinicLandingContent(
@@ -93,11 +105,18 @@ export async function updateClinicLandingContent(
     const config = await loadClinicTenantConfig();
     const ref = getAdminFirestore().collection('tenant_config').doc(CLINIC_TENANT_ID);
 
+    const theme = sanitizeThemeInput({
+      primaryColor: validated.data.primaryColor,
+      accentColor: validated.data.accentColor,
+      logoUrl: validated.data.logoUrl,
+    });
+
     await ref.set(
       {
         ...config,
         slug: CLINIC_TENANT_ID,
         lane: 'telehealth',
+        ...(theme ? { theme: { ...config.theme, ...theme } } : {}),
         content: {
           ...config.content,
           ...validated.data,

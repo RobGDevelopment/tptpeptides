@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from 'react';
 import { updateClinicLandingContent } from '../../actions/clinicContentActions';
+import { adminFetch } from '../../../../lib/admin/adminFetch.client';
 import { Button } from '../../../../components/ui/Button';
 import { Input } from '../../../../components/ui/Input';
 import type { ClinicLandingContent } from '../../../../lib/schemas/clinicLanding';
@@ -15,6 +16,7 @@ export function ClinicLandingForm({ initialContent }: { initialContent: ClinicLa
   const [content, setContent] = useState(initialContent);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [pending, startTransition] = useTransition();
+  const [uploading, setUploading] = useState<'hero' | 'logo' | null>(null);
 
   useEffect(() => {
     setContent(initialContent);
@@ -28,6 +30,30 @@ export function ClinicLandingForm({ initialContent }: { initialContent: ClinicLa
 
   const updateField = <K extends keyof ClinicLandingContent>(key: K, value: ClinicLandingContent[K]) => {
     setContent((current) => ({ ...current, [key]: value }));
+  };
+
+  const uploadImage = async (file: File, target: 'heroImageUrl' | 'logoUrl') => {
+    setUploading(target === 'heroImageUrl' ? 'hero' : 'logo');
+    setToast(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await adminFetch('/api/admin/wellness/clinic-assets', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = (await response.json()) as { ok?: boolean; publicUrl?: string; error?: string };
+      if (!response.ok || !data.publicUrl) {
+        throw new Error(data.error ?? 'Upload failed.');
+      }
+      updateField(target, data.publicUrl);
+      setToast({ type: 'success', message: 'Image uploaded. Save to publish on the live clinic site.' });
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : 'Upload failed.';
+      setToast({ type: 'error', message });
+    } finally {
+      setUploading(null);
+    }
   };
 
   const handleSubmit = (event: React.FormEvent) => {
@@ -59,7 +85,96 @@ export function ClinicLandingForm({ initialContent }: { initialContent: ClinicLa
         </div>
       ) : null}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-4 rounded-sm border border-white/[0.06] bg-surface/20 p-4">
+          <p className="text-[10px] tracking-caps uppercase text-muted">Brand colors (clinic lane only)</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Input
+              label="Primary color"
+              type="color"
+              value={content.primaryColor ?? '#2D6A6A'}
+              onChange={(event) => updateField('primaryColor', event.target.value)}
+            />
+            <Input
+              label="Accent color"
+              type="color"
+              value={content.accentColor ?? '#5A9E8F'}
+              onChange={(event) => updateField('accentColor', event.target.value)}
+            />
+            <Input
+              label="Background"
+              type="color"
+              value={content.backgroundColor ?? '#F4F9F7'}
+              onChange={(event) => updateField('backgroundColor', event.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-4 rounded-sm border border-white/[0.06] bg-surface/20 p-4">
+          <p className="text-[10px] tracking-caps uppercase text-muted">Hero image</p>
+          {content.heroImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- admin preview of remote asset
+            <img
+              src={content.heroImageUrl}
+              alt={content.heroImageAlt ?? 'Hero preview'}
+              className="max-h-48 w-auto rounded-sm border border-white/[0.08]"
+            />
+          ) : null}
+          <Input
+            label="Hero image alt text"
+            value={content.heroImageAlt ?? ''}
+            onChange={(event) => updateField('heroImageAlt', event.target.value)}
+          />
+          <label className="block space-y-2">
+            <span className="text-[10px] tracking-caps uppercase text-muted">Upload hero image</span>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              disabled={uploading === 'hero'}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) void uploadImage(file, 'heroImageUrl');
+                event.target.value = '';
+              }}
+              className="block w-full text-sm text-secondary"
+            />
+          </label>
+          <Input
+            label="Or paste image URL"
+            value={content.heroImageUrl ?? ''}
+            onChange={(event) => updateField('heroImageUrl', event.target.value || undefined)}
+            placeholder="https://..."
+          />
+        </div>
+
+        <div className="space-y-4 rounded-sm border border-white/[0.06] bg-surface/20 p-4">
+          <p className="text-[10px] tracking-caps uppercase text-muted">Navbar logo</p>
+          {content.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={content.logoUrl} alt="Logo preview" className="h-10 w-auto rounded-sm" />
+          ) : null}
+          <label className="block space-y-2">
+            <span className="text-[10px] tracking-caps uppercase text-muted">Upload logo</span>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              disabled={uploading === 'logo'}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) void uploadImage(file, 'logoUrl');
+                event.target.value = '';
+              }}
+              className="block w-full text-sm text-secondary"
+            />
+          </label>
+          <Input
+            label="Or paste logo URL"
+            value={content.logoUrl ?? ''}
+            onChange={(event) => updateField('logoUrl', event.target.value || undefined)}
+            placeholder="https://..."
+          />
+        </div>
+
         <Input
           label="Wordmark"
           value={content.wordmark}
@@ -116,7 +231,7 @@ export function ClinicLandingForm({ initialContent }: { initialContent: ClinicLa
           onChange={(event) => updateField('footerTagline', event.target.value)}
           required
         />
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending || uploading !== null}>
           {pending ? 'Saving…' : 'Save Clinic Landing'}
         </Button>
       </form>

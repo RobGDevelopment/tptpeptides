@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { DEFAULT_CLINIC_LANDING } from '../data/clinicLandingDefaults';
+import { CLINIC_THEME_DEFAULTS } from '../data/clinicThemeDefaults';
 import { mergeClinicLandingContent } from '../schemas/clinicLanding';
 import { tenantConfigSchema, type TenantConfig } from '../schemas/tenant';
 import { CLINIC_TENANT_ID, PRIMARY_CLINIC_HOSTS } from './constants';
@@ -16,6 +17,10 @@ function getStaticClinicTenantConfig(): TenantConfig {
     domains: [...PRIMARY_CLINIC_HOSTS],
     supportEmail: 'support@tptwellness.com',
     content: DEFAULT_CLINIC_LANDING,
+    theme: {
+      primaryColor: CLINIC_THEME_DEFAULTS.primaryColor,
+      accentColor: CLINIC_THEME_DEFAULTS.accentColor,
+    },
     active: true,
     createdAt: now,
     updatedAt: now,
@@ -47,5 +52,11 @@ export async function getTenantConfigForRequest(tenantId: string): Promise<Tenan
 
 export async function getClinicLandingForRequest(): Promise<ReturnType<typeof mergeClinicLandingContent>> {
   const config = await getTenantConfigForRequest(CLINIC_TENANT_ID);
-  return mergeClinicLandingContent(config.content, DEFAULT_CLINIC_LANDING);
+  const merged = mergeClinicLandingContent(config.content, DEFAULT_CLINIC_LANDING);
+  return {
+    ...merged,
+    primaryColor: config.theme?.primaryColor ?? merged.primaryColor,
+    accentColor: config.theme?.accentColor ?? merged.accentColor,
+    logoUrl: config.theme?.logoUrl ?? merged.logoUrl,
+  };
 }

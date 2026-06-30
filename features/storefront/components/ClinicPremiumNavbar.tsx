@@ -24,13 +24,13 @@ export function ClinicPremiumNavbar() {
   const pathname = usePathname();
   const { user, signOut } = useClinicAuth();
   const tenant = useTenantOptional();
-  const logoUrl = tenant?.config.theme?.logoUrl;
+  const logoUrl = tenant?.config.theme?.logoUrl ?? tenant?.config.content?.logoUrl;
   const brandName = tenant?.config.name ?? 'TPT Wellness';
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <header className="fixed top-0 w-full z-40">
-      <nav className="relative border-b border-black/[0.06] bg-[#fcfcfc]/85 backdrop-blur-md">
+      <nav className="relative border-b border-black/[0.06] bg-void/85 backdrop-blur-md">
         <HeaderDividerBeam contained delay={0} className="absolute bottom-0 left-0 right-0" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
@@ -118,7 +118,7 @@ export function ClinicPremiumNavbar() {
       </nav>
 
       {menuOpen ? (
-        <div className="md:hidden border-b border-black/[0.06] bg-[#fcfcfc]/95 backdrop-blur-md px-4 py-4 space-y-3">
+        <div className="md:hidden border-b border-black/[0.06] bg-void/95 backdrop-blur-md px-4 py-4 space-y-3">
           <Link href="/" className="block text-sm text-secondary" onClick={() => setMenuOpen(false)}>
             Home
           </Link>

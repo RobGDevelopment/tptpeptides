@@ -8,6 +8,7 @@ import { getModuleFlags } from '../../../lib/firebase/modules.server';
 import { isModuleEnabled } from '../../../lib/modules/flags';
 import { clinicDomainSchema, type AddCustomDomainResult } from '../../../lib/schemas/clinicDomain';
 import { DEFAULT_CLINIC_LANDING } from '../../../lib/data/clinicLandingDefaults';
+import { CLINIC_THEME_DEFAULTS } from '../../../lib/data/clinicThemeDefaults';
 import { tenantConfigSchema, type TenantConfig } from '../../../lib/schemas/tenant';
 import { CLINIC_TENANT_ID, PRIMARY_CLINIC_HOSTS } from '../../../lib/tenant/constants';
 import { addProjectDomain, isVercelDomainsConfigured } from '../../../lib/vercel/domains.server';
@@ -23,6 +24,10 @@ function clinicTenantBootstrap(): TenantConfig {
     domains: [...PRIMARY_CLINIC_HOSTS],
     supportEmail: 'support@tptwellness.com',
     content: DEFAULT_CLINIC_LANDING,
+    theme: {
+      primaryColor: CLINIC_THEME_DEFAULTS.primaryColor,
+      accentColor: CLINIC_THEME_DEFAULTS.accentColor,
+    },
     active: true,
     createdAt: now,
     updatedAt: now,

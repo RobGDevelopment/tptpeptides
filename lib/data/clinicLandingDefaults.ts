@@ -1,4 +1,5 @@
 import type { ClinicLandingContent } from '../schemas/clinicLanding';
+import { CLINIC_THEME_DEFAULTS } from './clinicThemeDefaults';
 
 export const DEFAULT_CLINIC_LANDING: ClinicLandingContent = {
   heroHeadline: 'Expert Medical Weight Loss & Wellness',
@@ -9,4 +10,10 @@ export const DEFAULT_CLINIC_LANDING: ClinicLandingContent = {
   secondaryCtaHref: '/dashboard',
   footerTagline: 'Licensed telehealth care you can trust.',
   wordmark: 'TPT WELLNESS',
+  heroImageUrl: undefined,
+  heroImageAlt: 'Telehealth wellness care',
+  logoUrl: undefined,
+  primaryColor: CLINIC_THEME_DEFAULTS.primaryColor,
+  accentColor: CLINIC_THEME_DEFAULTS.accentColor,
+  backgroundColor: CLINIC_THEME_DEFAULTS.backgroundColor,
 };

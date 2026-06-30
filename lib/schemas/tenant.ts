@@ -48,6 +48,12 @@ export const tenantContentSchema = z.object({
   secondaryCtaHref: z.string().min(1).max(200).optional(),
   footerTagline: z.string().min(1).max(200).optional(),
   wordmark: z.string().min(1).max(80).optional(),
+  heroImageUrl: z.string().url().optional(),
+  heroImageAlt: z.string().max(120).optional(),
+  logoUrl: z.string().url().optional(),
+  primaryColor: z.string().optional(),
+  accentColor: z.string().optional(),
+  backgroundColor: z.string().optional(),
   supportEmail: z.string().email().optional(),
   termsUrl: z
     .string()

@@ -892,6 +892,77 @@ html.dark {
   filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.8));
 }
 
+/* ─── Telehealth clinic lane (scoped — does not affect html.dark B2B) ─── */
+[data-tenant-lane='telehealth'] .terminal-link,
+[data-tenant-lane='telehealth'] .interactive-link {
+  animation: clinic-link-pulse 3s ease-in-out infinite;
+}
+
+[data-tenant-lane='telehealth'] .terminal-link:hover,
+[data-tenant-lane='telehealth'] .terminal-link:focus-visible,
+[data-tenant-lane='telehealth'] .interactive-link:hover,
+[data-tenant-lane='telehealth'] .interactive-link:focus-visible,
+[data-tenant-lane='telehealth'] .clinic-footer-link:hover,
+[data-tenant-lane='telehealth'] .clinic-footer-link:focus-visible {
+  animation: none;
+  color: var(--theme-primary);
+  text-shadow: none;
+}
+
+[data-tenant-lane='telehealth'] .metallic-beam-h,
+[data-tenant-lane='telehealth'] .metallic-beam-top {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--theme-primary) 18%, transparent) 50%,
+    transparent 100%
+  );
+}
+
+.clinic-cta-primary {
+  @apply inline-flex items-center justify-center rounded-sm px-5 py-3 text-xs tracking-caps uppercase font-medium transition-colors;
+  background: var(--theme-primary);
+  color: white;
+}
+
+.clinic-cta-primary:hover {
+  background: color-mix(in srgb, var(--theme-primary) 88%, black);
+}
+
+.clinic-cta-secondary {
+  @apply inline-flex items-center justify-center rounded-sm border px-5 py-3 text-xs tracking-caps uppercase font-medium transition-colors;
+  border-color: color-mix(in srgb, var(--theme-primary) 35%, transparent);
+  color: var(--theme-primary);
+}
+
+.clinic-cta-secondary:hover {
+  background: color-mix(in srgb, var(--theme-primary) 8%, white);
+}
+
+.clinic-hero-glow {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, color-mix(in srgb, var(--theme-accent) 22%, transparent), transparent),
+    radial-gradient(ellipse 50% 40% at 100% 50%, color-mix(in srgb, var(--theme-primary) 10%, transparent), transparent);
+}
+
+.clinic-hero-placeholder {
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--theme-accent) 16%, white),
+    color-mix(in srgb, var(--theme-primary) 10%, white)
+  );
+}
+
+@keyframes clinic-link-pulse {
+  0%,
+  100% {
+    color: var(--color-secondary);
+  }
+  50% {
+    color: color-mix(in srgb, var(--theme-primary) 70%, var(--color-secondary));
+  }
+}
+
 
 /* Executive manual flipbook — Falconwood glass pages */
 .manual-flipbook {

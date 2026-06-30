@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from 'next';
-import { StorefrontFooter } from '../../features/storefront/components/StorefrontFooter';
+import { ClinicFooter } from '../../features/storefront/components/ClinicFooter';
 import { StorefrontShell } from '../../features/storefront/components/StorefrontShell';
 import { getActiveTenantId } from '../../lib/tenant/getTenant.server';
-import { getTenantConfigForRequest } from '../../lib/tenant/getTenantConfig.server';
+import { getClinicLandingForRequest, getTenantConfigForRequest } from '../../lib/tenant/getTenantConfig.server';
+import { clinicLandingToCssProperties } from '../../lib/tenant/clinicTheme';
 import {
   resolveTenantSupportEmail,
   resolveTenantTermsUrl,
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#fcfcfc',
+  themeColor: '#F4F9F7',
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
@@ -35,19 +36,22 @@ export default async function TelehealthClinicLayout({
 }) {
   const tenantId = await getActiveTenantId();
   const tenantConfig = await getTenantConfigForRequest(tenantId);
+  const landing = await getClinicLandingForRequest();
   const supportEmail = resolveTenantSupportEmail(tenantConfig);
   const termsUrl = resolveTenantTermsUrl(tenantConfig);
-  const footerTagline =
-    tenantConfig.content?.heroHeadline ??
-    'Evidence-based wellness programs delivered by licensed clinicians.';
+  const clinicStyle = clinicLandingToCssProperties(landing);
 
   return (
-    <div className="min-h-screen bg-void text-primary antialiased flex flex-col">
+    <div
+      className="min-h-screen bg-void text-primary antialiased flex flex-col clinic-lane"
+      style={clinicStyle}
+    >
       <StorefrontShell skipAgeGate>{children}</StorefrontShell>
-      <StorefrontFooter
-        tagline={footerTagline}
+      <ClinicFooter
+        tagline={landing.footerTagline}
         supportEmail={supportEmail}
         termsUrl={termsUrl}
+        brandName={tenantConfig.name}
       />
     </div>
   );
