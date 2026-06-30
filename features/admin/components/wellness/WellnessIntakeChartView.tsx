@@ -6,6 +6,7 @@ import type {
   MedicalIntakeShippingAddress,
 } from '../../actions/wellnessActions';
 import { IntakeActions } from './IntakeActions';
+import { PatientSecureMessagesPanel } from './PatientSecureMessagesPanel';
 import { PrescriptionForm } from './PrescriptionForm';
 import { AdminPageHeader } from '../../../../components/ui/AdminPageHeader';
 
@@ -121,6 +122,10 @@ export function WellnessIntakeChartView({ intake }: { intake: MedicalIntakeDetai
         actions={
           <div className="flex flex-wrap items-center gap-4">
             <StatusBadge status={intake.status} />
+            <PatientSecureMessagesPanel
+              patientId={intake.patientId}
+              patientName={formatPatientName(intake.patient.firstName, intake.patient.lastName)}
+            />
             <Link
               href="/admin/wellness/intakes"
               className="text-[10px] tracking-caps uppercase text-muted hover:text-secondary transition-colors"

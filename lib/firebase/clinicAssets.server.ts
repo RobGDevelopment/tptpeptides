@@ -62,6 +62,50 @@ export async function uploadClinicMarketingAsset(params: {
   return { publicUrl, storagePath, kind };
 }
 
+const LAB_MIME_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png']);
+
+export async function uploadClinicLabDocument(params: {
+  fileName: string;
+  mimeType: string;
+  buffer: Buffer;
+  patientId: string;
+}): Promise<{ publicUrl: string; storagePath: string }> {
+  if (!isAdminSdkConfigured()) {
+    throw new Error('Firebase Storage is not configured.');
+  }
+
+  if (!LAB_MIME_TYPES.has(params.mimeType)) {
+    throw new Error('Unsupported lab file type. Upload PDF, JPG, or PNG.');
+  }
+
+  const maxBytes = 12 * 1024 * 1024;
+  if (params.buffer.byteLength > maxBytes) {
+    throw new Error('Lab file exceeds 12 MB limit.');
+  }
+
+  const safePatient = params.patientId.replace(/[^a-zA-Z0-9-]/g, '');
+  const safeName = params.fileName.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 120);
+  const storagePath = `clinic_assets/labs/${safePatient}/${Date.now()}_${safeName}`;
+
+  const bucket = getAdminStorage().bucket(getAdminStorageBucketName());
+  const file = bucket.file(storagePath);
+
+  await file.save(params.buffer, {
+    metadata: {
+      contentType: params.mimeType,
+      metadata: {
+        purpose: 'clinic_lab_result',
+        patientId: params.patientId,
+      },
+    },
+  });
+
+  await file.makePublic();
+
+  const publicUrl = `https://storage.googleapis.com/${bucket.name}/${storagePath}`;
+  return { publicUrl, storagePath };
+}
+
 /** @deprecated Use uploadClinicMarketingAsset */
 export async function uploadClinicMarketingImage(params: {
   fileName: string;

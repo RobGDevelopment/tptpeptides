@@ -111,7 +111,15 @@ export default async function AdminWellnessIntakesPage() {
                     </td>
                     <td className="text-muted text-xs">{formatDate(intake.submittedAt)}</td>
                     <td>
-                      <IntakeActions intakeId={intake.id} currentStatus={intake.status} />
+                      <div className="flex flex-wrap items-center gap-3">
+                        <IntakeActions intakeId={intake.id} currentStatus={intake.status} />
+                        <Link
+                          href={`/admin/wellness/intakes/${intake.id}`}
+                          className="text-[10px] tracking-caps uppercase text-muted hover:text-secondary transition-colors"
+                        >
+                          Chart
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))
