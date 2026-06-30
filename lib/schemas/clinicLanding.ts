@@ -44,6 +44,8 @@ export const clinicLandingContentSchema = z.object({
   heroImageUrl: optionalUrl,
   heroImageAlt: z.string().max(120).optional(),
   logoUrl: optionalUrl,
+  navBrandName: z.string().max(80).optional(),
+  heroImagePosition: z.enum(['left', 'right']).default('right'),
   primaryColor: optionalHex,
   accentColor: optionalHex,
   backgroundColor: optionalHex,

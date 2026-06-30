@@ -1,11 +1,12 @@
 import { redirect } from 'next/navigation';
 import { getClinicLandingContent } from '../../../../features/admin/actions/clinicContentActions';
 import { getClinicDomains } from '../../../../features/admin/actions/domainActions';
-import { ClinicLandingForm } from '../../../../features/admin/components/wellness/ClinicLandingForm';
+import { ClinicLandingStudio } from '../../../../features/admin/components/wellness/ClinicLandingStudio';
 import { DomainManagerForm } from '../../../../features/admin/components/wellness/DomainManagerForm';
 import { AdminPageHeader } from '../../../../components/ui/AdminPageHeader';
 import { getModuleFlags } from '../../../../lib/firebase/modules.server';
 import { isModuleEnabled } from '../../../../lib/modules/flags';
+import { getClinicSiteUrlFromEnv } from '../../../../lib/tenant/liveSites.edge';
 
 export default async function AdminWellnessSettingsPage() {
   const flags = await getModuleFlags();
@@ -23,11 +24,13 @@ export default async function AdminWellnessSettingsPage() {
     loadError = caught instanceof Error ? caught.message : 'Unable to load clinic settings.';
   }
 
+  const liveClinicUrl = getClinicSiteUrlFromEnv() ?? undefined;
+
   return (
     <div className="space-y-6">
       <AdminPageHeader
         title="Clinic Settings"
-        subtitle="Telehealth lane configuration, landing content, custom domains, and operational preferences."
+        subtitle="Design the telehealth storefront with live preview, then publish when ready."
       />
 
       {loadError ? (
@@ -39,10 +42,14 @@ export default async function AdminWellnessSettingsPage() {
       {landingContent ? (
         <section className="rounded-sm border border-white/[0.06] bg-surface/20 overflow-hidden">
           <div className="border-b border-white/[0.06] px-5 py-3">
-            <h2 className="text-[10px] tracking-caps uppercase text-muted">Clinic Landing CMS</h2>
+            <h2 className="text-[10px] tracking-caps uppercase text-muted">Clinic Landing Studio</h2>
           </div>
           <div className="p-5">
-            <ClinicLandingForm initialContent={landingContent} />
+            <ClinicLandingStudio
+              initialContent={landingContent}
+              liveClinicUrl={liveClinicUrl}
+              supportEmail="support@tptwellness.com"
+            />
           </div>
         </section>
       ) : null}
@@ -70,11 +77,6 @@ export default async function AdminWellnessSettingsPage() {
                 ))}
               </ul>
             )}
-            <p className="text-xs text-muted font-light">
-              Edge routing reads PRIMARY_CLINIC_HOSTS, TENANT_CLINIC_HOSTS (Vercel env), and
-              tenant_config/tpt-clinic. Set NEXT_PUBLIC_CLINIC_SITE_URL for the Live Sites panel and
-              admin deep links.
-            </p>
           </div>
         </div>
       </section>

@@ -51,6 +51,8 @@ export const tenantContentSchema = z.object({
   heroImageUrl: z.string().url().optional(),
   heroImageAlt: z.string().max(120).optional(),
   logoUrl: z.string().url().optional(),
+  navBrandName: z.string().max(80).optional(),
+  heroImagePosition: z.enum(['left', 'right']).optional(),
   primaryColor: z.string().optional(),
   accentColor: z.string().optional(),
   backgroundColor: z.string().optional(),

@@ -13,6 +13,8 @@ export const DEFAULT_CLINIC_LANDING: ClinicLandingContent = {
   heroImageUrl: undefined,
   heroImageAlt: 'Telehealth wellness care',
   logoUrl: undefined,
+  navBrandName: 'TPT Wellness Clinic',
+  heroImagePosition: 'right',
   primaryColor: CLINIC_THEME_DEFAULTS.primaryColor,
   accentColor: CLINIC_THEME_DEFAULTS.accentColor,
   backgroundColor: CLINIC_THEME_DEFAULTS.backgroundColor,

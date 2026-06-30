@@ -964,6 +964,27 @@ html.dark {
 }
 
 
+.clinic-preview-frame {
+  color-scheme: light;
+}
+
+.clinic-preview-frame .text-heading {
+  color: oklch(0.145 0.004 260);
+}
+
+.clinic-preview-frame .text-primary {
+  color: oklch(0.21 0.006 260);
+}
+
+.clinic-preview-frame .text-secondary {
+  color: oklch(0.42 0.012 260);
+}
+
+.clinic-preview-frame .text-muted {
+  color: oklch(0.52 0.014 260);
+}
+
+
 /* Executive manual flipbook — Falconwood glass pages */
 .manual-flipbook {
   filter: drop-shadow(0 24px 48px rgba(0, 0, 0, 0.55));

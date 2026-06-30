@@ -7,6 +7,9 @@ import { Icons } from '../../../components/icons';
 import { HeaderDividerBeam } from '../../../components/ui/HeaderDividerBeam';
 import { useClinicAuth } from '../../auth/providers/ClinicAuthProvider';
 import { useTenantOptional } from '../../../lib/tenant/context';
+import { resolveNavBrandName } from '../../../lib/clinic/landingDisplay';
+import { mergeClinicLandingContent, type ClinicLandingContent } from '../../../lib/schemas/clinicLanding';
+import { DEFAULT_CLINIC_LANDING } from '../../../lib/data/clinicLandingDefaults';
 
 const CLINIC_NAV_LINKS = [
   { href: '/#how-it-works', label: 'How It Works' },
@@ -25,7 +28,13 @@ export function ClinicPremiumNavbar() {
   const { user, signOut } = useClinicAuth();
   const tenant = useTenantOptional();
   const logoUrl = tenant?.config.theme?.logoUrl ?? tenant?.config.content?.logoUrl;
-  const brandName = tenant?.config.name ?? 'TPT Wellness';
+  const landingContent = mergeClinicLandingContent(
+    tenant?.config.content as Partial<ClinicLandingContent> | undefined,
+    DEFAULT_CLINIC_LANDING
+  );
+  const brandName = tenant?.config.content
+    ? resolveNavBrandName(landingContent)
+    : (tenant?.config.name ?? 'TPT Wellness');
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
