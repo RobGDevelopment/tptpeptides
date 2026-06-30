@@ -5,6 +5,7 @@ import type {
   MedicalIntakeDetail,
   MedicalIntakeShippingAddress,
 } from '../../actions/wellnessActions';
+import { AdminLabUploadForm } from './AdminLabUploadForm';
 import { IntakeActions } from './IntakeActions';
 import { PatientSecureMessagesPanel } from './PatientSecureMessagesPanel';
 import { PrescriptionForm } from './PrescriptionForm';
@@ -175,6 +176,14 @@ export function WellnessIntakeChartView({ intake }: { intake: MedicalIntakeDetai
 
       <ChartCard title="Clinical Questionnaire">
         <dl className="space-y-5">{renderQuestionnaireSections(intake.clinicalQuestionnaire)}</dl>
+      </ChartCard>
+
+      <ChartCard title="Lab Results">
+        <p className="text-sm text-secondary font-light mb-4">
+          Upload biomarker reports to the patient&apos;s secure chart. Files are stored in the
+          private clinic labs bucket and released to the patient portal.
+        </p>
+        <AdminLabUploadForm patientId={intake.patientId} />
       </ChartCard>
 
       {intake.status === 'approved' ? (

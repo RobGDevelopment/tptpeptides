@@ -18,6 +18,7 @@
     "sync:supabase-env": "tsx scripts/sync-supabase-env-to-vercel.ts",
     "enable:prod-modules": "tsx scripts/enable-prod-modules.ts",
     "setup:clinic-dev": "tsx scripts/setup-clinic-dev.ts",
+    "setup:clinic-domain": "tsx scripts/setup-clinic-domain.ts",
     "seed:clinic-demo": "tsx scripts/seed-clinic-demo.ts",
     "test:clinic-sla": "tsx scripts/run-clinic-sla-test.ts",
     "test:clinic-dispatch": "tsx scripts/run-clinic-dispatch-test.ts"

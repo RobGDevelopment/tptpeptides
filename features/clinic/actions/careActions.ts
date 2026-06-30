@@ -9,6 +9,27 @@ import {
 } from '../../../lib/schemas/clinicCare';
 
 const CLINIC_DASHBOARD_PATH = '/clinic/dashboard';
+const CLINIC_LABS_BUCKET = 'clinic_labs';
+const SIGNED_URL_TTL_SECONDS = 60 * 60;
+
+async function resolveLabFileUrl(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  storagePath: string
+): Promise<string> {
+  if (storagePath.startsWith('http://') || storagePath.startsWith('https://')) {
+    return storagePath;
+  }
+
+  const { data, error } = await supabase.storage
+    .from(CLINIC_LABS_BUCKET)
+    .createSignedUrl(storagePath, SIGNED_URL_TTL_SECONDS);
+
+  if (error || !data?.signedUrl) {
+    throw new Error(error?.message ?? 'Unable to access lab document.');
+  }
+
+  return data.signedUrl;
+}
 
 type ClinicMessageRow = {
   id: string;
@@ -127,5 +148,14 @@ export async function getPatientLabs(): Promise<ClinicLabResult[]> {
     throw new Error(error.message);
   }
 
-  return (data ?? []).map((row) => mapLabResult(row as ClinicLabResultRow));
+  const rows = data ?? [];
+  const labs: ClinicLabResult[] = [];
+
+  for (const row of rows) {
+    const typed = row as ClinicLabResultRow;
+    const fileUrl = await resolveLabFileUrl(supabase, typed.file_url);
+    labs.push(mapLabResult({ ...typed, file_url: fileUrl }));
+  }
+
+  return labs;
 }

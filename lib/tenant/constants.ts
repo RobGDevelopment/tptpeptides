@@ -12,9 +12,22 @@ export const PRIMARY_B2B_HOSTS = new Set([
 export const PRIMARY_CLINIC_HOSTS = new Set([
   'tptwellness.com',
   'www.tptwellness.com',
+  'tptclinic.com',
+  'www.tptclinic.com',
+  'medfit-clinic.vercel.app',
   'localhost',
   '127.0.0.1',
 ]);
+
+/** Canonical public clinic URL (matches Vercel apex → www redirect). */
+export const CLINIC_CANONICAL_SITE_URL = 'https://www.tptclinic.com';
+
+/** Hosts merged into TENANT_CLINIC_HOSTS by setup:clinic-domain. */
+export const CLINIC_ROUTING_HOSTS = [
+  'medfit-clinic.vercel.app',
+  'tptclinic.com',
+  'www.tptclinic.com',
+] as const;
 
 export const INTERNAL_B2B_PREFIX = '/b2b';
 export const INTERNAL_CLINIC_PREFIX = '/clinic';

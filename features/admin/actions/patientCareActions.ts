@@ -1,9 +1,9 @@
 'use server';
 
+import { randomUUID } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { AdminAuthError, requireAdminSession } from '../../../lib/firebase/adminAuth.server';
-import { uploadClinicLabDocument } from '../../../lib/firebase/clinicAssets.server';
 import { getModuleFlags } from '../../../lib/firebase/modules.server';
 import { isModuleEnabled } from '../../../lib/modules/flags';
 import {
@@ -15,6 +15,36 @@ import {
 import { createAdminClient } from '../../../lib/supabase/admin';
 
 const WELLNESS_INTAKES_PATH = '/admin/wellness/intakes';
+const CLINIC_LABS_BUCKET = 'clinic_labs';
+const LAB_MIME_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png']);
+const LAB_MAX_BYTES = 12 * 1024 * 1024;
+
+function resolveLabExtension(fileName: string, mimeType: string): string | null {
+  const fromName = fileName.split('.').pop()?.toLowerCase();
+  if (fromName === 'pdf' || fromName === 'png' || fromName === 'jpg' || fromName === 'jpeg') {
+    return fromName === 'jpeg' ? 'jpg' : fromName;
+  }
+
+  if (mimeType === 'application/pdf') return 'pdf';
+  if (mimeType === 'image/png') return 'png';
+  if (mimeType === 'image/jpeg') return 'jpg';
+
+  return null;
+}
+
+function resolveLabMimeType(file: File): string {
+  const trimmed = file.type.trim();
+  if (trimmed && LAB_MIME_TYPES.has(trimmed)) {
+    return trimmed;
+  }
+
+  const extension = file.name.split('.').pop()?.toLowerCase();
+  if (extension === 'pdf') return 'application/pdf';
+  if (extension === 'png') return 'image/png';
+  if (extension === 'jpg' || extension === 'jpeg') return 'image/jpeg';
+
+  return 'application/pdf';
+}
 
 type ActionResult<T = void> =
   | ({ ok: true } & (T extends void ? object : { data: T }))
@@ -161,31 +191,53 @@ export async function uploadLabResult(
       return { ok: false, error: 'A lab document file is required.' };
     }
 
+    if (file.size > LAB_MAX_BYTES) {
+      return { ok: false, error: 'Lab file exceeds 12 MB limit.' };
+    }
+
+    const mimeType = resolveLabMimeType(file);
+    if (!LAB_MIME_TYPES.has(mimeType)) {
+      return { ok: false, error: 'Unsupported lab file type. Upload PDF, JPG, or PNG.' };
+    }
+
+    const extension = resolveLabExtension(file.name, mimeType);
+    if (!extension) {
+      return { ok: false, error: 'Unsupported lab file type. Upload PDF, JPG, or PNG.' };
+    }
+
+    const storagePath = `${parsed.data.patientId}/${randomUUID()}.${extension}`;
     const buffer = Buffer.from(await file.arrayBuffer());
-    const { publicUrl } = await uploadClinicLabDocument({
-      fileName: file.name,
-      mimeType: file.type || 'application/pdf',
-      buffer,
-      patientId: parsed.data.patientId,
-    });
 
     const supabase = createAdminClient();
+    const { error: uploadError } = await supabase.storage
+      .from(CLINIC_LABS_BUCKET)
+      .upload(storagePath, buffer, {
+        contentType: mimeType,
+        upsert: false,
+      });
+
+    if (uploadError) {
+      return { ok: false, error: uploadError.message };
+    }
+
     const { data, error } = await supabase
       .from('clinic_lab_results')
       .insert({
         patient_id: parsed.data.patientId,
         title: parsed.data.title,
         status: parsed.data.status,
-        file_url: publicUrl,
+        file_url: storagePath,
         provider_notes: parsed.data.providerNotes ?? null,
       })
       .select('id, patient_id, title, status, file_url, provider_notes, created_at')
       .single();
 
     if (error) {
+      await supabase.storage.from(CLINIC_LABS_BUCKET).remove([storagePath]);
       return { ok: false, error: error.message };
     }
 
+    revalidatePath(WELLNESS_INTAKES_PATH);
     revalidatePath('/clinic/dashboard');
 
     return { ok: true, data: { lab: mapLabResult(data as ClinicLabResultRow) } };
