@@ -1,54 +1,102 @@
 import 'server-only';
 
+import { IntegrationNotConfiguredError } from '../integrations/errors';
+import { resolveIntegration } from '../integrations/resolver.server';
 import {
   openLoopPrescriptionPayloadSchema,
   type OpenLoopDispatchResult,
   type OpenLoopPrescriptionPayload,
 } from '../schemas/openLoopDispatch';
 
-export function isOpenLoopDryRunEnabled(): boolean {
+type OpenLoopRuntime =
+  | { kind: 'live'; baseUrl: string; apiKey: string }
+  | { kind: 'dry_run' };
+
+function isEnvDryRunEnabled(): boolean {
   return process.env.OPENLOOP_DISPATCH_DRY_RUN?.trim().toLowerCase() === 'true';
 }
 
-export function isOpenLoopConfigured(): boolean {
-  return Boolean(
-    process.env.OPENLOOP_API_BASE?.trim() && process.env.OPENLOOP_API_KEY?.trim()
-  );
-}
+function resolveOpenLoopFromEnv(): OpenLoopRuntime | null {
+  const apiKey = process.env.OPENLOOP_API_KEY?.trim();
+  const baseUrl = process.env.OPENLOOP_API_BASE?.trim()?.replace(/\/$/, '');
 
-export function isOpenLoopDispatchAvailable(): boolean {
-  return isOpenLoopConfigured() || isOpenLoopDryRunEnabled();
-}
-
-function openLoopApiBase(): string {
-  const base = process.env.OPENLOOP_API_BASE?.trim();
-  if (!base) {
-    throw new Error('OPENLOOP_API_BASE is not configured.');
+  if (isEnvDryRunEnabled()) {
+    return { kind: 'dry_run' };
   }
-  return base.replace(/\/$/, '');
+
+  if (apiKey && baseUrl) {
+    return { kind: 'live', baseUrl, apiKey };
+  }
+
+  return null;
 }
 
-function openLoopApiKey(): string {
-  const key = process.env.OPENLOOP_API_KEY?.trim();
-  if (!key) {
-    throw new Error('OPENLOOP_API_KEY is not configured.');
+async function getOpenLoopRuntime(): Promise<OpenLoopRuntime> {
+  try {
+    const resolved = await resolveIntegration('openloop', { fallbackEnv: true });
+
+    if (resolved.mode === 'live') {
+      const baseUrl = resolved.publicConfig.baseUrl?.trim().replace(/\/$/, '');
+      const apiKey = resolved.secrets.apiKey?.trim();
+      if (!baseUrl || !apiKey) {
+        throw new Error('OpenLoop live mode requires API base URL and API key.');
+      }
+      return { kind: 'live', baseUrl, apiKey };
+    }
+
+    return { kind: 'dry_run' };
+  } catch (caught) {
+    if (!(caught instanceof IntegrationNotConfiguredError)) {
+      throw caught;
+    }
   }
-  return key;
+
+  const envRuntime = resolveOpenLoopFromEnv();
+  if (envRuntime) {
+    return envRuntime;
+  }
+
+  throw new IntegrationNotConfiguredError('openloop');
+}
+
+export function isOpenLoopDryRunEnabled(): boolean {
+  return isEnvDryRunEnabled();
+}
+
+export async function isOpenLoopConfigured(): Promise<boolean> {
+  try {
+    const runtime = await getOpenLoopRuntime();
+    return runtime.kind === 'live';
+  } catch {
+    return Boolean(
+      process.env.OPENLOOP_API_BASE?.trim() && process.env.OPENLOOP_API_KEY?.trim()
+    );
+  }
+}
+
+export async function isOpenLoopDispatchAvailable(): Promise<boolean> {
+  try {
+    await getOpenLoopRuntime();
+    return true;
+  } catch {
+    return isEnvDryRunEnabled() || Boolean(process.env.OPENLOOP_API_KEY?.trim());
+  }
 }
 
 export async function submitPrescriptionToOpenLoop(
   payload: OpenLoopPrescriptionPayload
 ): Promise<OpenLoopDispatchResult> {
   const validated = openLoopPrescriptionPayloadSchema.parse(payload);
+  const runtime = await getOpenLoopRuntime();
 
-  if (isOpenLoopDryRunEnabled() && !isOpenLoopConfigured()) {
+  if (runtime.kind === 'dry_run') {
     return { externalRxId: `dry-run-${validated.prescriptionId.slice(0, 8)}` };
   }
 
-  const response = await fetch(`${openLoopApiBase()}/prescriptions`, {
+  const response = await fetch(`${runtime.baseUrl}/prescriptions`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${openLoopApiKey()}`,
+      Authorization: `Bearer ${runtime.apiKey}`,
       'Content-Type': 'application/json',
       Accept: 'application/json',
     },

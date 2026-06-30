@@ -67,7 +67,7 @@ export async function dispatchPrescriptionToOpenLoop(
   try {
     await assertWellnessAdminAccess();
 
-    if (!isOpenLoopDispatchAvailable()) {
+    if (!(await isOpenLoopDispatchAvailable())) {
       return {
         ok: false,
         error:

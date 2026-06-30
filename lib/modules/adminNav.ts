@@ -138,6 +138,8 @@ const UTILITY_NAV: AdminNavItem[] = [
 
   { href: '/admin/modules', label: 'Modules' },
 
+  { href: '/admin/settings/integrations', label: 'Integrations' },
+
   { href: '/admin/system-map', label: 'Master Map' },
 
   { href: '/admin/audit', label: 'Audit Logs' },
