@@ -892,7 +892,10 @@ html.dark {
   filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.8));
 }
 
-/* ─── Telehealth clinic lane (scoped — does not affect html.dark B2B) ─── */
+[data-tenant-lane='telehealth'].clinic-lane,
+.clinic-lane[data-tenant-lane='telehealth'] {
+  background: var(--clinic-background, var(--color-void));
+}
 [data-tenant-lane='telehealth'] .terminal-link,
 [data-tenant-lane='telehealth'] .interactive-link {
   animation: clinic-link-pulse 3s ease-in-out infinite;
@@ -920,37 +923,218 @@ html.dark {
 }
 
 .clinic-cta-primary {
-  @apply inline-flex items-center justify-center rounded-sm px-5 py-3 text-xs tracking-caps uppercase font-medium transition-colors;
+  @apply inline-flex items-center justify-center rounded-sm px-5 py-3 text-xs tracking-caps uppercase font-medium transition-all duration-300;
   background: var(--theme-primary);
   color: white;
+  box-shadow: 0 12px 32px -16px color-mix(in srgb, var(--theme-primary) 55%, transparent);
 }
 
 .clinic-cta-primary:hover {
-  background: color-mix(in srgb, var(--theme-primary) 88%, black);
+  background: color-mix(in srgb, var(--theme-primary) 90%, black);
+  transform: translateY(-1px);
 }
 
 .clinic-cta-secondary {
-  @apply inline-flex items-center justify-center rounded-sm border px-5 py-3 text-xs tracking-caps uppercase font-medium transition-colors;
-  border-color: color-mix(in srgb, var(--theme-primary) 35%, transparent);
+  @apply inline-flex items-center justify-center rounded-sm border px-5 py-3 text-xs tracking-caps uppercase font-medium transition-all duration-300;
+  border-color: color-mix(in srgb, var(--theme-accent) 45%, transparent);
   color: var(--theme-primary);
+  background: color-mix(in srgb, var(--theme-accent) 6%, white);
 }
 
 .clinic-cta-secondary:hover {
-  background: color-mix(in srgb, var(--theme-primary) 8%, white);
+  background: color-mix(in srgb, var(--theme-accent) 14%, white);
+  border-color: color-mix(in srgb, var(--theme-accent) 65%, transparent);
+}
+
+.clinic-cta-luxe {
+  min-width: 11rem;
+}
+
+.clinic-hero-shell {
+  background:
+    radial-gradient(ellipse 90% 60% at 10% 0%, color-mix(in srgb, var(--theme-accent) 12%, transparent), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 100% 20%, color-mix(in srgb, var(--theme-accent) 8%, transparent), transparent 50%),
+    var(--clinic-background, var(--color-void));
 }
 
 .clinic-hero-glow {
   background:
-    radial-gradient(ellipse 80% 50% at 50% -10%, color-mix(in srgb, var(--theme-accent) 22%, transparent), transparent),
-    radial-gradient(ellipse 50% 40% at 100% 50%, color-mix(in srgb, var(--theme-primary) 10%, transparent), transparent);
+    radial-gradient(ellipse 80% 50% at 50% -10%, color-mix(in srgb, var(--theme-accent) 18%, transparent), transparent),
+    radial-gradient(ellipse 50% 40% at 100% 50%, color-mix(in srgb, var(--theme-primary) 8%, transparent), transparent);
+}
+
+.clinic-hero-grain {
+  opacity: 0.35;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+.clinic-hero-eyebrow {
+  @apply text-xs tracking-caps uppercase font-medium;
+  color: var(--theme-accent);
+}
+
+.clinic-hero-badge {
+  @apply inline-flex items-center rounded-sm border px-3 py-1.5 text-[10px] tracking-caps uppercase text-muted;
+  border-color: color-mix(in srgb, var(--theme-accent) 25%, transparent);
+  background: color-mix(in srgb, white 70%, var(--theme-accent) 4%);
+}
+
+.clinic-hero-cinematic-wrap {
+  padding: 1px;
+  border-radius: 3px;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--theme-accent) 45%, white),
+    color-mix(in srgb, var(--theme-accent) 12%, transparent) 45%,
+    color-mix(in srgb, var(--theme-accent) 35%, white) 100%
+  );
+  box-shadow:
+    0 28px 70px -36px color-mix(in srgb, var(--theme-accent) 35%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--theme-accent) 10%, transparent);
+}
+
+.clinic-hero-cinematic {
+  border-radius: 2px;
+  background: var(--clinic-background, #faf9f6);
+}
+
+.clinic-hero-video-matte {
+  /* Warm + slightly zoom to crop cool grey video letterboxing at edges */
+  transform: scale(1.03);
+  transform-origin: center;
+}
+
+.clinic-hero-cinematic-video,
+.clinic-hero-loop-layer.clinic-hero-cinematic-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Pull cool grey video toward site ivory/gold */
+  filter: sepia(0.14) saturate(0.92) brightness(1.05) contrast(0.97) hue-rotate(-6deg);
 }
 
 .clinic-hero-placeholder {
   background: linear-gradient(
     145deg,
-    color-mix(in srgb, var(--theme-accent) 16%, white),
-    color-mix(in srgb, var(--theme-primary) 10%, white)
+    color-mix(in srgb, var(--theme-accent) 14%, white),
+    color-mix(in srgb, var(--theme-primary) 8%, white)
   );
+}
+
+.clinic-section {
+  @apply py-20 lg:py-28;
+}
+
+.clinic-section-muted {
+  background: color-mix(in srgb, var(--theme-accent) 4%, white);
+}
+
+.clinic-section-header {
+  @apply max-w-3xl mb-12 lg:mb-16;
+}
+
+.clinic-section-eyebrow {
+  @apply text-xs tracking-caps uppercase font-medium mb-4;
+  color: var(--theme-accent);
+}
+
+.clinic-section-title {
+  @apply text-3xl md:text-4xl lg:text-[2.75rem] font-light tracking-title uppercase text-heading leading-tight;
+}
+
+.clinic-section-lead {
+  @apply text-base md:text-lg text-secondary font-light leading-relaxed;
+}
+
+.clinic-premium-card {
+  @apply rounded-sm border p-6 lg:p-8 transition-colors duration-300;
+  border-color: color-mix(in srgb, var(--theme-accent) 18%, transparent);
+  background: color-mix(in srgb, white 88%, var(--theme-accent) 3%);
+}
+
+.clinic-premium-card:hover {
+  border-color: color-mix(in srgb, var(--theme-accent) 35%, transparent);
+  background: color-mix(in srgb, white 82%, var(--theme-accent) 6%);
+}
+
+.clinic-premium-card-icon {
+  @apply mb-5;
+  color: var(--theme-accent);
+}
+
+.clinic-premium-card-title {
+  @apply text-lg font-light tracking-title uppercase text-heading mb-3;
+}
+
+.clinic-premium-card-body {
+  @apply text-sm text-secondary font-light leading-relaxed;
+}
+
+.clinic-process-step {
+  @apply relative border rounded-sm p-6 lg:p-8;
+  border-color: color-mix(in srgb, var(--theme-primary) 10%, transparent);
+  background: color-mix(in srgb, white 92%, var(--theme-accent) 2%);
+}
+
+.clinic-process-index {
+  @apply block text-4xl font-light mb-4;
+  color: color-mix(in srgb, var(--theme-accent) 75%, var(--theme-primary));
+  font-variant-numeric: tabular-nums;
+}
+
+.clinic-process-title {
+  @apply text-lg font-light tracking-title uppercase text-heading mb-3;
+}
+
+.clinic-process-body {
+  @apply text-sm text-secondary font-light leading-relaxed;
+}
+
+.clinic-stat-card {
+  @apply rounded-sm border p-5 lg:p-6 text-center;
+  border-color: color-mix(in srgb, var(--theme-accent) 22%, transparent);
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, white 90%, var(--theme-accent) 5%),
+    color-mix(in srgb, white 96%, var(--theme-primary) 2%)
+  );
+}
+
+.clinic-stat-value {
+  @apply text-2xl lg:text-3xl font-light tracking-title uppercase mb-2;
+  color: var(--theme-accent);
+}
+
+.clinic-stat-label {
+  @apply text-[10px] tracking-caps uppercase text-muted;
+}
+
+.clinic-trust-marquee {
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+}
+
+.clinic-trust-marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 2.5rem;
+  padding: 1rem 0;
+  animation: clinic-marquee 40s linear infinite;
+}
+
+.clinic-trust-marquee-item {
+  @apply inline-flex items-center gap-2 text-[10px] tracking-caps uppercase text-muted whitespace-nowrap;
+}
+
+@keyframes clinic-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 @keyframes clinic-link-pulse {
@@ -982,6 +1166,20 @@ html.dark {
 
 .clinic-preview-frame .text-muted {
   color: oklch(0.52 0.014 260);
+}
+
+.clinic-hero-media video {
+  object-fit: cover;
+}
+
+.clinic-hero-loop-layer {
+  opacity: 0;
+  transition: opacity 0.45s ease-in-out;
+  will-change: opacity;
+}
+
+.clinic-hero-loop-layer-active {
+  opacity: 1;
 }
 
 

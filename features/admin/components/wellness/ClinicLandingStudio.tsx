@@ -4,9 +4,11 @@ import { useCallback, useEffect, useMemo, useState, useTransition } from 'react'
 import { updateClinicLandingContent } from '../../actions/clinicContentActions';
 import { adminFetch } from '../../../../lib/admin/adminFetch.client';
 import { isClinicLandingDirty } from '../../../../lib/clinic/landingDisplay';
+import { formatHeroMediaDimensions, inferMediaTypeFromUrl } from '../../../../lib/clinic/heroMedia';
+import { probeHeroMediaFile, probeHeroMediaUrl } from '../../../../lib/clinic/heroMedia.client';
 import { DEFAULT_CLINIC_LANDING } from '../../../../lib/data/clinicLandingDefaults';
 import { CLINIC_THEME_PRESETS } from '../../../../lib/data/clinicThemePresets';
-import type { ClinicLandingContent } from '../../../../lib/schemas/clinicLanding';
+import type { ClinicLandingContent, HeroMediaAspectRatio } from '../../../../lib/schemas/clinicLanding';
 import { Button } from '../../../../components/ui/Button';
 import { Input } from '../../../../components/ui/Input';
 import {
@@ -74,8 +76,28 @@ export function ClinicLandingStudio({
     setToast({ type: 'success', message: 'Draft reset to factory defaults. Save to publish.' });
   };
 
-  const uploadImage = async (file: File, target: 'heroImageUrl' | 'logoUrl') => {
-    setUploading(target === 'heroImageUrl' ? 'hero' : 'logo');
+  const applyHeroMediaMetadata = useCallback(
+    (metadata: {
+      url: string;
+      mediaType: ClinicLandingContent['heroMediaType'];
+      aspectRatio?: HeroMediaAspectRatio;
+      width?: number;
+      height?: number;
+    }) => {
+      setDraft((current) => ({
+        ...current,
+        heroImageUrl: metadata.url,
+        heroMediaType: metadata.mediaType,
+        heroMediaAspectRatio: metadata.aspectRatio ?? current.heroMediaAspectRatio ?? 'auto',
+        heroMediaWidth: metadata.width,
+        heroMediaHeight: metadata.height,
+      }));
+    },
+    []
+  );
+
+  const uploadLogo = async (file: File) => {
+    setUploading('logo');
     setToast(null);
     try {
       const formData = new FormData();
@@ -88,14 +110,78 @@ export function ClinicLandingStudio({
       if (!response.ok || !data.publicUrl) {
         throw new Error(data.error ?? 'Upload failed.');
       }
-      updateField(target, data.publicUrl);
-      setToast({ type: 'success', message: 'Image uploaded to draft preview.' });
+      updateField('logoUrl', data.publicUrl);
+      setToast({ type: 'success', message: 'Logo uploaded to draft preview.' });
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : 'Upload failed.';
       setToast({ type: 'error', message });
     } finally {
       setUploading(null);
     }
+  };
+
+  const uploadHeroMedia = async (file: File) => {
+    setUploading('hero');
+    setToast(null);
+    try {
+      const probed = await probeHeroMediaFile(file);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('width', String(probed.width));
+      formData.append('height', String(probed.height));
+      const response = await adminFetch('/api/admin/wellness/clinic-assets', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = (await response.json()) as {
+        ok?: boolean;
+        publicUrl?: string;
+        mediaType?: ClinicLandingContent['heroMediaType'];
+        error?: string;
+      };
+      if (!response.ok || !data.publicUrl) {
+        throw new Error(data.error ?? 'Upload failed.');
+      }
+      applyHeroMediaMetadata({
+        url: data.publicUrl,
+        mediaType: data.mediaType ?? probed.mediaType,
+        aspectRatio: probed.aspectRatio,
+        width: probed.width,
+        height: probed.height,
+      });
+      setToast({
+        type: 'success',
+        message: `${probed.mediaType === 'video' ? 'Video' : 'Image'} uploaded (${probed.width}×${probed.height}, ${probed.aspectRatio}).`,
+      });
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : 'Upload failed.';
+      setToast({ type: 'error', message });
+    } finally {
+      setUploading(null);
+    }
+  };
+
+  const applyHeroMediaUrl = async (url: string) => {
+    const trimmed = url.trim();
+    if (!trimmed) {
+      setDraft((current) => ({
+        ...current,
+        heroImageUrl: undefined,
+        heroMediaWidth: undefined,
+        heroMediaHeight: undefined,
+      }));
+      return;
+    }
+
+    const mediaType = inferMediaTypeFromUrl(trimmed);
+    const probed = await probeHeroMediaUrl(trimmed);
+    applyHeroMediaMetadata({
+      url: trimmed,
+      mediaType: probed?.mediaType ?? mediaType,
+      aspectRatio: probed?.aspectRatio,
+      width: probed?.width,
+      height: probed?.height,
+    });
   };
 
   const publish = () => {
@@ -270,25 +356,19 @@ export function ClinicLandingStudio({
 
           {tab === 'media' ? (
             <div className="space-y-4">
-              <MediaPanel
-                title="Hero image"
-                imageUrl={draft.heroImageUrl}
+              <HeroMediaPanel
+                content={draft}
                 uploading={uploading === 'hero'}
-                onUpload={(file) => void uploadImage(file, 'heroImageUrl')}
-                onUrlChange={(url) => updateField('heroImageUrl', url || undefined)}
-                altField={
-                  <Input
-                    label="Alt text"
-                    value={draft.heroImageAlt ?? ''}
-                    onChange={(e) => updateField('heroImageAlt', e.target.value)}
-                  />
-                }
+                onUpload={(file) => void uploadHeroMedia(file)}
+                onUrlChange={(url) => void applyHeroMediaUrl(url)}
+                onFieldChange={updateField}
               />
               <MediaPanel
                 title="Navbar logo"
                 imageUrl={draft.logoUrl}
                 uploading={uploading === 'logo'}
-                onUpload={(file) => void uploadImage(file, 'logoUrl')}
+                accept="image/jpeg,image/png,image/webp"
+                onUpload={(file) => void uploadLogo(file)}
                 onUrlChange={(url) => updateField('logoUrl', url || undefined)}
               />
             </div>
@@ -386,6 +466,189 @@ export function ClinicLandingStudio({
   );
 }
 
+function HeroMediaPanel({
+  content,
+  uploading,
+  onUpload,
+  onUrlChange,
+  onFieldChange,
+}: {
+  content: ClinicLandingContent;
+  uploading: boolean;
+  onUpload: (file: File) => void;
+  onUrlChange: (url: string) => void | Promise<void>;
+  onFieldChange: <K extends keyof ClinicLandingContent>(key: K, value: ClinicLandingContent[K]) => void;
+}) {
+  const mediaUrl = content.heroImageUrl;
+  const mediaType = content.heroMediaType ?? 'image';
+  const dimensions = formatHeroMediaDimensions(content);
+  const aspectOptions: HeroMediaAspectRatio[] = ['auto', '16:9', '9:16', '4:5', '3:4', '1:1'];
+  const [urlDraft, setUrlDraft] = useState(mediaUrl ?? '');
+
+  useEffect(() => {
+    setUrlDraft(mediaUrl ?? '');
+  }, [mediaUrl]);
+
+  return (
+    <div className="rounded-sm border border-white/[0.06] bg-surface/20 p-4 space-y-4">
+      <div className="space-y-1">
+        <p className="text-[10px] tracking-caps uppercase text-muted">Hero media</p>
+        <p className="text-xs text-muted font-light">
+          Upload portrait images (9:16), landscape loops (16:9), or paste a hosted URL. Layout adapts to
+          detected dimensions. Bundled default: <code className="text-secondary">/corp/Gold_color_loop_seamless.mp4</code>
+        </p>
+      </div>
+
+      {mediaUrl ? (
+        <div className="rounded-sm border border-white/[0.08] overflow-hidden bg-void/40">
+          {mediaType === 'video' ? (
+            <video
+              src={mediaUrl}
+              poster={content.heroVideoPosterUrl}
+              muted
+              loop
+              playsInline
+              controls
+              className="max-h-48 w-full object-contain bg-black/20"
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={mediaUrl} alt="" className="max-h-48 w-full object-contain" />
+          )}
+        </div>
+      ) : null}
+
+      {dimensions ? (
+        <p className="text-[10px] tracking-caps uppercase text-secondary">
+          Detected: {dimensions}
+          {content.heroMediaAspectRatio && content.heroMediaAspectRatio !== 'auto'
+            ? ` · ${content.heroMediaAspectRatio}`
+            : ''}
+        </p>
+      ) : null}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <label className="block space-y-2">
+          <span className="text-[10px] tracking-caps uppercase text-muted">Media type</span>
+          <select
+            value={mediaType}
+            onChange={(e) =>
+              onFieldChange('heroMediaType', e.target.value as ClinicLandingContent['heroMediaType'])
+            }
+            className="terminal-input w-full text-sm"
+          >
+            <option value="image">Image</option>
+            <option value="video">Video loop</option>
+          </select>
+        </label>
+        <label className="block space-y-2">
+          <span className="text-[10px] tracking-caps uppercase text-muted">Frame aspect</span>
+          <select
+            value={content.heroMediaAspectRatio ?? 'auto'}
+            onChange={(e) =>
+              onFieldChange('heroMediaAspectRatio', e.target.value as HeroMediaAspectRatio)
+            }
+            className="terminal-input w-full text-sm"
+          >
+            {aspectOptions.map((option) => (
+              <option key={option} value={option}>
+                {option === 'auto' ? 'Auto (from upload)' : option}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <Input
+        label="Alt text / video label"
+        value={content.heroImageAlt ?? ''}
+        onChange={(e) => onFieldChange('heroImageAlt', e.target.value)}
+      />
+
+      {mediaType === 'video' ? (
+        <div className="space-y-4 rounded-sm border border-white/[0.06] bg-void/30 p-3">
+          <Input
+            label="Poster image URL (optional)"
+            value={content.heroVideoPosterUrl ?? ''}
+            onChange={(e) => onFieldChange('heroVideoPosterUrl', e.target.value || undefined)}
+            placeholder="https://..."
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              label="Loop trim start (sec)"
+              type="number"
+              min={0}
+              step={0.05}
+              value={content.heroVideoLoopTrimStart ?? 0}
+              onChange={(e) =>
+                onFieldChange('heroVideoLoopTrimStart', Number.parseFloat(e.target.value) || 0)
+              }
+            />
+            <Input
+              label="Loop trim end (sec)"
+              type="number"
+              min={0}
+              step={0.05}
+              value={content.heroVideoLoopTrimEnd ?? 0}
+              onChange={(e) =>
+                onFieldChange('heroVideoLoopTrimEnd', Number.parseFloat(e.target.value) || 0)
+              }
+            />
+          </div>
+          <p className="text-[10px] text-muted font-light">
+            Trim glitch frames at the seam without re-exporting. Crossfade looping is always on for hero
+            videos.
+          </p>
+          <div className="flex flex-wrap gap-4 text-xs text-secondary">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={content.heroVideoLoop ?? true}
+                onChange={(e) => onFieldChange('heroVideoLoop', e.target.checked)}
+              />
+              Loop
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={content.heroVideoMuted ?? true}
+                onChange={(e) => onFieldChange('heroVideoMuted', e.target.checked)}
+              />
+              Muted autoplay
+            </label>
+          </div>
+        </div>
+      ) : null}
+
+      <label className="block space-y-2">
+        <span className="text-[10px] tracking-caps uppercase text-muted">Upload</span>
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
+          disabled={uploading}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) onUpload(file);
+            e.target.value = '';
+          }}
+          className="block w-full text-sm text-secondary"
+        />
+        <p className="text-[10px] text-muted font-light">
+          Images up to 5 MB · videos up to 48 MB. For larger 8K loops, host externally and paste the URL.
+        </p>
+      </label>
+
+      <Input
+        label="Or media URL"
+        value={urlDraft}
+        onChange={(e) => setUrlDraft(e.target.value)}
+        onBlur={() => void onUrlChange(urlDraft)}
+        placeholder="https://..."
+      />
+    </div>
+  );
+}
+
 function MediaPanel({
   title,
   imageUrl,
@@ -393,6 +656,7 @@ function MediaPanel({
   onUpload,
   onUrlChange,
   altField,
+  accept = 'image/jpeg,image/png,image/webp',
 }: {
   title: string;
   imageUrl?: string;
@@ -400,6 +664,7 @@ function MediaPanel({
   onUpload: (file: File) => void;
   onUrlChange: (url: string) => void;
   altField?: React.ReactNode;
+  accept?: string;
 }) {
   return (
     <div className="rounded-sm border border-white/[0.06] bg-surface/20 p-4 space-y-3">
@@ -413,7 +678,7 @@ function MediaPanel({
         <span className="text-[10px] tracking-caps uppercase text-muted">Upload</span>
         <input
           type="file"
-          accept="image/jpeg,image/png,image/webp"
+          accept={accept}
           disabled={uploading}
           onChange={(e) => {
             const file = e.target.files?.[0];

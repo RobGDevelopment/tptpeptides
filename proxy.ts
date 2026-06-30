@@ -5,7 +5,7 @@ import { getB2bAdminBaseUrl } from './lib/tenant/liveSites.edge';
 import { resolveTenantFromHost, type TenantResolution } from './lib/tenant/resolveTenant.edge';
 import { updateSession } from './lib/supabase/middleware';
 
-const BYPASS_PREFIXES = ['/api', '/admin', '/_next', '/static'];
+const BYPASS_PREFIXES = ['/api', '/admin', '/_next', '/static', '/corp'];
 const BYPASS_FILES = new Set([
   '/favicon.ico',
   '/robots.txt',
@@ -88,6 +88,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest|mp4|webm|mov)$).*)',
   ],
 };

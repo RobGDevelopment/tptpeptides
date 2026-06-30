@@ -39,10 +39,12 @@ export function ClinicFooter({
   brandName?: string;
 }) {
   return (
-    <footer className="mt-auto relative border-t border-black/[0.06]">
+    <footer className="mt-auto relative border-t border-black/[0.06] bg-void/40">
       <HeaderDividerBeam delay={3} className="mb-10" />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <p className="text-[10px] tracking-caps uppercase text-muted text-center mb-6">{tagline}</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-14">
+        <p className="text-xs tracking-caps uppercase text-muted text-center mb-4 max-w-2xl mx-auto font-light">
+          {tagline}
+        </p>
         <p className="text-[10px] tracking-caps uppercase text-muted text-center mb-6">
           Support:{' '}
           <a

@@ -7,6 +7,7 @@ import { getAdminFirestore, isAdminSdkConfigured } from '../../../lib/firebase/a
 import { getModuleFlags } from '../../../lib/firebase/modules.server';
 import { isModuleEnabled } from '../../../lib/modules/flags';
 import { DEFAULT_CLINIC_LANDING } from '../../../lib/data/clinicLandingDefaults';
+import { normalizeClinicLandingHeroMedia } from '../../../lib/clinic/heroMedia';
 import {
   clinicLandingContentSchema,
   mergeClinicLandingContent,
@@ -75,12 +76,18 @@ export async function getClinicLandingContent(): Promise<ClinicLandingContent> {
   await assertWellnessAdminAccess();
   const config = await loadClinicTenantConfig();
   const merged = mergeClinicLandingContent(config.content, DEFAULT_CLINIC_LANDING);
-  return clinicLandingContentSchema.parse({
-    ...merged,
-    primaryColor: config.theme?.primaryColor ?? merged.primaryColor,
-    accentColor: config.theme?.accentColor ?? merged.accentColor,
-    logoUrl: config.theme?.logoUrl ?? merged.logoUrl,
-  });
+  return clinicLandingContentSchema.parse(
+    normalizeClinicLandingHeroMedia(
+      {
+        ...merged,
+        primaryColor: config.theme?.primaryColor ?? merged.primaryColor,
+        accentColor: config.theme?.accentColor ?? merged.accentColor,
+        logoUrl: config.theme?.logoUrl ?? merged.logoUrl,
+        heroImageUrl: merged.heroImageUrl || DEFAULT_CLINIC_LANDING.heroImageUrl,
+      },
+      DEFAULT_CLINIC_LANDING
+    )
+  );
 }
 
 export async function updateClinicLandingContent(

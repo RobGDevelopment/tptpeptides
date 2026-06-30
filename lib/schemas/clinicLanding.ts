@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const optionalUrl = z
+const optionalMediaUrl = z
   .string()
   .max(500)
   .optional()
@@ -8,9 +8,16 @@ const optionalUrl = z
     const trimmed = value?.trim();
     return trimmed ? trimmed : undefined;
   })
-  .refine((value) => !value || /^https?:\/\/.+/i.test(value), {
-    message: 'Use a full https:// image URL',
-  });
+  .refine(
+    (value) => !value || value.startsWith('/') || /^https?:\/\/.+/i.test(value),
+    { message: 'Use a site path (/corp/...) or full https:// URL' }
+  );
+
+export const heroMediaTypeSchema = z.enum(['image', 'video']);
+export type HeroMediaType = z.infer<typeof heroMediaTypeSchema>;
+
+export const heroMediaAspectRatioSchema = z.enum(['auto', '16:9', '9:16', '4:5', '3:4', '1:1']);
+export type HeroMediaAspectRatio = z.infer<typeof heroMediaAspectRatioSchema>;
 
 const optionalHex = z
   .string()
@@ -41,9 +48,19 @@ export const clinicLandingContentSchema = z.object({
     .refine((value) => value.startsWith('/'), 'Use a site path such as /dashboard'),
   footerTagline: z.string().min(1).max(200),
   wordmark: z.string().min(1).max(80),
-  heroImageUrl: optionalUrl,
+  heroImageUrl: optionalMediaUrl,
   heroImageAlt: z.string().max(120).optional(),
-  logoUrl: optionalUrl,
+  heroMediaType: heroMediaTypeSchema.default('image'),
+  heroMediaAspectRatio: heroMediaAspectRatioSchema.default('auto'),
+  heroMediaWidth: z.number().int().positive().max(20000).optional(),
+  heroMediaHeight: z.number().int().positive().max(20000).optional(),
+  heroVideoPosterUrl: optionalMediaUrl,
+  heroVideoLoop: z.boolean().default(true),
+  heroVideoMuted: z.boolean().default(true),
+  /** Skip glitch frames at loop seam (seconds). */
+  heroVideoLoopTrimStart: z.number().min(0).max(30).default(0),
+  heroVideoLoopTrimEnd: z.number().min(0).max(30).default(0),
+  logoUrl: optionalMediaUrl,
   navBrandName: z.string().max(80).optional(),
   heroImagePosition: z.enum(['left', 'right']).default('right'),
   primaryColor: optionalHex,

@@ -2,6 +2,7 @@ import 'server-only';
 
 import { DEFAULT_CLINIC_LANDING } from '../data/clinicLandingDefaults';
 import { CLINIC_THEME_DEFAULTS } from '../data/clinicThemeDefaults';
+import { normalizeClinicLandingHeroMedia } from '../clinic/heroMedia';
 import { mergeClinicLandingContent } from '../schemas/clinicLanding';
 import { tenantConfigSchema, type TenantConfig } from '../schemas/tenant';
 import { CLINIC_TENANT_ID, PRIMARY_CLINIC_HOSTS } from './constants';
@@ -53,10 +54,16 @@ export async function getTenantConfigForRequest(tenantId: string): Promise<Tenan
 export async function getClinicLandingForRequest(): Promise<ReturnType<typeof mergeClinicLandingContent>> {
   const config = await getTenantConfigForRequest(CLINIC_TENANT_ID);
   const merged = mergeClinicLandingContent(config.content, DEFAULT_CLINIC_LANDING);
-  return {
-    ...merged,
-    primaryColor: config.theme?.primaryColor ?? merged.primaryColor,
-    accentColor: config.theme?.accentColor ?? merged.accentColor,
-    logoUrl: config.theme?.logoUrl ?? merged.logoUrl,
-  };
+  const withTheme = normalizeClinicLandingHeroMedia(
+    {
+      ...merged,
+      primaryColor: config.theme?.primaryColor ?? merged.primaryColor,
+      accentColor: config.theme?.accentColor ?? merged.accentColor,
+      logoUrl: config.theme?.logoUrl ?? merged.logoUrl,
+      heroImageUrl: merged.heroImageUrl || DEFAULT_CLINIC_LANDING.heroImageUrl,
+    },
+    DEFAULT_CLINIC_LANDING
+  );
+
+  return withTheme;
 }

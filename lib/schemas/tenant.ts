@@ -24,6 +24,15 @@ export const tenantPaymentConfigSchema = z.object({
 
 export type TenantPaymentConfig = z.infer<typeof tenantPaymentConfigSchema>;
 
+const optionalMediaUrl = z
+  .string()
+  .max(500)
+  .optional()
+  .refine(
+    (value) => !value || value.startsWith('/') || /^https?:\/\/.+/i.test(value),
+    'Media URL must be a path (/corp/...) or absolute http(s) URL'
+  );
+
 export const tenantThemeSchema = z.object({
   primaryColor: z
     .string()
@@ -33,7 +42,7 @@ export const tenantThemeSchema = z.object({
     .string()
     .regex(/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/, 'Accent must be a hex color (#RGB or #RRGGBB)')
     .optional(),
-  logoUrl: z.string().url().optional(),
+  logoUrl: optionalMediaUrl,
   fontFamily: z.string().min(1).max(200).optional(),
 });
 
@@ -48,9 +57,18 @@ export const tenantContentSchema = z.object({
   secondaryCtaHref: z.string().min(1).max(200).optional(),
   footerTagline: z.string().min(1).max(200).optional(),
   wordmark: z.string().min(1).max(80).optional(),
-  heroImageUrl: z.string().url().optional(),
+  heroImageUrl: optionalMediaUrl,
   heroImageAlt: z.string().max(120).optional(),
-  logoUrl: z.string().url().optional(),
+  heroMediaType: z.enum(['image', 'video']).optional(),
+  heroMediaAspectRatio: z.enum(['auto', '16:9', '9:16', '4:5', '3:4', '1:1']).optional(),
+  heroMediaWidth: z.number().int().positive().optional(),
+  heroMediaHeight: z.number().int().positive().optional(),
+  heroVideoPosterUrl: optionalMediaUrl,
+  heroVideoLoop: z.boolean().optional(),
+  heroVideoMuted: z.boolean().optional(),
+  heroVideoLoopTrimStart: z.number().min(0).max(30).optional(),
+  heroVideoLoopTrimEnd: z.number().min(0).max(30).optional(),
+  logoUrl: optionalMediaUrl,
   navBrandName: z.string().max(80).optional(),
   heroImagePosition: z.enum(['left', 'right']).optional(),
   primaryColor: z.string().optional(),

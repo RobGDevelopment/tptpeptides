@@ -9,9 +9,19 @@ export type ClinicThemePreset = {
 
 export const CLINIC_THEME_PRESETS: ClinicThemePreset[] = [
   {
+    id: 'champagne-gold',
+    label: 'Champagne Gold',
+    description: 'Ivory, charcoal, and gold — default luxury palette',
+    colors: {
+      primaryColor: '#1C1C1E',
+      accentColor: '#C4A052',
+      backgroundColor: '#FAF9F6',
+    },
+  },
+  {
     id: 'clinical-teal',
     label: 'Clinical Teal',
-    description: 'Default wellness palette',
+    description: 'Wellness teal for clinical positioning',
     colors: {
       primaryColor: '#2D6A6A',
       accentColor: '#5A9E8F',

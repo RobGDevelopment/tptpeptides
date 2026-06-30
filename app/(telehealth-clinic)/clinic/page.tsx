@@ -1,13 +1,8 @@
-import { ClinicHeroSection } from '../../../features/clinic/components/ClinicHeroSection';
-import { getClinicLandingForRequest } from '../../../lib/tenant/getTenantConfig.server';
-
-export default async function ClinicLandingPage() {
-  const content = await getClinicLandingForRequest();
-
-  return (
-    <main>
-      <ClinicHeroSection content={content} />
-    </main>
-  );
-}
-
+import { ClinicLandingPage } from '../../../features/clinic/components/ClinicLandingPage';
+import { getClinicLandingForRequest } from '../../../lib/tenant/getTenantConfig.server';
+
+export default async function ClinicLandingPageRoute() {
+  const content = await getClinicLandingForRequest();
+
+  return <ClinicLandingPage content={content} />;
+}
