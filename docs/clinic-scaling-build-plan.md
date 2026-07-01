@@ -72,7 +72,11 @@ See strategic blueprint Pillar 2 — *Accounting and NMI Reconciliation Architec
 | Fullscript GraphQL + webhook verify | Done | `lib/integrations/providers/fullscript.adapter.ts` |
 | Fullscript lab → `clinic_lab_results` sync | Done | `lib/integrations/fullscript/labOrderSync.server.ts` |
 | Fullscript webhook route | Done | `app/api/webhooks/fullscript/route.ts` |
-| Encounter Recorder UI | Planned | — |
+| Encounter Recorder UI | Done | `features/clinic/components/EncounterRecorder.tsx` |
+| SOAP note editor + sign-off | Done | `features/clinic/components/SoapNoteEditor.tsx` |
+| Encounter lifecycle actions | Done | `features/clinic/actions/encounterActions.ts` |
+| Ambient chunk upload API | Done | `app/api/clinic/ambient/upload/route.ts` |
+| Provider command center page | Done | `/admin/wellness/patients/[patientId]/encounter` |
 
 ---
 

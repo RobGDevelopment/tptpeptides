@@ -73,6 +73,30 @@ export const startEncounterTranscriptionSchema = z.object({
 
 export type StartEncounterTranscriptionInput = z.infer<typeof startEncounterTranscriptionSchema>;
 
+export const encounterLabOrderInputSchema = z.object({
+  orderId: z.string().trim().min(1).max(120),
+  title: z.string().trim().min(1).max(200),
+  status: z.string().trim().max(64).optional(),
+});
+
+export type EncounterLabOrderInput = z.infer<typeof encounterLabOrderInputSchema>;
+
+export const saveEncounterSoapDraftSchema = z.object({
+  encounterId: z.string().uuid(),
+  structuredNote: structuredClinicalNoteSchema,
+});
+
+export type SaveEncounterSoapDraftInput = z.infer<typeof saveEncounterSoapDraftSchema>;
+
+export const finalizeEncounterSchema = z.object({
+  encounterId: z.string().uuid(),
+  structuredNote: structuredClinicalNoteSchema,
+  providerSignature: z.string().trim().min(2).max(200),
+  labOrders: z.array(encounterLabOrderInputSchema).default([]),
+});
+
+export type FinalizeEncounterInput = z.infer<typeof finalizeEncounterSchema>;
+
 export const clinicEncounterRowSchema = z.object({
   id: z.string().uuid(),
   patient_id: z.string().uuid(),
