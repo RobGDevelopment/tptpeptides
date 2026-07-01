@@ -133,3 +133,48 @@ export async function syncFullscriptLabOrderToClinicResults(
 }
 
 export { buildFullscriptLabReference, FULLSCRIPT_LAB_REFERENCE_PREFIX };
+
+export type EncounterLabOrderDispatchInput = {
+  orderId: string;
+  title: string;
+  status?: string;
+};
+
+export async function syncFullscriptLabOrdersFromEncounterFinalize(input: {
+  patientId: string;
+  encounterId: string;
+  providerUid: string;
+  labOrders: EncounterLabOrderDispatchInput[];
+}): Promise<{ syncedCount: number; labResultIds: string[] }> {
+  if (input.labOrders.length === 0) {
+    return { syncedCount: 0, labResultIds: [] };
+  }
+
+  const labResultIds: string[] = [];
+
+  for (const order of input.labOrders) {
+    const result = await syncFullscriptLabOrderToClinicResults({
+      eventType: 'encounter_finalize.lab_order',
+      orderId: order.orderId,
+      patientExternalId: input.patientId,
+      patientEmail: null,
+      status: order.status ?? 'ordered',
+      resultsUrl: null,
+      title: order.title,
+      rawPayload: {
+        source: 'encounter_finalize',
+        encounterId: input.encounterId,
+        providerUid: input.providerUid,
+      },
+    });
+
+    if (result) {
+      labResultIds.push(result.labResultId);
+    }
+  }
+
+  return {
+    syncedCount: labResultIds.length,
+    labResultIds,
+  };
+}

@@ -51,10 +51,11 @@ SUPABASE_DB_USE_POOLER=true
 | Zod schemas | Done | `lib/schemas/clinicLedger.ts` |
 | Idempotent event ingest + double-entry | Done | `lib/clinic/finance/postPaymentEvent.server.ts` |
 | Clinic NMI webhook | Done | `app/api/webhooks/clinic-nmi/route.ts` |
-| NMI / QBO adapters (scaffold) | Done | `lib/integrations/providers/` |
+| NMI / QBO / GHL adapters | Done | `lib/integrations/providers/` |
+| QBO OAuth via Integration Hub | Done | `app/api/integrations/[slug]/oauth/*` |
+| Admin finance panel (ledger read-only) | Done | `features/admin/components/wellness/ClinicFinancePanel.tsx` |
+| Monthly QBO sync cron | Done | `app/api/cron/clinic-accounting-sync/route.ts` |
 | Admin settlement import UI | Planned | — |
-| QBO journal entry generator (live) | Planned | `quickbooks_online.adapter.ts` |
-| Integration Hub: QBO OAuth via registry | Planned | — |
 
 See strategic blueprint Pillar 2 — *Accounting and NMI Reconciliation Architecture*.
 
@@ -72,7 +73,20 @@ See strategic blueprint Pillar 2 — *Accounting and NMI Reconciliation Architec
 | Fullscript GraphQL + webhook verify | Done | `lib/integrations/providers/fullscript.adapter.ts` |
 | Fullscript lab → `clinic_lab_results` sync | Done | `lib/integrations/fullscript/labOrderSync.server.ts` |
 | Fullscript webhook route | Done | `app/api/webhooks/fullscript/route.ts` |
-| Encounter Recorder UI | Planned | — |
+| Audio TTL cleanup cron | Done | `app/api/cron/clinic-encounter-audio-cleanup/route.ts` |
+
+---
+
+## Sprint 4 — Provider Encounter Command Center
+
+| Task | Status | Location |
+|------|--------|----------|
+| Encounter Recorder UI | Done | `features/clinic/components/EncounterRecorder.tsx` |
+| SOAP note editor + sign-off | Done | `features/clinic/components/SoapNoteEditor.tsx` |
+| Encounter lifecycle actions | Done | `features/clinic/actions/encounterActions.ts` |
+| Ambient chunk upload API | Done | `app/api/clinic/ambient/upload/route.ts` |
+| Provider command center page | Done | `/admin/wellness/patients/[patientId]/encounter` |
+| Fullscript dispatch on finalize | Done | `lib/integrations/fullscript/labOrderSync.server.ts` |
 
 ---
 
@@ -130,7 +144,9 @@ curl https://www.tptclinic.com/robots.txt
 
 ## Manual Steps (Not Automatable)
 
-1. Apply Supabase migrations `0001`–`0009` in Dashboard (or `supabase link` + `db push`)
+1. Apply Supabase migrations `0001`–`0012` in Dashboard (or `supabase link` + `db push`)
 2. Set `INTEGRATIONS_MASTER_KEY` in Vercel Production
 3. Set `SUPABASE_POOLER_URL` + `SUPABASE_DB_USE_POOLER=true` in Vercel
-4. Confirm Supabase Auth redirect URLs include `tptclinic.com`
+4. Set `AWS_HEALTHSCRIBE_*` (or `AWS_HEALTHSCRIBE_DRY_RUN=true` for staging)
+5. Set `FULLSCRIPT_API_KEY` + `FULLSCRIPT_WEBHOOK_SIGNING_SECRET`
+6. Confirm Supabase Auth redirect URLs include `tptclinic.com`

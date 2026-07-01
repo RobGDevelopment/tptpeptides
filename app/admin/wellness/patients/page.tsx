@@ -62,12 +62,13 @@ export default async function AdminWellnessPatientsPage() {
                 <th>DOB</th>
                 <th>Phone</th>
                 <th>Registered</th>
+                <th>Encounter</th>
               </tr>
             </thead>
             <tbody>
               {patients.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center text-muted py-10">
+                  <td colSpan={6} className="text-center text-muted py-10">
                     {loadError ? 'Patient directory unavailable.' : 'No patients registered yet.'}
                   </td>
                 </tr>
@@ -81,6 +82,14 @@ export default async function AdminWellnessPatientsPage() {
                     <td className="text-secondary">{formatDob(patient.dateOfBirth)}</td>
                     <td className="text-secondary">{patient.phone?.trim() || '—'}</td>
                     <td className="text-muted text-xs">{formatCreatedAt(patient.createdAt)}</td>
+                    <td>
+                      <Link
+                        href={`/admin/wellness/patients/${patient.id}/encounter`}
+                        className="terminal-link text-xs"
+                      >
+                        Start →
+                      </Link>
+                    </td>
                   </tr>
                 ))
               )}
