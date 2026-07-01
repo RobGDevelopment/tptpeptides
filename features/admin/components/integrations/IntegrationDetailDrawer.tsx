@@ -12,6 +12,7 @@ import { IntegrationTestButton } from './IntegrationTestButton';
 import { Button } from '../../../../components/ui/Button';
 import { Input } from '../../../../components/ui/Input';
 import { getIntegrationDefinition } from '../../../../lib/integrations/registry';
+import { buildOAuthStartPath, isOAuthIntegrationSlug } from '../../../../lib/integrations/oauth/constants';
 import {
   MODE_LABELS,
   PUBLIC_CONFIG_FIELD_LABELS,
@@ -249,6 +250,34 @@ export function IntegrationDetailDrawer({
                       })}
                     </div>
                   </section>
+
+                  {isOAuthIntegrationSlug(slug) ? (
+                    <section className="space-y-3 rounded-sm border border-gold-light/20 bg-gold-light/5 p-4">
+                      <h3 className="text-[10px] tracking-caps uppercase text-muted">OAuth connection</h3>
+                      <p className="text-xs text-secondary font-light">
+                        Connect {definition.label} securely via OAuth. Tokens are encrypted in
+                        Supabase using AES-256-GCM.
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {definition.modes.includes('sandbox') ? (
+                          <a
+                            href={buildOAuthStartPath(slug, 'sandbox')}
+                            className="inline-flex items-center rounded-sm border border-white/[0.12] px-3 py-2 text-[10px] tracking-caps uppercase text-secondary hover:text-primary hover:border-white/[0.2] transition-colors"
+                          >
+                            Connect sandbox
+                          </a>
+                        ) : null}
+                        {definition.modes.includes('live') ? (
+                          <a
+                            href={buildOAuthStartPath(slug, 'live')}
+                            className="inline-flex items-center rounded-sm border border-gold-light/30 bg-gold-light/10 px-3 py-2 text-[10px] tracking-caps uppercase text-gold-light hover:bg-gold-light/15 transition-colors"
+                          >
+                            Connect live
+                          </a>
+                        ) : null}
+                      </div>
+                    </section>
+                  ) : null}
 
                   <section className="space-y-4 rounded-sm border border-white/[0.06] bg-surface/20 p-4">
                     <h3 className="text-[10px] tracking-caps uppercase text-muted">Public configuration</h3>

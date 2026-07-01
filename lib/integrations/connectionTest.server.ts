@@ -2,6 +2,9 @@ import 'server-only';
 
 import { getIntegrationDefinition } from './registry';
 import { testOpenLoopConnection } from './providers/openloop.adapter';
+import { testGoHighLevelConnection } from './providers/gohighlevel.adapter';
+import { testFullscriptGraphqlConnection } from './providers/fullscript.adapter';
+import { testQuickBooksOnlineConnection } from './providers/quickbooks_online.adapter';
 import type {
   ConnectionTestResult,
   IntegrationDefinition,
@@ -116,6 +119,12 @@ export async function runIntegrationConnectionTest(
   switch (slug) {
     case 'openloop':
       return testOpenLoopConnection(resolved);
+    case 'quickbooks_online':
+      return testQuickBooksOnlineConnection(resolved);
+    case 'gohighlevel':
+      return testGoHighLevelConnection(resolved);
+    case 'fullscript':
+      return testFullscriptGraphqlConnection(resolved);
     case 'resend':
       return testResendConnection(resolved);
     default:

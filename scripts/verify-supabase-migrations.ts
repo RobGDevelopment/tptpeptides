@@ -22,6 +22,13 @@ const EXPECTED_TABLES = [
   'platform_integrations',
   'clinic_messages',
   'clinic_lab_results',
+  'clinic_payment_events',
+  'clinic_ledger_entries',
+  'clinic_settlement_batches',
+  'clinic_qbo_sync_queue',
+  'clinic_encounters',
+  'clinic_encounter_transcripts',
+  'clinic_encounter_audit_log',
 ] as const;
 
 function readEnv(name: string): string | null {
@@ -57,7 +64,7 @@ async function main() {
 
   checks.push({
     name: 'migration files on disk',
-    ok: migrations.length >= 9,
+    ok: migrations.length >= 12,
     detail: `${migrations.length} files (${migrations[migrations.length - 1] ?? 'none'})`,
   });
 

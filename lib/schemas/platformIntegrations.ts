@@ -109,6 +109,7 @@ export const integrationAuditActionSchema = z.enum([
   'secrets_rotated',
   'public_config_updated',
   'test_connection',
+  'oauth_connected',
   'enabled',
   'disabled',
 ]);

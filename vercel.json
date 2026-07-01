@@ -17,6 +17,10 @@
       "schedule": "0 6 1 * *"
     },
     {
+      "path": "/api/cron/clinic-accounting-sync",
+      "schedule": "0 7 1 * *"
+    },
+    {
       "path": "/api/cron/wellness-intake-sla",
       "schedule": "0 * * * *"
     }
