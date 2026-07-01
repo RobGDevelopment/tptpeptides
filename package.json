@@ -16,6 +16,7 @@
     "sync:firebase-env": "tsx scripts/sync-firebase-env-to-vercel.ts",
     "verify:supabase-env": "tsx scripts/verify-supabase-env.ts",
     "verify:supabase-migrations": "tsx scripts/verify-supabase-migrations.ts",
+    "verify:supabase-pooler": "tsx scripts/verify-supabase-pooler.ts",
     "sync:supabase-env": "tsx scripts/sync-supabase-env-to-vercel.ts",
     "enable:prod-modules": "tsx scripts/enable-prod-modules.ts",
     "setup:clinic-dev": "tsx scripts/setup-clinic-dev.ts",
@@ -25,6 +26,8 @@
     "test:clinic-dispatch": "tsx scripts/run-clinic-dispatch-test.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1077.0",
+    "@aws-sdk/client-transcribe": "^3.1077.0",
     "@hookform/resolvers": "^5.4.0",
     "@sentry/nextjs": "^10.62.0",
     "@supabase/ssr": "^0.12.0",
@@ -36,6 +39,7 @@
     "firebase-admin": "^14.1.0",
     "next": "16.2.9",
     "page-flip": "^2.0.7",
+    "postgres": "^3.4.9",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "react-hook-form": "^7.80.0",

@@ -3,6 +3,7 @@ import {
   apiKeyPairSecretSchema,
   apiKeySecretSchema,
   gohighlevelPublicConfigSchema,
+  integrationSecretPayloadSchema,
   integrationPublicConfigSchema,
   nmiPublicConfigSchema,
   openLoopPublicConfigSchema,
@@ -105,15 +106,20 @@ export const quickbooksOnlineIntegrationDefinition: IntegrationDefinition = {
   label: 'QuickBooks Online',
   category: 'financial',
   description: 'Accounting sync and journal entry export for B2B and clinic revenue.',
-  availability: 'coming_soon',
+  availability: 'active',
   modes: ['disconnected', 'sandbox', 'live'],
-  credentialSchema: apiKeySecretSchema,
+  credentialSchema: integrationSecretPayloadSchema.pick({
+    clientId: true,
+    clientSecret: true,
+    accessToken: true,
+    refreshToken: true,
+  }),
   publicConfigSchema: quickbooksPublicConfigSchema,
   requiredSecrets: {
-    live: ['apiKey'],
+    live: ['accessToken'],
   },
   supportsWebhooks: true,
-  supportsConnectionTest: false,
+  supportsConnectionTest: true,
 };
 
 export const gohighlevelIntegrationDefinition: IntegrationDefinition = {
@@ -121,15 +127,20 @@ export const gohighlevelIntegrationDefinition: IntegrationDefinition = {
   label: 'GoHighLevel',
   category: 'crm_comms',
   description: 'CRM automations, pipelines, and patient nurture workflows.',
-  availability: 'coming_soon',
+  availability: 'active',
   modes: ['disconnected', 'sandbox', 'live'],
-  credentialSchema: apiKeySecretSchema,
+  credentialSchema: integrationSecretPayloadSchema.pick({
+    clientId: true,
+    clientSecret: true,
+    accessToken: true,
+    refreshToken: true,
+  }),
   publicConfigSchema: gohighlevelPublicConfigSchema,
   requiredSecrets: {
-    live: ['apiKey'],
+    live: ['accessToken'],
   },
   supportsWebhooks: true,
-  supportsConnectionTest: false,
+  supportsConnectionTest: true,
 };
 
 export const twilioIntegrationDefinition: IntegrationDefinition = {

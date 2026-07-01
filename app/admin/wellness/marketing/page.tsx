@@ -5,7 +5,9 @@ import {
   getRevenueMetrics,
   getTelehealthBillingStrategy,
 } from '../../../../features/admin/actions/revenueActions';
+import { getClinicFinanceMetrics } from '../../../../features/admin/actions/financeActions';
 import { BillingStrategyPanel } from '../../../../features/admin/components/wellness/BillingStrategyPanel';
+import { ClinicFinancePanel } from '../../../../features/admin/components/wellness/ClinicFinancePanel';
 import {
   RevenueMarketingPanel,
   RevenueMetricsSnapshot,
@@ -25,14 +27,16 @@ export default async function AdminWellnessMarketingPage() {
   let metrics: Awaited<ReturnType<typeof getRevenueMetrics>> | null = null;
   let billingStrategy: Awaited<ReturnType<typeof getTelehealthBillingStrategy>> =
     'upfront_capture';
+  let financeMetrics: Awaited<ReturnType<typeof getClinicFinanceMetrics>> | null = null;
   let loadError: string | null = null;
 
   try {
-    [tiers, promotions, metrics, billingStrategy] = await Promise.all([
+    [tiers, promotions, metrics, billingStrategy, financeMetrics] = await Promise.all([
       getPricingTiers(),
       getPromotions(),
       getRevenueMetrics(),
       getTelehealthBillingStrategy(),
+      getClinicFinanceMetrics(),
     ]);
   } catch (caught) {
     loadError = caught instanceof Error ? caught.message : 'Unable to load revenue dashboard.';
@@ -52,6 +56,8 @@ export default async function AdminWellnessMarketingPage() {
       ) : null}
 
       <BillingStrategyPanel initialStrategy={billingStrategy} />
+
+      {financeMetrics ? <ClinicFinancePanel metrics={financeMetrics} /> : null}
 
       {metrics ? <RevenueMetricsSnapshot metrics={metrics} /> : null}
 

@@ -45,25 +45,34 @@ SUPABASE_DB_USE_POOLER=true
 
 **Goal:** Reconcile high-risk processor rolling reserves without fracturing gross revenue.
 
-| Task | Status |
-|------|--------|
-| Migration `0010_nmi_clearing_ledger.sql` | Planned |
-| Supabase `clinic_payment_settlements` table | Planned |
-| Admin settlement import UI | Planned |
-| QBO journal entry generator (clearing account) | Planned |
-| Integration Hub: QBO OAuth via registry | Planned |
+| Task | Status | Location |
+|------|--------|----------|
+| Migration `0010_clinic_financial_ledger.sql` | Done | `supabase/migrations/` |
+| Zod schemas | Done | `lib/schemas/clinicLedger.ts` |
+| Idempotent event ingest + double-entry | Done | `lib/clinic/finance/postPaymentEvent.server.ts` |
+| Clinic NMI webhook | Done | `app/api/webhooks/clinic-nmi/route.ts` |
+| NMI / QBO adapters (scaffold) | Done | `lib/integrations/providers/` |
+| Admin settlement import UI | Planned | — |
+| QBO journal entry generator (live) | Planned | `quickbooks_online.adapter.ts` |
+| Integration Hub: QBO OAuth via registry | Planned | — |
 
 See strategic blueprint Pillar 2 — *Accounting and NMI Reconciliation Architecture*.
 
 ---
 
-## Sprint 3 — Integration Expansion & Ambient Scribe Foundation
+## Sprint 3 — Fulfillment & Ambient AI Foundation
 
-| Task | Status |
-|------|--------|
-| Fullscript / Rupa Health webhook pipeline | Planned |
-| GoHighLevel CRM handoff | Planned |
-| Ambient AI scribe event schema + BAA vendor eval | Planned |
+| Task | Status | Location |
+|------|--------|----------|
+| Migration `0011_clinic_encounters.sql` | Done | Encounters, transcripts, audit log |
+| Migration `0012_clinic_encounter_storage.sql` | Done | `clinic_encounters_audio` bucket + expiry helper |
+| Zod schemas | Done | `lib/schemas/clinicEncounters.ts` |
+| AWS HealthScribe client | Done | `lib/clinic/ambient/healthScribe.client.server.ts` |
+| Transcription pipeline + audio deletion | Done | `lib/clinic/ambient/transcribePipeline.server.ts` |
+| Fullscript GraphQL + webhook verify | Done | `lib/integrations/providers/fullscript.adapter.ts` |
+| Fullscript lab → `clinic_lab_results` sync | Done | `lib/integrations/fullscript/labOrderSync.server.ts` |
+| Fullscript webhook route | Done | `app/api/webhooks/fullscript/route.ts` |
+| Encounter Recorder UI | Planned | — |
 
 ---
 
