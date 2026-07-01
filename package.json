@@ -15,6 +15,7 @@
     "health:check": "tsx scripts/health-check.ts",
     "sync:firebase-env": "tsx scripts/sync-firebase-env-to-vercel.ts",
     "verify:supabase-env": "tsx scripts/verify-supabase-env.ts",
+    "verify:supabase-migrations": "tsx scripts/verify-supabase-migrations.ts",
     "sync:supabase-env": "tsx scripts/sync-supabase-env-to-vercel.ts",
     "enable:prod-modules": "tsx scripts/enable-prod-modules.ts",
     "setup:clinic-dev": "tsx scripts/setup-clinic-dev.ts",

@@ -23,8 +23,9 @@ function TermsLink({ href }: { href: string }) {
 }
 
 const CLINIC_FOOTER_LINKS = [
+  { href: '/about', label: 'About' },
   { href: '/intake', label: 'Medical Intake' },
-  { href: '/dashboard', label: 'Patient Dashboard' },
+  { href: '/dashboard', label: 'Patient Portal' },
   { href: '/privacy', label: 'Privacy' },
 ] as const;
 
@@ -45,6 +46,9 @@ export function ClinicFooter({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-14">
         <p className="text-xs tracking-caps uppercase text-muted text-center mb-4 max-w-2xl mx-auto font-light">
           {tagline}
+        </p>
+        <p className="text-[10px] tracking-caps uppercase text-muted text-center mb-3 max-w-xl mx-auto font-light">
+          HIPAA-aligned infrastructure · Physician-led care · BAA-covered PHI processors
         </p>
         <p className="text-[10px] tracking-caps uppercase text-muted text-center mb-6">
           Support:{' '}

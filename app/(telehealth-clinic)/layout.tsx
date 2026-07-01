@@ -8,11 +8,36 @@ import {
   resolveTenantSupportEmail,
   resolveTenantTermsUrl,
 } from '../../lib/tenant/content';
-import { CLINIC_BRAND_NAME } from '../../lib/tenant/constants';
+import { CLINIC_BRAND_NAME, CLINIC_CANONICAL_SITE_URL } from '../../lib/tenant/constants';
+import { CLINIC_SEO } from '../../lib/tenant/clinicSeo';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(CLINIC_CANONICAL_SITE_URL),
   applicationName: CLINIC_BRAND_NAME,
-  description: 'Board-certified telehealth weight loss and longevity programs from TPT Clinic.',
+  title: {
+    default: CLINIC_SEO.title,
+    template: `%s | ${CLINIC_BRAND_NAME}`,
+  },
+  description: CLINIC_SEO.description,
+  keywords: [...CLINIC_SEO.keywords],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: CLINIC_CANONICAL_SITE_URL,
+    siteName: CLINIC_BRAND_NAME,
+    title: CLINIC_SEO.title,
+    description: CLINIC_SEO.description,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: CLINIC_SEO.title,
+    description: CLINIC_SEO.description,
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

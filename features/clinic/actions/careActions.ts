@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '../../../lib/supabase/server';
+import { withSupabaseRetry } from '../../../lib/supabase/retry.server';
 import {
   sendPatientMessageSchema,
   type ClinicLabResult,
@@ -91,11 +92,13 @@ export async function getPatientMessages(): Promise<ClinicMessage[]> {
   if (!patientId) return [];
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('clinic_messages')
-    .select('id, patient_id, provider_uid, sender_role, content, read_at, created_at')
-    .eq('patient_id', patientId)
-    .order('created_at', { ascending: true });
+  const { data, error } = await withSupabaseRetry(async () =>
+    supabase
+      .from('clinic_messages')
+      .select('id, patient_id, provider_uid, sender_role, content, read_at, created_at')
+      .eq('patient_id', patientId)
+      .order('created_at', { ascending: true })
+  );
 
   if (error) {
     throw new Error(error.message);
@@ -138,11 +141,13 @@ export async function getPatientLabs(): Promise<ClinicLabResult[]> {
   if (!patientId) return [];
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('clinic_lab_results')
-    .select('id, patient_id, title, status, file_url, provider_notes, created_at')
-    .eq('patient_id', patientId)
-    .order('created_at', { ascending: false });
+  const { data, error } = await withSupabaseRetry(async () =>
+    supabase
+      .from('clinic_lab_results')
+      .select('id, patient_id, title, status, file_url, provider_notes, created_at')
+      .eq('patient_id', patientId)
+      .order('created_at', { ascending: false })
+  );
 
   if (error) {
     throw new Error(error.message);

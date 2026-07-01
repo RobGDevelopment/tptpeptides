@@ -1,8 +1,31 @@
 import type { MetadataRoute } from 'next';
-import { getSiteUrl } from '../lib/site';
+import { CLINIC_BLOCKED_PUBLIC_PATHS } from '../lib/tenant/clinicSeo';
+import { getRequestSiteUrl, getRequestTenantLane } from '../lib/tenant/getRequestSite.server';
 
-export default function robots(): MetadataRoute.Robots {
-  const baseUrl = getSiteUrl();
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const baseUrl = await getRequestSiteUrl();
+  const lane = await getRequestTenantLane();
+
+  if (lane === 'telehealth') {
+    const clinicDisallow = [
+      '/admin',
+      '/admin/',
+      '/api',
+      '/api/',
+      '/b2b',
+      '/clinic',
+      ...CLINIC_BLOCKED_PUBLIC_PATHS,
+    ];
+
+    return {
+      rules: {
+        userAgent: '*',
+        allow: '/',
+        disallow: clinicDisallow,
+      },
+      sitemap: `${baseUrl}/sitemap.xml`,
+    };
+  }
 
   return {
     rules: {

@@ -1,10 +1,21 @@
 import type { MetadataRoute } from 'next';
 import catalogData from '../lib/data/catalog.json';
-import { getSiteUrl } from '../lib/site';
+import { CLINIC_SITEMAP_ROUTES } from '../lib/tenant/clinicSeo';
+import { getRequestSiteUrl, getRequestTenantLane } from '../lib/tenant/getRequestSite.server';
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = getSiteUrl();
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const baseUrl = await getRequestSiteUrl();
   const now = new Date();
+  const lane = await getRequestTenantLane();
+
+  if (lane === 'telehealth') {
+    return CLINIC_SITEMAP_ROUTES.map((route) => ({
+      url: `${baseUrl}${route.path === '/' ? '' : route.path}`,
+      lastModified: now,
+      changeFrequency: route.changeFrequency,
+      priority: route.priority,
+    }));
+  }
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: now, changeFrequency: 'daily', priority: 1 },

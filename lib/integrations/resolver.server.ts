@@ -11,6 +11,7 @@ import {
 } from './errors';
 import { getIntegrationDefinition } from './registry';
 import { createAdminClient } from '../supabase/admin';
+import { withSupabaseRetry } from '../supabase/retry.server';
 import type {
   IntegrationMode,
   IntegrationPublicConfig,
@@ -125,13 +126,15 @@ function decryptModeSecrets(
 
 export async function getIntegrationRow(slug: IntegrationSlug): Promise<PlatformIntegrationRow | null> {
   const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from('platform_integrations')
-    .select(
-      'id, slug, category, mode, is_enabled, public_config, secrets_ciphertext_sandbox, secrets_ciphertext_live, encryption_key_version, last_tested_at, last_test_status, last_test_error, updated_at'
-    )
-    .eq('slug', slug)
-    .maybeSingle();
+  const { data, error } = await withSupabaseRetry(async () =>
+    supabase
+      .from('platform_integrations')
+      .select(
+        'id, slug, category, mode, is_enabled, public_config, secrets_ciphertext_sandbox, secrets_ciphertext_live, encryption_key_version, last_tested_at, last_test_status, last_test_error, updated_at'
+      )
+      .eq('slug', slug)
+      .maybeSingle()
+  );
 
   if (error) {
     throw new Error(error.message);
@@ -142,13 +145,15 @@ export async function getIntegrationRow(slug: IntegrationSlug): Promise<Platform
 
 export async function listIntegrationRows(): Promise<PlatformIntegrationRow[]> {
   const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from('platform_integrations')
-    .select(
-      'id, slug, category, mode, is_enabled, public_config, secrets_ciphertext_sandbox, secrets_ciphertext_live, encryption_key_version, last_tested_at, last_test_status, last_test_error, updated_at'
-    )
-    .order('category', { ascending: true })
-    .order('slug', { ascending: true });
+  const { data, error } = await withSupabaseRetry(async () =>
+    supabase
+      .from('platform_integrations')
+      .select(
+        'id, slug, category, mode, is_enabled, public_config, secrets_ciphertext_sandbox, secrets_ciphertext_live, encryption_key_version, last_tested_at, last_test_status, last_test_error, updated_at'
+      )
+      .order('category', { ascending: true })
+      .order('slug', { ascending: true })
+  );
 
   if (error) {
     throw new Error(error.message);

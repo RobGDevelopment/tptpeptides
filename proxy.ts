@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { TENANT_ID_HEADER } from './lib/tenant/constants';
+import { isClinicBlockedPublicPath } from './lib/tenant/clinicSeo';
 import { getB2bAdminBaseUrl } from './lib/tenant/liveSites.edge';
 import { resolveTenantFromHost, type TenantResolution } from './lib/tenant/resolveTenant.edge';
 import { updateSession } from './lib/supabase/middleware';
@@ -53,6 +54,12 @@ export async function proxy(request: NextRequest) {
   if (resolution.lane === 'telehealth' && pathname.startsWith('/admin')) {
     const adminUrl = new URL('/admin', getB2bAdminBaseUrl());
     const response = NextResponse.redirect(adminUrl);
+    return finalizeResponse(request, response, resolution);
+  }
+
+  // 2b. Clinic lane — block legacy B2B/research URL slugs (308 → home)
+  if (resolution.lane === 'telehealth' && isClinicBlockedPublicPath(pathname)) {
+    const response = NextResponse.redirect(new URL('/', request.url), 308);
     return finalizeResponse(request, response, resolution);
   }
 
