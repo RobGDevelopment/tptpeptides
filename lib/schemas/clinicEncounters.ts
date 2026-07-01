@@ -18,6 +18,7 @@ export const clinicEncounterAuditActionSchema = z.enum([
   'audio_deleted',
   'transcription_failed',
   'encounter_finalized',
+  'note_draft_saved',
   'audio_expired',
 ]);
 

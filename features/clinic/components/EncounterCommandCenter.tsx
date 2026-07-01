@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { AdminPageHeader } from '../../../components/ui/AdminPageHeader';
 import { Spinner } from '../../../components/ui/Spinner';
 import type {
@@ -33,6 +34,7 @@ export function EncounterCommandCenter({
   medicalIntakeId,
   patientLabel,
 }: EncounterCommandCenterProps) {
+  const router = useRouter();
   const [detail, setDetail] = useState<EncounterDetail | null>(null);
   const [loading, setLoading] = useState(Boolean(encounterId));
   const [creating, setCreating] = useState(false);
@@ -80,6 +82,7 @@ export function EncounterCommandCenter({
     }
 
     setDetail({ encounter: result.data.encounter, transcript: null });
+    router.replace(`/admin/wellness/encounters/${result.data.encounter.id}`);
   };
 
   const handleStatusChange = (status: ClinicEncounterStatus) => {
